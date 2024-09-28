@@ -52,6 +52,7 @@
     "prettier:fix": "prettier --write 'src/**/*.{js,jsx,ts,tsx}'"
   },
   "devDependencies": {
+    "@types/dockerode": "^3.3.31",
     "@types/mocha": "^10.0.7",
     "@types/node": "20.x",
     "@types/vscode": "^1.93.0",
