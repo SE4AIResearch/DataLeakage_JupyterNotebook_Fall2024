@@ -54,6 +54,8 @@ function getWebviewOptions(extensionUri: vscode.Uri): vscode.WebviewOptions {
 class ButtonViewProvider {
   public static readonly viewType = 'data-leakage.buttonView';
 
+  private _isRunning: Boolean = false;
+
   private _view?: vscode.WebviewView;
 
   constructor(private readonly _extensionUri: vscode.Uri) {}
@@ -117,8 +119,11 @@ class ButtonViewProvider {
       vscode.window.activeNotebookEditor &&
       vscode.window.activeNotebookEditor?.notebook.uri.scheme === 'file' &&
       path.extname(vscode.window.activeNotebookEditor?.notebook.uri.fsPath) ===
-        '.ipynb'
+        '.ipynb' &&
+      this._isRunning === false
     ) {
+      this._isRunning = true;
+
       const fileData = vscode.window.activeNotebookEditor?.notebook
         .getCells()
         .filter((cell) => cell.kind === 2);
@@ -152,8 +157,8 @@ class ButtonViewProvider {
           },
         },
       );
-
       console.log(result);
+      this._isRunning = false;
     }
   }
 
