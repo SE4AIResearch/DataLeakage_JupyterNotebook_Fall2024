@@ -12,6 +12,12 @@
   "activationEvents": [],
   "main": "./dist/extension.js",
   "contributes": {
+    "commands": [
+      {
+        "command": "dataleakage-jupyternotebook-fall2024.runLeakageDetector",
+        "title": "Run Leakage Detector"
+      }
+    ],
     "viewsContainers": {
       "activitybar": [
         {
