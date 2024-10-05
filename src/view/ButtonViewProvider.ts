@@ -37,7 +37,7 @@ export class ButtonViewProvider {
     webviewView.webview.onDidReceiveMessage((data) => {
       switch (data.type) {
         case 'analyzeNotebook':
-          this.analyzeNotebook();
+          this.analyzeNotebookWithNotification();
           break;
       }
     });
@@ -49,7 +49,8 @@ export class ButtonViewProvider {
       vscode.window.activeNotebookEditor?.notebook.uri.scheme === 'file' &&
       path.extname(vscode.window.activeNotebookEditor?.notebook.uri.fsPath) ===
         '.ipynb' &&
-      this._isRunning === false
+      this._isRunning === false &&
+      this._view
     ) {
       this._isRunning = true;
 
@@ -71,8 +72,28 @@ export class ButtonViewProvider {
 
       await requestAlgorithm();
 
+      this._view.webview.postMessage({ type: 'analysisCompleted' });
       this._isRunning = false;
     }
+  }
+
+  public analyzeNotebookWithNotification() {
+    vscode.window.withProgress(
+      {
+        location: vscode.ProgressLocation.Window,
+        title: 'Analyzing Notebook',
+      },
+      async (progress) => {
+        return new Promise<void>((resolve) => {
+          (async () => {
+            progress.report({ increment: 0 });
+            await this.analyzeNotebook();
+            resolve();
+            progress.report({ increment: 100 });
+          })();
+        });
+      },
+    );
   }
 
   private _getHtmlForWebview(webview: vscode.Webview) {

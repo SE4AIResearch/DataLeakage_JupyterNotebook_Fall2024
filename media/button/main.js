@@ -2,26 +2,23 @@
 // It cannot access the main VS Code APIs directly.
 (function () {
   const vscode = acquireVsCodeApi();
+  const button = document.querySelector('.button');
 
-  document.querySelector('.button').addEventListener('click', (e) => {
+  button.addEventListener('click', (e) => {
     vscode.postMessage({ type: 'analyzeNotebook' });
+    button.disabled = true;
   });
 
-  // // Handle messages sent from the extension to the webview
-  // window.addEventListener('message', (event) => {
-  //   const message = event.data; // The json data that the extension sent
-  //   switch (message.type) {
-  //     case 'addColor': {
-  //       addColor();
-  //       break;
-  //     }
-  //     case 'clearColors': {
-  //       colors = [];
-  //       updateColorList(colors);
-  //       break;
-  //     }
-  //   }
-  // });
+  // Handle messages sent from the extension to the webview
+  window.addEventListener('message', (event) => {
+    const message = event.data; // The json data that the extension sent
+    switch (message.type) {
+      case 'analysisCompleted': {
+        button.disabled = false;
+        break;
+      }
+    }
+  });
 
   // /**
   //  * @param {Array<{ value: string }>} colors

@@ -26,6 +26,11 @@
         "command": "data-leakage.analyzeNotebook",
         "category": "Analysis",
         "title": "Analyze Jupyter Notebook file"
+      },
+      {
+        "command": "data-leakage.test",
+        "category": "Test",
+        "title": "Testing Notification"
       }
     ],
     "views": {
