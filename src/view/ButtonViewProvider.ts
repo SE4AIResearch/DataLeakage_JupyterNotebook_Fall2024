@@ -16,7 +16,10 @@ export class ButtonViewProvider {
 
   private _view?: vscode.WebviewView;
 
-  constructor(private readonly _extensionUri: vscode.Uri) {}
+  constructor(
+    private readonly _extensionUri: vscode.Uri,
+    private readonly _context: vscode.ExtensionContext,
+  ) {}
 
   public resolveWebviewView(
     webviewView: vscode.WebviewView,
@@ -40,7 +43,7 @@ export class ButtonViewProvider {
 
   public async analyzeNotebookWithNotification() {
     if (this._view) {
-      await analyzeNotebookWithNotification(this._view);
+      await analyzeNotebookWithNotification(this._view, this._context);
     } else {
       throw new Error("View wasn't created.");
     }

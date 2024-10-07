@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import { ButtonViewProvider } from './view/ButtonViewProvider';
 
 export function activate(context: vscode.ExtensionContext) {
-  const provider = new ButtonViewProvider(context.extensionUri);
+  const provider = new ButtonViewProvider(context.extensionUri, context);
   context.subscriptions.push(
     vscode.window.registerWebviewViewProvider(
       ButtonViewProvider.viewType,

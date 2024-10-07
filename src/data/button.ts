@@ -5,6 +5,7 @@ import { CellConversion } from '../helpers/CellConversion';
 import { DockerTemp, TempDir } from '../helpers/TempDir';
 import path from 'path';
 import fs from 'fs';
+import { StateManager } from '../helpers/stateManager';
 
 let _isRunning = false;
 
@@ -81,7 +82,10 @@ async function requestAlgorithm(tempDir: TempDir) {
   ]);
 }
 
-async function analyzeNotebook(view: vscode.WebviewView) {
+async function analyzeNotebook(
+  view: vscode.WebviewView,
+  context: vscode.ExtensionContext,
+) {
   if (
     vscode.window.activeNotebookEditor &&
     vscode.window.activeNotebookEditor?.notebook.uri.scheme === 'file' &&
@@ -105,6 +109,11 @@ async function analyzeNotebook(view: vscode.WebviewView) {
       flag: 'w',
     });
 
+    StateManager.saveTempDirState(context, {
+      id: tempDir.getId(),
+      path: tempDir.getAlgoInputFilePath(),
+    });
+
     console.log(`Input Directory is: ${tempDir.getAlgoDirPath()}`);
     console.log(`Input Python File is:\n${pythonStr}`);
 
@@ -119,6 +128,7 @@ async function analyzeNotebook(view: vscode.WebviewView) {
 
 export async function analyzeNotebookWithNotification(
   view: vscode.WebviewView,
+  context: vscode.ExtensionContext,
 ) {
   vscode.window.withProgress(
     {
@@ -129,7 +139,7 @@ export async function analyzeNotebookWithNotification(
       return new Promise<void>((resolve) => {
         (async () => {
           progress.report({ increment: 0 });
-          await analyzeNotebook(view);
+          await analyzeNotebook(view, context);
           resolve();
           progress.report({ increment: 100 });
         })();

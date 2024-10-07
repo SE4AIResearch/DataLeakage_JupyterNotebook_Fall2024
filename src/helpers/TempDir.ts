@@ -31,6 +31,10 @@ export class TempDir {
     return String(xxHash32(input, 0));
   }
 
+  public getId() {
+    return this._id;
+  }
+
   public getAlgoInputFilePath() {
     return this._algoInputFilePath;
   }
