@@ -2,7 +2,7 @@ import os from 'os';
 import path from 'path';
 import fs from 'fs';
 
-import { v4 as uuidv4 } from 'uuid';
+import { xxHash32 } from 'js-xxhash';
 
 const PYTHON_FILE_NAME = 'input.py';
 const tempDir = os.tmpdir();
@@ -12,19 +12,23 @@ export class TempDir {
   private _algoInputFilePath: string;
   private _algoDirPath: string;
 
-  constructor() {
+  constructor(str: string) {
     // FIXME: Refactor duplicate code / boilerplate
-    this._id = uuidv4();
+    this._id = this.computeHash(str);
     this._algoInputFilePath = path.join(tempDir, this._id, PYTHON_FILE_NAME);
     this._algoDirPath = path.join(tempDir, this._id);
 
     try {
       fs.mkdirSync(this._algoDirPath);
     } catch {
-      this._id = uuidv4();
+      this._id = this.computeHash(str);
       this._algoInputFilePath = path.join(tempDir, this._id, PYTHON_FILE_NAME);
       this._algoDirPath = path.join(tempDir, this._id);
     }
+  }
+
+  private computeHash(input: string): string {
+    return String(xxHash32(input, 0));
   }
 
   public getAlgoInputFilePath() {

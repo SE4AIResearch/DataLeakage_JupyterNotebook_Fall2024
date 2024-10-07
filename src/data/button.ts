@@ -98,7 +98,7 @@ async function analyzeNotebook(view: vscode.WebviewView) {
       vscode.window.activeNotebookEditor?.notebook,
     );
 
-    const tempDir = new TempDir();
+    const tempDir = new TempDir(pythonStr);
 
     fs.writeFileSync(tempDir.getAlgoInputFilePath(), pythonStr, {
       encoding: 'utf8',
