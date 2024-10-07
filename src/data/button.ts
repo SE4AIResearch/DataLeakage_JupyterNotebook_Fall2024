@@ -2,14 +2,13 @@ import * as vscode from 'vscode';
 
 import Docker, { ImageInfo } from 'dockerode';
 import { CellConversion } from '../helpers/CellConversion';
-import {
-  ALGO_CONTAINER_DIR_PATH,
-  ALGO_HOST_DIR_PATH,
-  IMAGE_NAME,
-  getAlgoInputFilePath,
-} from '../helpers/utils';
+import { DockerTemp, TempDir } from '../helpers/TempDir';
+import path from 'path';
+import fs from 'fs';
 
-export async function ensureImageExist(docker: Docker, imageName: string) {
+let _isRunning = false;
+
+async function ensureImageExist(docker: Docker, imageName: string) {
   try {
     const images: ImageInfo[] = await docker.listImages();
 
@@ -42,7 +41,8 @@ export async function ensureImageExist(docker: Docker, imageName: string) {
   }
 }
 
-export function getNotebookInNormalFormat(
+// TODO: Maybe refactor this into cellConversion
+function getNotebookInNormalFormat(
   notebookFile: vscode.NotebookDocument,
 ): string {
   const cellConversion = new CellConversion();
@@ -56,18 +56,84 @@ export function getNotebookInNormalFormat(
   return cellConversion.insertCellIndices(codeCellsWithIndex)[1];
 }
 
-export async function requestAlgorithm() {
+async function requestAlgorithm(tempDir: TempDir) {
   const docker = new Docker();
-  await ensureImageExist(docker, IMAGE_NAME);
+  await ensureImageExist(docker, DockerTemp.IMAGE_NAME);
 
-  const result = await docker.run(
-    IMAGE_NAME,
-    [`${getAlgoInputFilePath(ALGO_CONTAINER_DIR_PATH)}`, `-o`],
-    process.stdout,
-    {
-      HostConfig: {
-        Binds: [`${ALGO_HOST_DIR_PATH}:${ALGO_CONTAINER_DIR_PATH}`],
+  const timeout = new Promise((res) =>
+    setTimeout(() => res('Timed out'), 20000),
+  );
+
+  const result = await Promise.race([
+    docker.run(
+      DockerTemp.IMAGE_NAME,
+      [`${DockerTemp.PYTHON_FILE_PATH}`, `-o`],
+      process.stdout,
+      {
+        HostConfig: {
+          Binds: [
+            `${tempDir.getAlgoDirPath()}:${DockerTemp.CONTAINER_DIR_PATH}`,
+          ],
+        },
       },
+    ),
+    timeout,
+  ]);
+}
+
+async function analyzeNotebook(view: vscode.WebviewView) {
+  if (
+    vscode.window.activeNotebookEditor &&
+    vscode.window.activeNotebookEditor?.notebook.uri.scheme === 'file' &&
+    path.extname(vscode.window.activeNotebookEditor?.notebook.uri.fsPath) ===
+      '.ipynb' &&
+    _isRunning === false &&
+    view
+  ) {
+    _isRunning = true;
+
+    // Convert Notebook -> Python
+
+    const pythonStr = getNotebookInNormalFormat(
+      vscode.window.activeNotebookEditor?.notebook,
+    );
+
+    const tempDir = new TempDir();
+
+    fs.writeFileSync(tempDir.getAlgoInputFilePath(), pythonStr, {
+      encoding: 'utf8',
+      flag: 'w',
+    });
+
+    console.log(`Input Directory is: ${tempDir.getAlgoDirPath()}`);
+    console.log(`Input Python File is:\n${pythonStr}`);
+
+    // Run Algorithm & Wait for result
+
+    await requestAlgorithm(tempDir);
+
+    view.webview.postMessage({ type: 'analysisCompleted' });
+    _isRunning = false;
+  }
+}
+
+export async function analyzeNotebookWithNotification(
+  view: vscode.WebviewView,
+) {
+  vscode.window.withProgress(
+    {
+      location: vscode.ProgressLocation.Window,
+      title: 'Analyzing Notebook',
+    },
+    async (progress) => {
+      return new Promise<void>((resolve) => {
+        (async () => {
+          progress.report({ increment: 0 });
+          await analyzeNotebook(view);
+          resolve();
+          progress.report({ increment: 100 });
+        })();
+      });
     },
   );
 }

@@ -3,13 +3,8 @@ import path from 'path';
 
 import * as vscode from 'vscode';
 
-import {
-  ALGO_HOST_DIR_PATH,
-  getAlgoInputFilePath,
-  getNonce,
-  getWebviewOptions,
-} from '../helpers/utils';
-import { getNotebookInNormalFormat, requestAlgorithm } from '../data/button';
+import { getNonce, getWebviewOptions } from '../helpers/utils';
+import { analyzeNotebookWithNotification } from '../data/button';
 
 /**
  * Manages Button Webview
@@ -43,57 +38,12 @@ export class ButtonViewProvider {
     });
   }
 
-  public async analyzeNotebook() {
-    if (
-      vscode.window.activeNotebookEditor &&
-      vscode.window.activeNotebookEditor?.notebook.uri.scheme === 'file' &&
-      path.extname(vscode.window.activeNotebookEditor?.notebook.uri.fsPath) ===
-        '.ipynb' &&
-      this._isRunning === false &&
-      this._view
-    ) {
-      this._isRunning = true;
-
-      // Convert Notebook -> Python
-
-      const pythonStr = getNotebookInNormalFormat(
-        vscode.window.activeNotebookEditor?.notebook,
-      );
-
-      console.log(`Input Directory is: ${ALGO_HOST_DIR_PATH}`);
-      console.log(`Input Python File is:\n${pythonStr}`);
-
-      fs.writeFileSync(getAlgoInputFilePath(ALGO_HOST_DIR_PATH), pythonStr, {
-        encoding: 'utf8',
-        flag: 'w',
-      });
-
-      // Run Algorithm & Wait for result
-
-      await requestAlgorithm();
-
-      this._view.webview.postMessage({ type: 'analysisCompleted' });
-      this._isRunning = false;
+  public async analyzeNotebookWithNotification() {
+    if (this._view) {
+      await analyzeNotebookWithNotification(this._view);
+    } else {
+      throw new Error("View wasn't created.");
     }
-  }
-
-  public analyzeNotebookWithNotification() {
-    vscode.window.withProgress(
-      {
-        location: vscode.ProgressLocation.Window,
-        title: 'Analyzing Notebook',
-      },
-      async (progress) => {
-        return new Promise<void>((resolve) => {
-          (async () => {
-            progress.report({ increment: 0 });
-            await this.analyzeNotebook();
-            resolve();
-            progress.report({ increment: 100 });
-          })();
-        });
-      },
-    );
   }
 
   private _getHtmlForWebview(webview: vscode.Webview) {
