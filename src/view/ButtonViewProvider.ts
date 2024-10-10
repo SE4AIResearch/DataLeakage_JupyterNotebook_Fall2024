@@ -4,7 +4,7 @@ import path from 'path';
 import * as vscode from 'vscode';
 
 import { getNonce, getWebviewOptions } from '../helpers/utils';
-import { analyzeNotebookWithNotification } from '../data/button';
+import { analyzeNotebookWithProgress } from '../data/button';
 
 /**
  * Manages Button Webview
@@ -35,15 +35,15 @@ export class ButtonViewProvider {
     webviewView.webview.onDidReceiveMessage((data) => {
       switch (data.type) {
         case 'analyzeNotebook':
-          this.analyzeNotebookWithNotification();
+          this.analyzeNotebook();
           break;
       }
     });
   }
 
-  public async analyzeNotebookWithNotification() {
+  public async analyzeNotebook() {
     if (this._view) {
-      await analyzeNotebookWithNotification(this._view, this._context);
+      await analyzeNotebookWithProgress(this._view, this._context);
     } else {
       throw new Error("View wasn't created.");
     }
@@ -89,7 +89,7 @@ export class ButtonViewProvider {
 			</head>
 			<body>
 
-				<button class="button">Analyze File</button>
+				<button class="button">Run Data Leakage Analyze</button>
 
         <script nonce="${nonce}" src="${scriptUri}"></script>
 			</body>

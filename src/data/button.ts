@@ -5,7 +5,7 @@ import { CellConversion } from '../helpers/CellConversion';
 import { DockerTemp, TempDir } from '../helpers/TempDir';
 import path from 'path';
 import fs from 'fs';
-import { StateManager } from '../helpers/stateManager';
+import { StateManager } from '../helpers/StateManager';
 
 let _isRunning = false;
 
@@ -82,6 +82,8 @@ async function requestAlgorithm(tempDir: TempDir) {
   ]);
 }
 
+// TODO: Refactor analyzeNotebook & analyzeNotebookWithNotification into one
+
 async function analyzeNotebook(
   view: vscode.WebviewView,
   context: vscode.ExtensionContext,
@@ -94,39 +96,52 @@ async function analyzeNotebook(
     _isRunning === false &&
     view
   ) {
-    _isRunning = true;
+    const startTime = performance.now();
+    try {
+      _isRunning = true;
 
-    // Convert Notebook -> Python
+      // Convert Notebook -> Python
 
-    const pythonStr = getNotebookInNormalFormat(
-      vscode.window.activeNotebookEditor?.notebook,
-    );
+      const pythonStr = getNotebookInNormalFormat(
+        vscode.window.activeNotebookEditor?.notebook,
+      );
 
-    const tempDir = new TempDir(pythonStr);
+      const tempDir = new TempDir(pythonStr);
 
-    fs.writeFileSync(tempDir.getAlgoInputFilePath(), pythonStr, {
-      encoding: 'utf8',
-      flag: 'w',
-    });
+      fs.writeFileSync(tempDir.getAlgoInputFilePath(), pythonStr, {
+        encoding: 'utf8',
+        flag: 'w',
+      });
 
-    StateManager.saveTempDirState(context, {
-      id: tempDir.getId(),
-      path: tempDir.getAlgoInputFilePath(),
-    });
+      StateManager.saveTempDirState(context, {
+        ogFilePath: vscode.window.activeNotebookEditor?.notebook.uri.fsPath,
+        tempDirPath: tempDir.getAlgoInputFilePath(),
+      });
 
-    console.log(`Input Directory is: ${tempDir.getAlgoDirPath()}`);
-    console.log(`Input Python File is:\n${pythonStr}`);
+      console.log(`Input Directory is: ${tempDir.getAlgoDirPath()}`);
+      console.log(`Input Python File is:\n${pythonStr}`);
 
-    // Run Algorithm & Wait for result
+      // Run Algorithm & Wait for result
 
-    await requestAlgorithm(tempDir);
-
-    view.webview.postMessage({ type: 'analysisCompleted' });
-    _isRunning = false;
+      await requestAlgorithm(tempDir);
+      const elapsedTime = (performance.now() - startTime) / 1000;
+      vscode.window.showInformationMessage(
+        `Analysis completed in ${elapsedTime} second${elapsedTime >= 1 && elapsedTime < 2 ? 's' : ''}`,
+      );
+      view.webview.postMessage({ type: 'analysisCompleted' });
+      _isRunning = false;
+    } catch (err) {
+      _isRunning = false;
+      view.webview.postMessage({ type: 'analysisCompleted' });
+      vscode.window.showInformationMessage(
+        'Analysis Failed: Unknown Error Encountered.',
+      );
+      throw err;
+    }
   }
 }
 
-export async function analyzeNotebookWithNotification(
+export async function analyzeNotebookWithProgress(
   view: vscode.WebviewView,
   context: vscode.ExtensionContext,
 ) {
@@ -136,14 +151,15 @@ export async function analyzeNotebookWithNotification(
       title: 'Analyzing Notebook',
     },
     async (progress) => {
-      return new Promise<void>((resolve) => {
-        (async () => {
-          progress.report({ increment: 0 });
+      return (async () => {
+        progress.report({ increment: 0 });
+        try {
           await analyzeNotebook(view, context);
-          resolve();
-          progress.report({ increment: 100 });
-        })();
-      });
+        } catch (err) {
+          console.error(err);
+        }
+        progress.report({ increment: 100 });
+      })();
     },
   );
 }

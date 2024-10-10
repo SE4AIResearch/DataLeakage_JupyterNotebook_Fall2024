@@ -1,8 +1,8 @@
 import * as vscode from 'vscode';
 
 export type TempState = {
-  id: string; // hash of python file
-  path: string;
+  ogFilePath: string; // File path of where the user stores their jupyter notebook file (not the temporary file path)
+  tempDirPath: string; // Path of the temporary directory
 };
 
 export class StateManager {
@@ -10,7 +10,7 @@ export class StateManager {
     context: vscode.ExtensionContext,
     tempState: TempState,
   ) {
-    context.globalState.update(tempState.id, tempState);
+    context.globalState.update(tempState.ogFilePath, tempState);
   }
 
   static loadTempDirState(
