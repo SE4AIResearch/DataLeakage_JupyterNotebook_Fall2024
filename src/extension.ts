@@ -1,7 +1,8 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
-import LeakageDetector from './leakageDetector/LeakageDetector';
+import Leakages from './Leakages/Leakages';
+// import Parser from './data/parser/Parser';
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
@@ -10,11 +11,8 @@ export function activate(context: vscode.ExtensionContext) {
     'dataleakage-jupyternotebook-fall2024.runLeakageDetector',
     async () => {
       try {
-        const leakageDetector = new LeakageDetector(
-          'src/_data/OverlapLeakage/',
-          context,
-        );
-        console.log(await leakageDetector.getOverlapLeakage());
+        const leakages = new Leakages('src/_output/OverlapLeakage/', context);
+        console.log(await leakages.getLeakages());
       } catch (error) {
         console.log(error);
       }
