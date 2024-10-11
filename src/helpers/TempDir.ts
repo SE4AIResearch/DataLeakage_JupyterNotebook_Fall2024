@@ -48,7 +48,7 @@ export class TempDir {
 export class DockerTemp {
   static IMAGE_NAME = 'owentruong/leakage-analysis:latest';
   static CONTAINER_DIR_PATH = '/input';
-  static PYTHON_FILE_PATH = path.join(
+  static PYTHON_FILE_PATH = path.posix.join(
     this.CONTAINER_DIR_PATH,
     PYTHON_FILE_NAME,
   );
