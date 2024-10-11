@@ -1,10 +1,10 @@
 import * as vscode from 'vscode';
 import { TextDecoder } from 'util';
 import LeakageInstance from '../LeakageInstance/LeakageInstance';
-import { LeakageType } from '../types';
+import { Leakage } from '../types';
 
 /**
- * Abstract class for all leakage detectors.
+ * Base class for all leakage detectors.
  *
  * Responsible for getting all the relevant information about its respective leakage type.
  */
@@ -16,18 +16,18 @@ export default abstract class LeakageDetector<
   private extensionContext: vscode.ExtensionContext;
   private textDecoder: TextDecoder;
 
-  protected leakageType: LeakageType;
+  protected leakageType: Leakage;
   protected leakageInstances: SpecificLeakageInstance[];
 
   protected internalLineMappings: Record<number, number> = {};
   protected invocationLineMappings: Record<string, number> = {};
-  protected invocationFunctionMappings: Record<string, string> = {};
+  // protected invocationFunctionMappings: Record<string, string> = {};
 
   constructor(
     outputDirectory: string,
     extensionContext: vscode.ExtensionContext,
     textDecoder: TextDecoder,
-    leakageType: LeakageType,
+    leakageType: Leakage,
   ) {
     this.outputDirectory = outputDirectory;
     this.extensionContext = extensionContext;
@@ -37,18 +37,18 @@ export default abstract class LeakageDetector<
     this.leakageInstances = [];
   }
 
-  getLeakageType(): LeakageType {
+  getLeakageType(): Leakage {
     return this.leakageType;
   }
 
   addMappings(
     internalLineMappings: Record<number, number>,
     invocationLineMappings: Record<string, number>,
-    invocationFunctionMappings: Record<string, string>,
+    // invocationFunctionMappings: Record<string, string>,
   ): void {
     this.internalLineMappings = internalLineMappings;
     this.invocationLineMappings = invocationLineMappings;
-    this.invocationFunctionMappings = invocationFunctionMappings;
+    // this.invocationFunctionMappings = invocationFunctionMappings;
   }
 
   addLeakageInstance(leakageInstance: SpecificLeakageInstance): void {

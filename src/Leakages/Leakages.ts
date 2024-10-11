@@ -3,16 +3,24 @@ import OverlapLeakageDetector from './LeakageDetector/OverlapLeakageDetector';
 import LeakageDetector from './LeakageDetector/LeakageDetector';
 import LeakageInstance from './LeakageInstance/LeakageInstance';
 import LeakageUtilities from './LeakageUtilities';
+import PreprocessingLeakageDetector from './LeakageDetector/PreprocessingLeakageDetector';
+import MultitestLeakageDetector from './LeakageDetector/MultitestLeakageDetector';
 
 /**
  * Main class responsible for getting all the leakage data.
  */
 export default class Leakages {
-  private leakageDetectors: LeakageDetector<any>[];
   private leakageUtilities: LeakageUtilities;
+  private leakageDetectors: LeakageDetector<any>[];
 
   constructor(outputDirectory: string, extensionContext: ExtensionContext) {
     const textDecoder = new TextDecoder();
+
+    this.leakageUtilities = new LeakageUtilities(
+      outputDirectory,
+      extensionContext,
+      textDecoder,
+    );
 
     this.leakageDetectors = [
       new OverlapLeakageDetector(
@@ -20,12 +28,17 @@ export default class Leakages {
         extensionContext,
         textDecoder,
       ),
+      new PreprocessingLeakageDetector(
+        outputDirectory,
+        extensionContext,
+        textDecoder,
+      ),
+      new MultitestLeakageDetector(
+        outputDirectory,
+        extensionContext,
+        textDecoder,
+      ),
     ];
-    this.leakageUtilities = new LeakageUtilities(
-      outputDirectory,
-      extensionContext,
-      textDecoder,
-    );
   }
 
   /**
@@ -37,15 +50,16 @@ export default class Leakages {
   async getLeakages(): Promise<LeakageInstance[]> {
     const leakageInstances: LeakageInstance[] = [];
 
+    // Populates the utilities object with all the necessary mappings.
     await this.leakageUtilities.readInternalLineMappings();
     await this.leakageUtilities.readInvocationLineMappings();
-    await this.leakageUtilities.readInvocationFunctionMappings();
+    // await this.leakageUtilities.readInvocationFunctionMappings(); // TBD - May not be needed.
 
     for (const leakageDetector of this.leakageDetectors) {
       leakageDetector.addMappings(
         this.leakageUtilities.getInternalLineMappings(),
         this.leakageUtilities.getInvocationLineMappings(),
-        this.leakageUtilities.getInvocationFunctionMappings(),
+        // this.leakageUtilities.getInvocationFunctionMappings(),
       );
       leakageInstances.push(...(await leakageDetector.getLeakageInstances()));
     }

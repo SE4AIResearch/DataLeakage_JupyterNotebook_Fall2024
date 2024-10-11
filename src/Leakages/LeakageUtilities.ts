@@ -1,6 +1,5 @@
 import * as vscode from 'vscode';
 import { TextDecoder } from 'util';
-import Invocation from './LeakageInstance/Invocation';
 
 export default class LeakageUtilities {
   private outputDirectory: string;
@@ -39,12 +38,14 @@ export default class LeakageUtilities {
    * The actual line number is the line number of the end user's code.
    */
   public async readInternalLineMappings(): Promise<void> {
-    const data = await this.readFile('LinenoMapping.facts');
     const internalLineMappings: Record<number, number> = {};
-    data.forEach((line) => {
+
+    const file = await this.readFile('LinenoMapping.facts');
+    file.forEach((line) => {
       const [internalLine, actualLine] = line.split('\t');
       internalLineMappings[parseInt(internalLine)] = parseInt(actualLine);
     });
+
     this.internalLineMappings = internalLineMappings;
   }
 
@@ -52,12 +53,14 @@ export default class LeakageUtilities {
    * Looks through 'InvokeLineno.facts' to find all the mappings from invocation to internal line number.
    */
   public async readInvocationLineMappings(): Promise<void> {
-    const data = await this.readFile('InvokeLineno.facts');
     const invocationLineMappings: Record<string, number> = {};
-    data.forEach((line) => {
+
+    const file = await this.readFile('InvokeLineno.facts');
+    file.forEach((line) => {
       const [invocationString, internalLine] = line.split('\t');
       invocationLineMappings[invocationString] = parseInt(internalLine);
     });
+
     this.invocationLineMappings = invocationLineMappings;
   }
 
@@ -65,12 +68,14 @@ export default class LeakageUtilities {
    * Looks through 'Invoke.facts' to find all the mappings from invocation to function.
    */
   public async readInvocationFunctionMappings(): Promise<void> {
-    const data = await this.readFile('Invoke.facts');
     const invocationFunctionMappings: Record<string, string> = {};
-    data.forEach((line) => {
+
+    const file = await this.readFile('Invoke.facts');
+    file.forEach((line) => {
       const [invocationString, func] = line.split('\t');
       invocationFunctionMappings[invocationString] = func;
     });
+
     this.invocationFunctionMappings = invocationFunctionMappings;
   }
 

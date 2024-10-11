@@ -1,21 +1,36 @@
-import { LeakageType } from '../types';
-import Invocation from './Invocation';
 import LeakageInstance from './LeakageInstance';
+import {
+  Leakage,
+  PreprocessingLeakageTestingInfo,
+  PreprocessingLeakageTrainingInfo,
+} from '../types';
 
+/**
+ * Class containing all the relevant info about a preprocessing leakage.
+ */
 export default class PreprocessingLeakageInstance extends LeakageInstance {
-  getLeakageType(): LeakageType {
-    throw new Error('Method not implemented.');
+  private trainingInfo: PreprocessingLeakageTrainingInfo;
+  private testingInfo: PreprocessingLeakageTestingInfo;
+
+  constructor(
+    trainingInfo: PreprocessingLeakageTrainingInfo,
+    testingInfo: PreprocessingLeakageTestingInfo,
+  ) {
+    super();
+
+    this.trainingInfo = trainingInfo;
+    this.testingInfo = testingInfo;
   }
-  getTrainingInvocation(): Invocation {
-    throw new Error('Method not implemented.');
+
+  getLeakageType(): Leakage {
+    return Leakage.PreprocessingLeakage;
   }
-  getTrainingVariable(): string {
-    throw new Error('Method not implemented.');
+
+  getTrainingInfo(): PreprocessingLeakageTrainingInfo {
+    return this.trainingInfo;
   }
-  getTestingInvocation(): Invocation {
-    throw new Error('Method not implemented.');
-  }
-  getTestingVariable(): string {
-    throw new Error('Method not implemented.');
+
+  getTestingInfo(): PreprocessingLeakageTestingInfo {
+    return this.testingInfo;
   }
 }

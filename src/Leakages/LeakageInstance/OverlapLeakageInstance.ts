@@ -1,44 +1,36 @@
-import Invocation from './Invocation';
 import LeakageInstance from './LeakageInstance';
-import { LeakageType } from '../types';
+import {
+  Leakage,
+  OverlapLeakageTestingInfo,
+  OverlapLeakageTrainingInfo,
+} from '../types';
 
+/**
+ * Class containing all the relevant info about an overlap leakage.
+ */
 export default class OverlapLeakageInstance extends LeakageInstance {
-  private trainingInvocation: Invocation;
-  private trainingVariable: string;
-  private testingInvocation: Invocation;
-  private testingVariable: string;
+  private trainingInfo: OverlapLeakageTrainingInfo;
+  private testingInfo: OverlapLeakageTestingInfo;
 
   constructor(
-    trainingInvocation: Invocation,
-    trainingVariable: string,
-    testingInvocation: Invocation,
-    testingVariable: string,
+    trainingInfo: OverlapLeakageTrainingInfo,
+    testingInfo: OverlapLeakageTestingInfo,
   ) {
     super();
 
-    this.trainingInvocation = trainingInvocation;
-    this.trainingVariable = trainingVariable;
-    this.testingInvocation = testingInvocation;
-    this.testingVariable = testingVariable;
+    this.trainingInfo = trainingInfo;
+    this.testingInfo = testingInfo;
   }
 
-  getLeakageType(): LeakageType {
-    return LeakageType.OverlapLeakage;
+  getLeakageType(): Leakage {
+    return Leakage.OverlapLeakage;
   }
 
-  getTrainingInvocation(): Invocation {
-    return this.trainingInvocation;
+  getTrainingInfo(): OverlapLeakageTrainingInfo {
+    return this.trainingInfo;
   }
 
-  getTrainingVariable(): string {
-    return this.trainingVariable;
-  }
-
-  getTestingInvocation(): Invocation {
-    return this.testingInvocation;
-  }
-
-  getTestingVariable(): string {
-    return this.testingVariable;
+  getTestingInfo(): OverlapLeakageTestingInfo {
+    return this.testingInfo;
   }
 }
