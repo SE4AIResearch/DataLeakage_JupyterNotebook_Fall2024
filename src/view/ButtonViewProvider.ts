@@ -89,7 +89,7 @@ export class ButtonViewProvider {
 			</head>
 			<body>
 
-				<button class="button">Run Data Leakage Analyze</button>
+				<button class="button">Run Data Leakage Analysis</button>
 
         <script nonce="${nonce}" src="${scriptUri}"></script>
 			</body>
