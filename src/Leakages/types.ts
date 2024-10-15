@@ -4,6 +4,24 @@ export enum Leakage {
   MultitestLeakage,
 }
 
+export enum Taint {
+  Dup = 'dup',
+  Rowset = 'rowset',
+  Unknown = 'unknown',
+}
+
+export type InternalLineMappings = Record<number, number>;
+export type InvocationLineMappings = Record<string, number>;
+export type InvocationFunctionMappings = Record<string, string>;
+
+export type LeakageSourceInfo = {
+  leakageSource: string;
+  leakageSourceFunction: string;
+  leakageSourceLine: number;
+  leakageSourceType: Taint;
+  leakageDestination: string;
+};
+
 export type OverlapLeakageTrainingInfo = {
   model: string;
   variable: string;

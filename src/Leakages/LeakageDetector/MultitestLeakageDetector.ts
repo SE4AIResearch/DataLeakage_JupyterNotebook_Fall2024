@@ -22,9 +22,7 @@ export default class MultitestLeakageDetector extends LeakageDetector<MultitestL
     const multitestLeakageInstances: MultitestLeakageInstance[] = [];
 
     const file = await this.readFile('Telemetry_MultiUseTestLeak.csv');
-    // Maps variable to invocation strings since each invocation represents an unique function call.
     const testingVariables: Record<string, Set<string>> = {};
-    // Maps each invocation to their more detailed information.
     const invocationMappings: Record<string, MultitestLeakageOccurrenceInfo> =
       {};
     file.forEach((line) => {

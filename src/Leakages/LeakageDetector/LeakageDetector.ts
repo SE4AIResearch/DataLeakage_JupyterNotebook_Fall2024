@@ -1,7 +1,12 @@
 import * as vscode from 'vscode';
 import { TextDecoder } from 'util';
 import LeakageInstance from '../LeakageInstance/LeakageInstance';
-import { Leakage } from '../types';
+import {
+  InternalLineMappings,
+  InvocationFunctionMappings,
+  InvocationLineMappings,
+  Leakage,
+} from '../types';
 
 /**
  * Base class for all leakage detectors.
@@ -42,20 +47,20 @@ export default abstract class LeakageDetector<
   }
 
   addMappings(
-    internalLineMappings: Record<number, number>,
-    invocationLineMappings: Record<string, number>,
-    // invocationFunctionMappings: Record<string, string>,
+    internalLineMappings: InternalLineMappings,
+    invocationLineMappings: InvocationLineMappings,
+    // invocationFunctionMappings: InvocationFunctionMappings,
   ): void {
     this.internalLineMappings = internalLineMappings;
     this.invocationLineMappings = invocationLineMappings;
     // this.invocationFunctionMappings = invocationFunctionMappings;
   }
 
+  abstract getLeakageInstances(): Promise<SpecificLeakageInstance[]>;
+
   addLeakageInstance(leakageInstance: SpecificLeakageInstance): void {
     this.leakageInstances.push(leakageInstance);
   }
-
-  abstract getLeakageInstances(): Promise<SpecificLeakageInstance[]>;
 
   protected async readFile(filename: string): Promise<string[]> {
     const filepath = this.extensionContext.asAbsolutePath(
