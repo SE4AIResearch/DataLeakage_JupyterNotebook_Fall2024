@@ -126,7 +126,7 @@ async function analyzeNotebook(
       await requestAlgorithm(tempDir);
       const elapsedTime = (performance.now() - startTime) / 1000;
       vscode.window.showInformationMessage(
-        `Analysis completed in ${elapsedTime} second${elapsedTime >= 1 && elapsedTime < 2 ? 's' : ''}`,
+        `Analysis completed in ${elapsedTime} second${elapsedTime === 1 ? '' : 's'}`,
       );
       view.webview.postMessage({ type: 'analysisCompleted' });
       _isRunning = false;
