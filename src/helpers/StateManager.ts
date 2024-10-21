@@ -1,8 +1,10 @@
 import * as vscode from 'vscode';
+import { CellInfo } from './CellConversion';
 
 export type TempState = {
   ogFilePath: string; // File path of where the user stores their jupyter notebook file (not the temporary file path)
   tempDirPath: string; // Path of the temporary directory
+  cellInfoArr: CellInfo[]; // Array of cell information
 };
 
 export class StateManager {

@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 
 import Docker, { ImageInfo } from 'dockerode';
-import { CellConversion } from '../helpers/CellConversion';
+import { CellConversion, CellInfo } from '../helpers/CellConversion';
 import { DockerTemp, TempDir } from '../helpers/TempDir';
 import path from 'path';
 import fs from 'fs';
@@ -45,7 +45,7 @@ async function ensureImageExist(docker: Docker, imageName: string) {
 // TODO: Maybe refactor this into cellConversion
 function getNotebookInNormalFormat(
   notebookFile: vscode.NotebookDocument,
-): string {
+): [CellInfo[], string] {
   const cellConversion = new CellConversion();
 
   const codeCellsWithIndex: [string, number][] = notebookFile
@@ -54,7 +54,7 @@ function getNotebookInNormalFormat(
     .filter(([cell]) => cell.kind === 2)
     .map(([cell, i]) => [cell.document.getText(), i]);
 
-  return cellConversion.insertCellIndices(codeCellsWithIndex)[1];
+  return cellConversion.insertCellIndices(codeCellsWithIndex);
 }
 
 async function requestAlgorithm(tempDir: TempDir) {
@@ -102,7 +102,7 @@ async function analyzeNotebook(
 
       // Convert Notebook -> Python
 
-      const pythonStr = getNotebookInNormalFormat(
+      const [cellInfoArr, pythonStr] = getNotebookInNormalFormat(
         vscode.window.activeNotebookEditor?.notebook,
       );
 
@@ -116,6 +116,7 @@ async function analyzeNotebook(
       StateManager.saveTempDirState(context, {
         ogFilePath: vscode.window.activeNotebookEditor?.notebook.uri.fsPath,
         tempDirPath: tempDir.getAlgoInputFilePath(),
+        cellInfoArr,
       });
 
       console.log(`Input Directory is: ${tempDir.getAlgoDirPath()}`);

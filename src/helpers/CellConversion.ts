@@ -44,7 +44,7 @@ export class CellConversion {
   // Used for converting Python -> Notebook
 
   public extractCellIndices(pythonFileData: string): CellInfo[] {
-    // TODO:
+    // NO LONGER NECESSARY TO CREATE THIS METHOD
     return [];
   }
 }
