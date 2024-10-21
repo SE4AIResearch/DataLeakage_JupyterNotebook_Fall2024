@@ -5,14 +5,13 @@ import * as vscode from 'vscode';
 
 import { getNonce, getWebviewOptions } from '../helpers/utils';
 import { analyzeNotebookWithProgress } from '../data/button';
+import { StateManager } from '../helpers/StateManager';
 
 /**
  * Manages Button Webview
  */
 export class ButtonViewProvider {
   public static readonly viewType = 'data-leakage.buttonView';
-
-  private _isRunning: Boolean = false;
 
   private _view?: vscode.WebviewView;
 
@@ -32,10 +31,18 @@ export class ButtonViewProvider {
 
     webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
 
-    webviewView.webview.onDidReceiveMessage((data) => {
+    webviewView.webview.onDidReceiveMessage(async (data) => {
       switch (data.type) {
         case 'analyzeNotebook':
-          this.analyzeNotebook();
+          await this.analyzeNotebook();
+          break;
+        case 'webviewLoaded':
+          const data = {
+            type: 'webviewLoaded',
+            isRunning: StateManager.loadIsRunning(this._context),
+          };
+          this._view?.webview.postMessage(data);
+          StateManager.loadIsRunning(this._context);
           break;
       }
     });
@@ -65,6 +72,8 @@ export class ButtonViewProvider {
     const styleMainUri = webview.asWebviewUri(
       vscode.Uri.joinPath(this._extensionUri, 'media', 'button', 'main.css'),
     );
+
+    StateManager.saveIsRunning(this._context, false);
 
     const nonce = getNonce();
     return `<!DOCTYPE html>

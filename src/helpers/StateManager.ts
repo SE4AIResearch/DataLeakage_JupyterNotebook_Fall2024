@@ -7,12 +7,21 @@ export type TempState = {
   cellInfoArr: CellInfo[]; // Array of cell information
 };
 
+// TODO: Convert to non-static methods and use <T> for reusability
 export class StateManager {
   static saveTempDirState(
     context: vscode.ExtensionContext,
     tempState: TempState,
   ) {
     context.globalState.update(tempState.ogFilePath, tempState);
+  }
+
+  static saveIsRunning(context: vscode.ExtensionContext, isRunning: boolean) {
+    context.globalState.update('isRunning', isRunning);
+  }
+
+  static loadIsRunning(context: vscode.ExtensionContext): boolean {
+    return context.globalState.get('isRunning') || false;
   }
 
   static loadTempDirState(

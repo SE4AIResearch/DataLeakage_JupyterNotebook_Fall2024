@@ -7,8 +7,6 @@ import path from 'path';
 import fs from 'fs';
 import { StateManager } from '../helpers/StateManager';
 
-let _isRunning = false;
-
 async function ensureImageExist(docker: Docker, imageName: string) {
   try {
     const images: ImageInfo[] = await docker.listImages();
@@ -93,12 +91,12 @@ async function analyzeNotebook(
     vscode.window.activeNotebookEditor?.notebook.uri.scheme === 'file' &&
     path.extname(vscode.window.activeNotebookEditor?.notebook.uri.fsPath) ===
       '.ipynb' &&
-    _isRunning === false &&
+    StateManager.loadIsRunning(context) === false &&
     view
   ) {
     const startTime = performance.now();
     try {
-      _isRunning = true;
+      StateManager.saveIsRunning(context, true);
 
       // Convert Notebook -> Python
 
@@ -130,9 +128,9 @@ async function analyzeNotebook(
         `Analysis completed in ${elapsedTime} second${elapsedTime >= 1 && elapsedTime < 2 ? 's' : ''}`,
       );
       view.webview.postMessage({ type: 'analysisCompleted' });
-      _isRunning = false;
+      StateManager.saveIsRunning(context, false);
     } catch (err) {
-      _isRunning = false;
+      StateManager.saveIsRunning(context, false);
       view.webview.postMessage({ type: 'analysisCompleted' });
       vscode.window.showInformationMessage(
         'Analysis Failed: Unknown Error Encountered.',
