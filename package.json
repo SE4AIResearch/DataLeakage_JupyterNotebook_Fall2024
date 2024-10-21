@@ -40,6 +40,12 @@
           "id": "data-leakage.buttonView",
           "name": "Data Leakage"
         }
+      ],
+      "explorer": [
+        {
+          "id": "data-leakage.treeView",
+          "name": "Data Leakage"
+        }
       ]
     }
   },
