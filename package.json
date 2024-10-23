@@ -43,8 +43,9 @@
       ],
       "explorer": [
         {
-          "id": "data-leakage.treeView",
-          "name": "Data Leakage"
+          "type": "webview",
+          "id": "leakageInstances",
+          "name": "Leakage Instances"
         }
       ]
     }

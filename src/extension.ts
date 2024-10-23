@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { ButtonViewProvider } from './view/ButtonViewProvider';
+import { LeakageInstances } from "./view/LeakageInstances";
 
 export function activate(context: vscode.ExtensionContext) {
   const provider = new ButtonViewProvider(context.extensionUri, context);
@@ -14,6 +15,8 @@ export function activate(context: vscode.ExtensionContext) {
       provider.analyzeNotebook();
     }),
   );
+
+  new LeakageInstances(context.extensionUri);
 }
 
 export function deactivate() {}
