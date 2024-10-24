@@ -19,6 +19,13 @@
           "title": "Data Leakage",
           "icon": "media/images/hand.svg"
         }
+      ],
+      "panel": [
+        {
+          "id": "leakage-instances",
+          "title": "Leakage Instances",
+          "icon": ""
+        }
       ]
     },
     "commands": [
@@ -41,9 +48,8 @@
           "name": "Data Leakage"
         }
       ],
-      "explorer": [
+      "leakage-instances": [
         {
-          "type": "webview",
           "id": "leakageInstances",
           "name": "Leakage Instances"
         }

@@ -16,7 +16,7 @@ export function activate(context: vscode.ExtensionContext) {
     }),
   );
 
-  new LeakageInstances(context.extensionUri);
+  new LeakageInstances(context);
 }
 
 export function deactivate() {}
