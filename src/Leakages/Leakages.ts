@@ -1,10 +1,10 @@
 import { ExtensionContext } from 'vscode';
-import OverlapLeakageDetector from './LeakageDetector/OverlapLeakageDetector';
-import LeakageDetector from './LeakageDetector/LeakageDetector';
-import LeakageInstance from './LeakageInstance/LeakageInstance';
 import LeakageUtilities from './LeakageUtilities';
+import LeakageDetector from './LeakageDetector/LeakageDetector';
+import OverlapLeakageDetector from './LeakageDetector/OverlapLeakageDetector';
 import PreprocessingLeakageDetector from './LeakageDetector/PreprocessingLeakageDetector';
 import MultitestLeakageDetector from './LeakageDetector/MultitestLeakageDetector';
+import LeakageInstance from './LeakageInstance/LeakageInstance';
 
 /**
  * Main class responsible for getting all the leakage data.
@@ -50,16 +50,16 @@ export default class Leakages {
   async getLeakages(): Promise<LeakageInstance[]> {
     const leakageInstances: LeakageInstance[] = [];
 
-    // Populates the utilities object with all the necessary mappings.
     await this.leakageUtilities.readInternalLineMappings();
     await this.leakageUtilities.readInvocationLineMappings();
-    // await this.leakageUtilities.readInvocationFunctionMappings(); // TBD - May not be needed.
+    await this.leakageUtilities.readTaintFile();
 
     for (const leakageDetector of this.leakageDetectors) {
-      leakageDetector.addMappings(
+      leakageDetector.addInformation(
+        this.leakageUtilities.readFile,
         this.leakageUtilities.getInternalLineMappings(),
         this.leakageUtilities.getInvocationLineMappings(),
-        // this.leakageUtilities.getInvocationFunctionMappings(),
+        this.leakageUtilities.getTaints(),
       );
       leakageInstances.push(...(await leakageDetector.getLeakageInstances()));
     }

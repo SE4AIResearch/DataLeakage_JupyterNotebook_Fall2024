@@ -2,7 +2,7 @@ import { ExtensionContext } from 'vscode';
 import { TextDecoder } from 'util';
 import LeakageDetector from './LeakageDetector';
 import MultitestLeakageInstance from '../LeakageInstance/MultitestLeakageInstance';
-import { Leakage, MultitestLeakageOccurrenceInfo } from '../types';
+import { LeakageType, type Metadata } from '../types';
 
 export default class MultitestLeakageDetector extends LeakageDetector<MultitestLeakageInstance> {
   constructor(
@@ -14,75 +14,178 @@ export default class MultitestLeakageDetector extends LeakageDetector<MultitestL
       outputDirectory,
       extensionContext,
       textDecoder,
-      Leakage.OverlapLeakage,
+      LeakageType.OverlapLeakage,
     );
   }
 
   async getLeakageInstances(): Promise<MultitestLeakageInstance[]> {
-    const multitestLeakageInstances: MultitestLeakageInstance[] = [];
+    const leakageInstances: MultitestLeakageInstance[] = [];
+    const uniqueInstances: Record<string, Set<string>> = {};
+    const invocationMappings: Record<
+      string,
+      Record<string, { training?: Metadata; testing?: Metadata }>[]
+    > = {};
 
-    const file = await this.readFile('Telemetry_MultiUseTestLeak.csv');
-    const testingVariables: Record<string, Set<string>> = {};
-    const invocationMappings: Record<string, MultitestLeakageOccurrenceInfo> =
-      {};
-    file.forEach((line) => {
-      const [
-        modelA,
-        variable,
-        invocationStringA,
-        functionA,
-        contextA,
-        modelB,
-        variableAgain,
-        invocationStringB,
-        functionB,
-        contextB,
-      ] = line.split('\t');
+    const leakagesFile = await this.readFile('Telemetry_MultiUseTestLeak.csv');
+    leakagesFile
+      .filter((line) => !!line)
+      .forEach((line) => {
+        const [
+          modelA,
+          variableA,
+          invocationStringA,
+          functionA,
+          contextA,
+          modelB,
+          variableB,
+          invocationStringB,
+          functionB,
+          contextB,
+        ] = line.split('\t');
 
-      if (variable !== variableAgain) {
-        throw new Error('Testing variables do not match.');
-      }
+        if (!(invocationStringA in invocationMappings)) {
+          const line =
+            this.internalLineMappings[
+              this.invocationLineMappings[invocationStringA]
+            ];
+          const occurrenceHash = this.uniqueOccurrenceHash(
+            modelA,
+            variableA,
+            functionA,
+            line,
+          );
+          invocationMappings[invocationStringA] = [
+            ...(invocationMappings[invocationStringA] ?? []),
+            {
+              [occurrenceHash]: {
+                testing: {
+                  model: modelA,
+                  variable: variableA,
+                  function: functionA,
+                  line: line,
+                },
+              },
+            },
+          ];
+        }
+        if (!(invocationStringB in invocationMappings)) {
+          const line =
+            this.internalLineMappings[
+              this.invocationLineMappings[invocationStringB]
+            ];
+          const occurrenceHash = this.uniqueOccurrenceHash(
+            modelB,
+            variableB,
+            functionB,
+            line,
+          );
+          invocationMappings[invocationStringB] = [
+            ...(invocationMappings[invocationStringB] ?? []),
+            {
+              [occurrenceHash]: {
+                testing: {
+                  model: modelB,
+                  variable: variableB,
+                  function: functionB,
+                  line: this.internalLineMappings[
+                    this.invocationLineMappings[invocationStringB]
+                  ],
+                },
+              },
+            },
+          ];
+        }
 
-      if (!(invocationStringA in invocationMappings)) {
-        invocationMappings[invocationStringA] = {
-          model: modelA,
-          testingFunction: functionA,
-          line: this.internalLineMappings[
-            this.invocationLineMappings[invocationStringA]
-          ],
-        };
-      }
-      if (!(invocationStringB in invocationMappings)) {
-        invocationMappings[invocationStringB] = {
-          model: modelB,
-          testingFunction: functionB,
-          line: this.internalLineMappings[
-            this.invocationLineMappings[invocationStringB]
-          ],
-        };
-      }
+        const hash = this.uniqueTestingVariableHash(
+          invocationStringA,
+          invocationStringB,
+        );
+        if (!(hash in uniqueInstances)) {
+          uniqueInstances[hash] = new Set();
+        }
+        uniqueInstances[hash].add(invocationStringA);
+        uniqueInstances[hash].add(invocationStringB);
+      });
 
-      if (!(variable in testingVariables)) {
-        testingVariables[variable] = new Set();
-      }
-      testingVariables[variable].add(invocationStringA);
-      testingVariables[variable].add(invocationStringB);
-    });
-
-    for (const [
-      testingVariable,
-      correspondingInvocationStrings,
-    ] of Object.entries(testingVariables)) {
-      multitestLeakageInstances.push(
-        new MultitestLeakageInstance(
+    const pairsFile = await this.readFile('Telemetry_ModelPair.csv');
+    pairsFile
+      .filter((line) => !!line)
+      .forEach((line) => {
+        const [
+          trainingModel,
+          trainingVariable,
+          trainingInvocationString,
+          trainingFunction,
+          trainingContext,
+          testingModel,
           testingVariable,
-          Array.from(correspondingInvocationStrings).map(
-            (invocationString) => invocationMappings[invocationString],
-          ),
+          testingInvocationString,
+          testingFunction,
+          testingContext,
+        ] = line.split('\t');
+
+        if (testingInvocationString in invocationMappings) {
+          const line =
+            this.internalLineMappings[
+              this.invocationLineMappings[testingInvocationString]
+            ];
+          const occurrenceHash = this.uniqueOccurrenceHash(
+            testingModel,
+            testingVariable,
+            testingFunction,
+            line,
+          );
+          const occurrences = invocationMappings[testingInvocationString];
+          for (const occurrence of occurrences) {
+            if (occurrenceHash in occurrence) {
+              occurrence[occurrenceHash].training = {
+                model: trainingModel,
+                variable: trainingVariable,
+                function: trainingFunction,
+                line: this.internalLineMappings[
+                  this.invocationLineMappings[trainingInvocationString]
+                ],
+              };
+              break;
+            }
+          }
+        }
+      });
+
+    for (const [_, invocationStrings] of Object.entries(uniqueInstances)) {
+      leakageInstances.push(
+        new MultitestLeakageInstance(
+          Array.from(invocationStrings)
+            .reduce(
+              (e, invocationString) => [
+                ...e,
+                ...invocationMappings[invocationString]
+                  .reduce((x, y) => [...x, ...Object.values(y)], [{}])
+                  .filter((x) => Object.entries(x).length > 0),
+              ],
+              [{}],
+            )
+            .filter((e) => Object.entries(e).length > 0),
         ),
       );
     }
 
-    return multitestLeakageInstances;
+    return leakageInstances;
+  }
+
+  private uniqueTestingVariableHash(
+    invocationStringA: string,
+    invocationStringB: string,
+  ): string {
+    return [invocationStringA, invocationStringB].sort().join('_');
+  }
+
+  private uniqueOccurrenceHash(
+    model: string,
+    variable: string,
+    func: string,
+    line: number,
+  ) {
+    return `${model}_${variable}_${func}_${line}`;
   }
 }

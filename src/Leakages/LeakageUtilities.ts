@@ -1,11 +1,12 @@
 import * as vscode from 'vscode';
 import { TextDecoder } from 'util';
 import {
-  InternalLineMappings,
-  InvocationFunctionMappings,
-  InvocationLineMappings,
-  LeakageSourceInfo,
+  TaintType,
+  type InternalLineMappings,
+  type InvocationFunctionMappings,
+  type InvocationLineMappings,
 } from './types';
+import Taint from './LeakageSource/Taint';
 
 export default class LeakageUtilities {
   private outputDirectory: string;
@@ -15,6 +16,7 @@ export default class LeakageUtilities {
   private internalLineMappings: InternalLineMappings = {};
   private invocationLineMappings: InvocationLineMappings = {};
   private invocationFunctionMappings: InvocationFunctionMappings = {};
+  private taints: Taint[] = [];
 
   constructor(
     outputDirectory: string,
@@ -36,6 +38,10 @@ export default class LeakageUtilities {
 
   getInvocationFunctionMappings(): InvocationFunctionMappings {
     return this.invocationFunctionMappings;
+  }
+
+  getTaints(): Taint[] {
+    return this.taints;
   }
 
   /**
@@ -85,27 +91,64 @@ export default class LeakageUtilities {
     this.invocationFunctionMappings = invocationFunctionMappings;
   }
 
+  /**
+   * Looks through 'TaintStartTarget.csv' to find all the taints.
+   */
   public async readTaintFile(): Promise<void> {
-    // const file = await this.readFile('TaintStartsTarget.csv');
-    // const invocationMappings: Record<string, LeakageSourceInfo> = {};
-    // file.forEach((line) => {
-    //   const [
-    //     leakageDestination,
-    //     leakageDestinationContext,
-    //     leakageSource,
-    //     leakageSourceContext,
-    //     leakageSourceInvocationString,
-    //     leakageSourceFunction,
-    //     leakageSourceType,
-    //   ] = line.split('\t');
-    //   invocationMappings[leakageSourceInvocationString] = {
-    //     leakageSource: leakageSource,
-    //     leakageSourceFunction: leakageSourceFunction,
-    //     leakageSourceLine: this.internalLineMappings.
-    //   };
-    // });
+    const taints: Taint[] = [];
+
+    if (!this.internalLineMappings) {
+      await this.readInternalLineMappings();
+    }
+    if (!this.invocationLineMappings) {
+      await this.readInvocationLineMappings();
+    }
+
+    const taintsFile = await this.readFile('TaintStartsTarget.csv');
+    taintsFile
+      .filter((line) => !!line)
+      .forEach((line) => {
+        const [
+          destinationVariable,
+          _,
+          sourceVariable,
+          __,
+          sourceInvocationString,
+          sourceFunction,
+          taintType,
+        ] = line.split('\t');
+
+        if (
+          !(
+            taintType === 'dup' ||
+            taintType === 'rowset' ||
+            taintType === 'unknown'
+          )
+        ) {
+          throw new Error('Unrecognized taint type.');
+        }
+
+        taints.push(
+          new Taint(
+            taintType as TaintType,
+            destinationVariable,
+            sourceVariable,
+            sourceFunction,
+            this.internalLineMappings[
+              this.invocationLineMappings[sourceInvocationString]
+            ],
+          ),
+        );
+      });
+
+    this.taints = taints;
   }
 
+  /**
+   * Reads a file that is located inside the output directory.
+   * @param filename The name of the file to be read.
+   * @returns An array containing the lines inside the file.
+   */
   public async readFile(filename: string): Promise<string[]> {
     const filepath = this.extensionContext.asAbsolutePath(
       this.outputDirectory + filename,
@@ -113,9 +156,6 @@ export default class LeakageUtilities {
     const bytes = await vscode.workspace.fs.readFile(
       vscode.Uri.parse('file://' + filepath),
     );
-    return this.textDecoder
-      .decode(bytes)
-      .split('\n')
-      .filter((line) => !!line);
+    return this.textDecoder.decode(bytes).split('\n');
   }
 }

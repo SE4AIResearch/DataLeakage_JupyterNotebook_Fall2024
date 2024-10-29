@@ -7,10 +7,7 @@ export function activate(context: vscode.ExtensionContext) {
     'dataleakage-jupyternotebook-fall2024.runLeakageDetector',
     async () => {
       try {
-        const leakages = new Leakages(
-          'src/_output/PreprocessingLeakage/',
-          context,
-        ); // src/_output/PreprocessingLeakage/ is just the local path my outputs files
+        const leakages = new Leakages('src/_output/P2/', context);
         console.log(await leakages.getLeakages());
       } catch (error) {
         console.log(error);

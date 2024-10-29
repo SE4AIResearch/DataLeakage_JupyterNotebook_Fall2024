@@ -2,11 +2,11 @@ import * as vscode from 'vscode';
 import { TextDecoder } from 'util';
 import LeakageInstance from '../LeakageInstance/LeakageInstance';
 import {
-  InternalLineMappings,
-  InvocationFunctionMappings,
-  InvocationLineMappings,
-  Leakage,
+  LeakageType,
+  type InternalLineMappings,
+  type InvocationLineMappings,
 } from '../types';
+import Taint from '../LeakageSource/Taint';
 
 /**
  * Base class for all leakage detectors.
@@ -21,18 +21,19 @@ export default abstract class LeakageDetector<
   private extensionContext: vscode.ExtensionContext;
   private textDecoder: TextDecoder;
 
-  protected leakageType: Leakage;
+  protected leakageType: LeakageType;
   protected leakageInstances: SpecificLeakageInstance[];
 
+  protected readFile: (filename: string) => Promise<string[]> = async () => [];
   protected internalLineMappings: Record<number, number> = {};
   protected invocationLineMappings: Record<string, number> = {};
-  // protected invocationFunctionMappings: Record<string, string> = {};
+  protected taints: Taint[] = [];
 
   constructor(
     outputDirectory: string,
     extensionContext: vscode.ExtensionContext,
     textDecoder: TextDecoder,
-    leakageType: Leakage,
+    leakageType: LeakageType,
   ) {
     this.outputDirectory = outputDirectory;
     this.extensionContext = extensionContext;
@@ -42,36 +43,21 @@ export default abstract class LeakageDetector<
     this.leakageInstances = [];
   }
 
-  getLeakageType(): Leakage {
+  addInformation(
+    readFile: (filename: string) => Promise<string[]>,
+    internalLineMappings: InternalLineMappings,
+    invocationLineMappings: InvocationLineMappings,
+    taints: Taint[],
+  ): void {
+    this.readFile = readFile;
+    this.internalLineMappings = internalLineMappings;
+    this.invocationLineMappings = invocationLineMappings;
+    this.taints = taints;
+  }
+
+  getLeakageType(): LeakageType {
     return this.leakageType;
   }
 
-  addMappings(
-    internalLineMappings: InternalLineMappings,
-    invocationLineMappings: InvocationLineMappings,
-    // invocationFunctionMappings: InvocationFunctionMappings,
-  ): void {
-    this.internalLineMappings = internalLineMappings;
-    this.invocationLineMappings = invocationLineMappings;
-    // this.invocationFunctionMappings = invocationFunctionMappings;
-  }
-
   abstract getLeakageInstances(): Promise<SpecificLeakageInstance[]>;
-
-  addLeakageInstance(leakageInstance: SpecificLeakageInstance): void {
-    this.leakageInstances.push(leakageInstance);
-  }
-
-  protected async readFile(filename: string): Promise<string[]> {
-    const filepath = this.extensionContext.asAbsolutePath(
-      this.outputDirectory + filename,
-    );
-    const bytes = await vscode.workspace.fs.readFile(
-      vscode.Uri.parse('file://' + filepath),
-    );
-    return this.textDecoder
-      .decode(bytes)
-      .split('\n')
-      .filter((line) => !!line);
-  }
 }
