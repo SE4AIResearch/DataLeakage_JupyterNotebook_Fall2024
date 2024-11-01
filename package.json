@@ -45,13 +45,14 @@
         {
           "type": "webview",
           "id": "data-leakage.buttonView",
-          "name": "Data Leakage"
+          "name": "Button View"
         }
       ],
       "leakage-instances": [
         {
-          "id": "leakageInstances",
-          "name": "Leakage Instances"
+          "type": "webview",
+          "id": "data-leakage.leakageInstancesViewProvider",
+          "name": "Leakage Instances View"
         }
       ]
     }

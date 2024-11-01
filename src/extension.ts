@@ -1,22 +1,33 @@
 import * as vscode from 'vscode';
 import { ButtonViewProvider } from './view/ButtonViewProvider';
-import { LeakageInstances } from "./view/LeakageInstances";
+import { LeakageInstancesViewProvider } from './view/LeakageInstancesViewProvider';
 
 export function activate(context: vscode.ExtensionContext) {
-  const provider = new ButtonViewProvider(context.extensionUri, context);
+  const buttonProvider = new ButtonViewProvider(context.extensionUri, context);
+
   context.subscriptions.push(
     vscode.window.registerWebviewViewProvider(
       ButtonViewProvider.viewType,
-      provider,
+      buttonProvider,
     ),
   );
   context.subscriptions.push(
     vscode.commands.registerCommand('data-leakage.analyzeNotebook', () => {
-      provider.analyzeNotebook();
+      buttonProvider.analyzeNotebook();
     }),
   );
 
-  new LeakageInstances(context);
+  const leakageInstanceProvider = new LeakageInstancesViewProvider(
+    context.extensionUri,
+    context,
+  );
+
+  context.subscriptions.push(
+    vscode.window.registerWebviewViewProvider(
+      LeakageInstancesViewProvider.viewType,
+      leakageInstanceProvider,
+    ),
+  );
 }
 
 export function deactivate() {}
