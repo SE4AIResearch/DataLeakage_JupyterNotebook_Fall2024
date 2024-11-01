@@ -1,11 +1,15 @@
 import * as vscode from 'vscode';
-
 import Docker, { ImageInfo } from 'dockerode';
-import { CellConversion, CellInfo } from '../helpers/CellConversion';
-import { DockerTemp, TempDir } from '../helpers/TempDir';
+
 import path from 'path';
 import fs from 'fs';
+
+import { DockerTemp, TempDir } from '../helpers/TempDir';
 import { StateManager } from '../helpers/StateManager';
+import {
+  ConversionToJupyter,
+  ConversionToPython,
+} from '../helpers/LineConversion';
 
 async function ensureImageExist(docker: Docker, imageName: string) {
   try {
@@ -40,21 +44,6 @@ async function ensureImageExist(docker: Docker, imageName: string) {
   }
 }
 
-// TODO: Maybe refactor this into cellConversion
-function getNotebookInNormalFormat(
-  notebookFile: vscode.NotebookDocument,
-): [CellInfo[], string] {
-  const cellConversion = new CellConversion();
-
-  const codeCellsWithIndex: [string, number][] = notebookFile
-    .getCells()
-    .map((cell, i): [vscode.NotebookCell, number] => [cell, i])
-    .filter(([cell]) => cell.kind === 2)
-    .map(([cell, i]) => [cell.document.getText(), i]);
-
-  return cellConversion.insertCellIndices(codeCellsWithIndex);
-}
-
 async function requestAlgorithm(tempDir: TempDir) {
   const docker = new Docker();
   await ensureImageExist(docker, DockerTemp.IMAGE_NAME);
@@ -80,6 +69,15 @@ async function requestAlgorithm(tempDir: TempDir) {
   ]);
 }
 
+function transformInput(
+  notebookFile: vscode.NotebookDocument,
+): [string, Record<string, string>] {
+  const conversionManager = new ConversionToPython(notebookFile);
+  const lineNumberRecord = conversionManager.getLineMapRecord();
+  const pythonStr = conversionManager.getPythonCode();
+  return [pythonStr, lineNumberRecord];
+}
+
 // TODO: Refactor analyzeNotebook & analyzeNotebookWithNotification into one
 
 async function analyzeNotebook(
@@ -99,10 +97,11 @@ async function analyzeNotebook(
       StateManager.saveIsRunning(context, true);
 
       // Convert Notebook -> Python
-
-      const [cellInfoArr, pythonStr] = getNotebookInNormalFormat(
+      const [pythonStr, jsonObj] = transformInput(
         vscode.window.activeNotebookEditor?.notebook,
       );
+
+      // Write Python to Temp File
 
       const tempDir = new TempDir(pythonStr);
 
@@ -111,14 +110,27 @@ async function analyzeNotebook(
         flag: 'w',
       });
 
-      StateManager.saveTempDirState(context, {
-        ogFilePath: vscode.window.activeNotebookEditor?.notebook.uri.fsPath,
-        tempDirPath: tempDir.getAlgoInputFilePath(),
-        cellInfoArr,
-      });
+      fs.writeFileSync(
+        tempDir.getAlgoJupyLineMappingPath(),
+        JSON.stringify(jsonObj, undefined, 2),
+        {
+          encoding: 'utf8',
+          flag: 'w',
+        },
+      );
 
       console.log(`Input Directory is: ${tempDir.getAlgoDirPath()}`);
       console.log(`Input Python File is:\n${pythonStr}`);
+      console.log(
+        `Input JSON File is:\n${JSON.stringify(jsonObj, undefined, 2)}`,
+      );
+
+      // Save Temp Directory State
+
+      StateManager.saveTempDirState(context, {
+        ogFilePath: vscode.window.activeNotebookEditor?.notebook.uri.fsPath,
+        tempDirPath: tempDir.getAlgoInputFilePath(),
+      });
 
       // Run Algorithm & Wait for result
 
@@ -127,6 +139,7 @@ async function analyzeNotebook(
       vscode.window.showInformationMessage(
         `Analysis completed in ${elapsedTime} second${elapsedTime >= 1 && elapsedTime < 2 ? 's' : ''}`,
       );
+
       view.webview.postMessage({ type: 'analysisCompleted' });
       StateManager.saveIsRunning(context, false);
     } catch (err) {
