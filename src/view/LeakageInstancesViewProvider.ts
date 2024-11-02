@@ -2,6 +2,13 @@ import * as vscode from 'vscode';
 
 import { getNonce, getWebviewOptions } from '../helpers/utils';
 
+export type Row = {
+  type: string;
+  line: number;
+  variable: string;
+  cause: string;
+};
+
 /**
  * Manages Leakage Instances Webview
  */
@@ -37,6 +44,13 @@ export class LeakageInstancesViewProvider {
       }
     });
   }
+
+  // Functions called outside the class to add rows
+  public async addRows(Rows: Row[]) {
+    // TODO: Add rows
+  }
+
+  // Private Helper Function
 
   private _getHtmlForWebview(webview: vscode.Webview) {
     // Get the local path to main script run in the webview, then convert it to a uri we can use in the webview.
@@ -75,6 +89,15 @@ export class LeakageInstancesViewProvider {
       ),
     );
 
+    const stylePriorityUri = webview.asWebviewUri(
+      vscode.Uri.joinPath(
+        this._extensionUri,
+        'media',
+        'leakage-instance',
+        'prio.css',
+      ),
+    );
+
     const nonce = getNonce();
     return `<!DOCTYPE html>
 			<html lang="en">
@@ -93,12 +116,26 @@ export class LeakageInstancesViewProvider {
 				<link href="${styleResetUri}" rel="stylesheet">
 				<link href="${styleVSCodeUri}" rel="stylesheet">
 				<link href="${styleMainUri}" rel="stylesheet">
+				<link href="${stylePriorityUri}" rel="stylesheet">
 
 				<title>Data Leakage</title>
 			</head>
 			<body>
-
-				<button class="button">Run Data Leakage Analysis</button>
+        <h1>Leakage Instances</h1>
+        <table class='table'>
+          <tr>
+            <th>Type</th>
+            <th>Line</th>
+            <th>Variable</th>
+            <th>Cause</th>
+          </tr>
+          <tr>
+            <td>Multi-Test</td>
+            <td>706</td>
+            <td>X_train</td>
+            <td>Repeat data evaluation</td>
+          </tr>
+        </table>
 
         <script nonce="${nonce}" src="${scriptUri}"></script>
 			</body>

@@ -28,6 +28,15 @@ export function activate(context: vscode.ExtensionContext) {
       leakageInstanceProvider,
     ),
   );
+
+  leakageInstanceProvider.addRows([
+    {
+      type: 'Multi-Test',
+      line: 702,
+      variable: 'X_Train',
+      cause: 'Repeat data evaluation',
+    },
+  ]);
 }
 
 export function deactivate() {}
