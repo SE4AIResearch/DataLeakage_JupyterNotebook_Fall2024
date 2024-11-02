@@ -30,7 +30,8 @@ export class LeakageInstancesViewProvider {
 		webviewView: vscode.WebviewView,
 		context: vscode.WebviewViewResolveContext,
 		_token: vscode.CancellationToken,
-	) {
+	)
+	{
 		this._view = webviewView;
 
 		webviewView.webview.options = getWebviewOptions(this._extensionUri);
@@ -60,7 +61,7 @@ export class LeakageInstancesViewProvider {
 			vscode.Uri.joinPath(
 				this._extensionUri,
 				'media',
-				'leakage-instance',
+				'leakage_instances',
 				'main.js',
 			),
 		);
@@ -70,7 +71,7 @@ export class LeakageInstancesViewProvider {
 			vscode.Uri.joinPath(
 				this._extensionUri,
 				'media',
-				'leakage-instance',
+				'leakage_instances',
 				'reset.css',
 			),
 		);
@@ -78,7 +79,7 @@ export class LeakageInstancesViewProvider {
 			vscode.Uri.joinPath(
 				this._extensionUri,
 				'media',
-				'leakage-instance',
+				'leakage_instances',
 				'vscode.css',
 			),
 		);
@@ -86,7 +87,7 @@ export class LeakageInstancesViewProvider {
 			vscode.Uri.joinPath(
 				this._extensionUri,
 				'media',
-				'leakage-instance',
+				'leakage_instances',
 				'main.css',
 			),
 		);
@@ -95,7 +96,7 @@ export class LeakageInstancesViewProvider {
 			vscode.Uri.joinPath(
 				this._extensionUri,
 				'media',
-				'leakage-instance',
+				'leakage_instances',
 				'prio.css',
 			),
 		);
