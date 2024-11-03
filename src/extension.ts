@@ -7,7 +7,7 @@ export function activate(context: vscode.ExtensionContext) {
     'dataleakage-jupyternotebook-fall2024.runLeakageDetector',
     async () => {
       try {
-        const leakages = new Leakages('src/_output/OverlapLeakage/', context);
+        const leakages = new Leakages('src/_output/All/', context);
         console.log(await leakages.getLeakages());
       } catch (error) {
         console.log(error);

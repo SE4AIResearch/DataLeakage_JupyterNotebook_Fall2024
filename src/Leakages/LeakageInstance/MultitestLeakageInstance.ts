@@ -1,10 +1,10 @@
 import LeakageInstance from './LeakageInstance';
-import { LeakageType, type Metadata } from '../types';
+import { LeakageType, type MultitestLeakageOccurrence } from '../types';
 
 export default class MultitestLeakageInstance extends LeakageInstance {
-  private occurrences: Metadata[];
+  private occurrences: MultitestLeakageOccurrence[];
 
-  constructor(occurrences: Metadata[]) {
+  constructor(occurrences: MultitestLeakageOccurrence[]) {
     super();
 
     this.occurrences = occurrences;
@@ -14,7 +14,7 @@ export default class MultitestLeakageInstance extends LeakageInstance {
     return LeakageType.MultitestLeakage;
   }
 
-  getOccurrences(): Metadata[] {
+  getOccurrences(): MultitestLeakageOccurrence[] {
     return this.occurrences;
   }
 }

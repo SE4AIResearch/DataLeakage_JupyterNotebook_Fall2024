@@ -3,7 +3,7 @@ import { TextDecoder } from 'util';
 import LeakageDetector from './LeakageDetector';
 import PreprocessingLeakageInstance from '../LeakageInstance/PreprocessingLeakageInstance';
 import PreprocessingLeakageSource from '../LeakageSource/PreprocessingLeakageSource';
-import { LeakageType, type Metadata } from '../types';
+import { LeakageType, TaintType, type Metadata } from '../types';
 
 export default class PreprocessingLeakageDetector extends LeakageDetector<PreprocessingLeakageInstance> {
   constructor(
@@ -21,7 +21,7 @@ export default class PreprocessingLeakageDetector extends LeakageDetector<Prepro
 
   async getLeakageInstances(): Promise<PreprocessingLeakageInstance[]> {
     const preprocessingLeakageInstances: PreprocessingLeakageInstance[] = [];
-    const leakageMetadatas: Record<
+    const preprocessingLeakageData: Record<
       string,
       {
         training: Metadata;
@@ -38,49 +38,64 @@ export default class PreprocessingLeakageDetector extends LeakageDetector<Prepro
         const [
           trainingModel,
           trainingVariable,
-          trainingInvocationString,
+          trainingInvocation,
           trainingFunction,
           trainingContext,
           testingModel,
           testingVariable,
-          testingInvocationString,
+          testingInvocation,
           testingFunction,
           testingContext,
           destinationVariable,
           sourceVariable,
         ] = line.split('\t');
 
-        const hash = this.hash(
-          trainingInvocationString,
-          testingInvocationString,
-        );
-
-        leakageMetadatas[hash] = {
-          training: {
+        if (!(trainingInvocation in this.invocationMetadataMappings)) {
+          this.invocationMetadataMappings[trainingInvocation] = {
             model: trainingModel,
             variable: trainingVariable,
             function: trainingFunction,
             line: this.internalLineMappings[
-              this.invocationLineMappings[trainingInvocationString]
+              this.invocationLineMappings[trainingInvocation]
             ],
-          },
-          testing: {
+          };
+        }
+        if (!(testingInvocation in this.invocationMetadataMappings)) {
+          this.invocationMetadataMappings[testingInvocation] = {
             model: testingModel,
             variable: testingVariable,
             function: testingFunction,
             line: this.internalLineMappings[
-              this.invocationLineMappings[testingInvocationString]
+              this.invocationLineMappings[testingInvocation]
             ],
-          },
+          };
+        }
+
+        if (!(trainingInvocation in this.invocationTrainTestMappings)) {
+          this.invocationTrainTestMappings[trainingInvocation] = new Set();
+        }
+        this.invocationTrainTestMappings[trainingInvocation].add(
+          testingInvocation,
+        );
+
+        const hash = this.hash(trainingInvocation, testingInvocation);
+
+        preprocessingLeakageData[hash] = {
+          training: this.invocationMetadataMappings[trainingInvocation],
+          testing: this.invocationMetadataMappings[testingInvocation],
         };
       });
 
-    for (const [_, metadata] of Object.entries(leakageMetadatas)) {
+    for (const data of Object.values(preprocessingLeakageData)) {
       preprocessingLeakageInstances.push(
         new PreprocessingLeakageInstance(
-          metadata.training,
-          metadata.testing,
-          new PreprocessingLeakageSource(this.taints),
+          data.training,
+          data.testing,
+          new PreprocessingLeakageSource(
+            this.taints.filter(
+              (source) => source.getType() === TaintType.Rowset,
+            ),
+          ),
         ),
       );
     }

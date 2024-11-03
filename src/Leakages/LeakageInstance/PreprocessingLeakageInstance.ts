@@ -6,10 +6,8 @@ import { LeakageType, type Metadata } from '../types';
  * Class containing all the relevant info about a preprocessing leakage.
  */
 export default class PreprocessingLeakageInstance extends LeakageInstance {
-  private metadata: {
-    training: Metadata;
-    testing: Metadata;
-  } = { training: {}, testing: {} };
+  private trainingData: Metadata;
+  private testingData: Metadata;
   private source: PreprocessingLeakageSource;
 
   constructor(
@@ -19,13 +17,21 @@ export default class PreprocessingLeakageInstance extends LeakageInstance {
   ) {
     super();
 
-    this.metadata['training'] = trainingData;
-    this.metadata['testing'] = testingData;
+    this.trainingData = trainingData;
+    this.testingData = testingData;
     this.source = source;
   }
 
   getLeakageType(): LeakageType {
     return LeakageType.PreprocessingLeakage;
+  }
+
+  getTrainingData(): Metadata {
+    return this.trainingData;
+  }
+
+  getTestingData(): Metadata {
+    return this.testingData;
   }
 
   getSource(): PreprocessingLeakageSource {

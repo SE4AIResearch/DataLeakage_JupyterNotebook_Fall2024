@@ -1,6 +1,5 @@
 import { ExtensionContext } from 'vscode';
 import LeakageUtilities from './LeakageUtilities';
-import LeakageDetector from './LeakageDetector/LeakageDetector';
 import OverlapLeakageDetector from './LeakageDetector/OverlapLeakageDetector';
 import PreprocessingLeakageDetector from './LeakageDetector/PreprocessingLeakageDetector';
 import MultitestLeakageDetector from './LeakageDetector/MultitestLeakageDetector';
@@ -11,7 +10,11 @@ import LeakageInstance from './LeakageInstance/LeakageInstance';
  */
 export default class Leakages {
   private leakageUtilities: LeakageUtilities;
-  private leakageDetectors: LeakageDetector<any>[];
+  private leakageDetectors: [
+    OverlapLeakageDetector,
+    PreprocessingLeakageDetector,
+    MultitestLeakageDetector,
+  ];
 
   constructor(outputDirectory: string, extensionContext: ExtensionContext) {
     const textDecoder = new TextDecoder();
@@ -21,7 +24,6 @@ export default class Leakages {
       extensionContext,
       textDecoder,
     );
-
     this.leakageDetectors = [
       new OverlapLeakageDetector(
         outputDirectory,
@@ -52,6 +54,7 @@ export default class Leakages {
 
     await this.leakageUtilities.readInternalLineMappings();
     await this.leakageUtilities.readInvocationLineMappings();
+    await this.leakageUtilities.readInvocationTrainTestMappings();
     await this.leakageUtilities.readTaintFile();
 
     for (const leakageDetector of this.leakageDetectors) {
@@ -59,6 +62,8 @@ export default class Leakages {
         this.leakageUtilities.readFile,
         this.leakageUtilities.getInternalLineMappings(),
         this.leakageUtilities.getInvocationLineMappings(),
+        this.leakageUtilities.getInvocationMetadataMappings(),
+        this.leakageUtilities.getInvocationTrainTestMappings(),
         this.leakageUtilities.getTaints(),
       );
       leakageInstances.push(...(await leakageDetector.getLeakageInstances()));

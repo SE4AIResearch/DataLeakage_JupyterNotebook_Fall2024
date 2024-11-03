@@ -3,11 +3,15 @@ import { TextDecoder } from 'util';
 import {
   TaintType,
   type InternalLineMappings,
-  type InvocationFunctionMappings,
   type InvocationLineMappings,
+  type InvocationMetadataMappings,
+  type InvocationTrainTestMappings,
 } from './types';
 import Taint from './LeakageSource/Taint';
 
+/**
+ * Utility class that generates info that is shared between all three leakage detectors types.
+ */
 export default class LeakageUtilities {
   private outputDirectory: string;
   private extensionContext: vscode.ExtensionContext;
@@ -15,7 +19,8 @@ export default class LeakageUtilities {
 
   private internalLineMappings: InternalLineMappings = {};
   private invocationLineMappings: InvocationLineMappings = {};
-  private invocationFunctionMappings: InvocationFunctionMappings = {};
+  private invocationMetadataMappings: InvocationMetadataMappings = {};
+  private invocationTrainTestMappings: InvocationTrainTestMappings = {};
   private taints: Taint[] = [];
 
   constructor(
@@ -36,8 +41,12 @@ export default class LeakageUtilities {
     return this.invocationLineMappings;
   }
 
-  getInvocationFunctionMappings(): InvocationFunctionMappings {
-    return this.invocationFunctionMappings;
+  getInvocationMetadataMappings(): InvocationMetadataMappings {
+    return this.invocationMetadataMappings;
+  }
+
+  getInvocationTrainTestMappings(): InvocationTrainTestMappings {
+    return this.invocationTrainTestMappings;
   }
 
   getTaints(): Taint[] {
@@ -45,54 +54,111 @@ export default class LeakageUtilities {
   }
 
   /**
-   * Looks through 'LinenoMapping.facts' to find all the mappings from internal line number to the actual line number.
-   * The internal line number is the line number used by the program.
-   * The actual line number is the line number of the end user's code.
+   * File: Linenomapping.facts
+   *
+   * Maps internal line number to external line number.
    */
   public async readInternalLineMappings(): Promise<void> {
     const internalLineMappings: InternalLineMappings = {};
 
     const file = await this.readFile('LinenoMapping.facts');
-    file.forEach((line) => {
-      const [internalLine, actualLine] = line.split('\t');
-      internalLineMappings[parseInt(internalLine)] = parseInt(actualLine);
-    });
+    file
+      .filter((line) => !!line)
+      .forEach((line) => {
+        const [internal, external] = line.split('\t');
+        internalLineMappings[parseInt(internal)] = parseInt(external);
+      });
 
     this.internalLineMappings = internalLineMappings;
   }
 
   /**
-   * Looks through 'InvokeLineno.facts' to find all the mappings from invocation to internal line number.
+   * File: InvokeLineno.facts
+   *
+   * Maps invocation to internal line number.
    */
   public async readInvocationLineMappings(): Promise<void> {
     const invocationLineMappings: InvocationLineMappings = {};
 
     const file = await this.readFile('InvokeLineno.facts');
-    file.forEach((line) => {
-      const [invocationString, internalLine] = line.split('\t');
-      invocationLineMappings[invocationString] = parseInt(internalLine);
-    });
+    file
+      .filter((line) => !!line)
+      .forEach((line) => {
+        const [invocation, internal] = line.split('\t');
+        invocationLineMappings[invocation] = parseInt(internal);
+      });
 
     this.invocationLineMappings = invocationLineMappings;
   }
 
   /**
-   * Looks through 'Invoke.facts' to find all the mappings from invocation to function.
+   * File: Telemetry_ModelPair.csv
+   *
+   * Adds any new invocation to metadata mappings.
+   * Maps training invocation to testing invocations.
    */
-  public async readInvocationFunctionMappings(): Promise<void> {
-    const invocationFunctionMappings: InvocationFunctionMappings = {};
+  public async readInvocationTrainTestMappings(): Promise<void> {
+    const invocationMetadataMappings: InvocationMetadataMappings = {};
+    const invocationTrainTestMappings: InvocationTrainTestMappings = {};
 
-    const file = await this.readFile('Invoke.facts');
-    file.forEach((line) => {
-      const [invocationString, func] = line.split('\t');
-      invocationFunctionMappings[invocationString] = func;
-    });
+    if (!this.internalLineMappings) {
+      await this.readInternalLineMappings();
+    }
+    if (!this.invocationLineMappings) {
+      await this.readInvocationLineMappings();
+    }
 
-    this.invocationFunctionMappings = invocationFunctionMappings;
+    const file = await this.readFile('Telemetry_ModelPair.csv');
+    file
+      .filter((line) => !!line)
+      .forEach((line) => {
+        const [
+          trainingModel,
+          trainingVariable,
+          trainingInvocation,
+          trainingFunction,
+          trainingContext,
+          testingModel,
+          testingVariable,
+          testingInvocation,
+          testingFunction,
+          testingContext,
+        ] = line.split('\t');
+
+        invocationMetadataMappings[trainingInvocation] = {
+          model: trainingModel,
+          variable: trainingVariable,
+          function: trainingFunction,
+          line: this.internalLineMappings[
+            this.invocationLineMappings[trainingInvocation]
+          ],
+        };
+        invocationMetadataMappings[testingInvocation] = {
+          model: testingModel,
+          variable: testingVariable,
+          function: testingFunction,
+          line: this.internalLineMappings[
+            this.invocationLineMappings[testingInvocation]
+          ],
+        };
+
+        if (!(trainingInvocation in invocationTrainTestMappings)) {
+          invocationTrainTestMappings[trainingInvocation] = new Set();
+        }
+        invocationTrainTestMappings[trainingInvocation].add(testingInvocation);
+      });
+
+    this.invocationMetadataMappings = {
+      ...this.invocationMetadataMappings,
+      ...invocationMetadataMappings,
+    };
+    this.invocationTrainTestMappings = invocationTrainTestMappings;
   }
 
   /**
-   * Looks through 'TaintStartTarget.csv' to find all the taints.
+   * File: TaintStartTarget.csv
+   *
+   * Gets all the taints.
    */
   public async readTaintFile(): Promise<void> {
     const taints: Taint[] = [];
@@ -104,16 +170,16 @@ export default class LeakageUtilities {
       await this.readInvocationLineMappings();
     }
 
-    const taintsFile = await this.readFile('TaintStartsTarget.csv');
-    taintsFile
+    const file = await this.readFile('TaintStartsTarget.csv');
+    file
       .filter((line) => !!line)
       .forEach((line) => {
         const [
           destinationVariable,
-          _,
+          destinationContext,
           sourceVariable,
-          __,
-          sourceInvocationString,
+          sourceContext,
+          sourceInvocation,
           sourceFunction,
           taintType,
         ] = line.split('\t');
@@ -135,7 +201,7 @@ export default class LeakageUtilities {
             sourceVariable,
             sourceFunction,
             this.internalLineMappings[
-              this.invocationLineMappings[sourceInvocationString]
+              this.invocationLineMappings[sourceInvocation]
             ],
           ),
         );

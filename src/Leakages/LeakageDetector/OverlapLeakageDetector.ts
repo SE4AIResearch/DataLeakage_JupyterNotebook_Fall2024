@@ -3,7 +3,7 @@ import { TextDecoder } from 'util';
 import LeakageDetector from './LeakageDetector';
 import OverlapLeakageInstance from '../LeakageInstance/OverlapLeakageInstance';
 import OverlapLeakageSource from '../LeakageSource/OverlapLeakageSource';
-import { LeakageType, type Metadata } from '../types';
+import { LeakageType, TaintType, type Metadata } from '../types';
 
 export default class OverlapLeakageDetector extends LeakageDetector<OverlapLeakageInstance> {
   constructor(
@@ -21,7 +21,7 @@ export default class OverlapLeakageDetector extends LeakageDetector<OverlapLeaka
 
   async getLeakageInstances(): Promise<OverlapLeakageInstance[]> {
     const overlapLeakageInstances: OverlapLeakageInstance[] = [];
-    const leakageMetadatas: Record<
+    const overlapLeakageData: Record<
       string,
       {
         training: Metadata;
@@ -36,47 +36,60 @@ export default class OverlapLeakageDetector extends LeakageDetector<OverlapLeaka
         const [
           trainingModel,
           trainingVariable,
-          trainingInvocationString,
+          trainingInvocation,
           trainingFunction,
           trainingContext,
           testingModel,
           testingVariable,
-          testingInvocationString,
+          testingInvocation,
           testingFunction,
           testingContext,
         ] = line.split('\t');
 
-        const hash = this.hash(
-          trainingInvocationString,
-          testingInvocationString,
-        );
-
-        leakageMetadatas[hash] = {
-          training: {
+        if (!(trainingInvocation in this.invocationMetadataMappings)) {
+          this.invocationMetadataMappings[trainingInvocation] = {
             model: trainingModel,
             variable: trainingVariable,
             function: trainingFunction,
             line: this.internalLineMappings[
-              this.invocationLineMappings[trainingInvocationString]
+              this.invocationLineMappings[trainingInvocation]
             ],
-          },
-          testing: {
+          };
+        }
+        if (!(testingInvocation in this.invocationMetadataMappings)) {
+          this.invocationMetadataMappings[testingInvocation] = {
             model: testingModel,
             variable: testingVariable,
             function: testingFunction,
             line: this.internalLineMappings[
-              this.invocationLineMappings[testingInvocationString]
+              this.invocationLineMappings[testingInvocation]
             ],
-          },
+          };
+        }
+
+        if (!(trainingInvocation in this.invocationTrainTestMappings)) {
+          this.invocationTrainTestMappings[trainingInvocation] = new Set();
+        }
+        this.invocationTrainTestMappings[trainingInvocation].add(
+          testingInvocation,
+        );
+
+        const hash = this.hash(trainingInvocation, testingInvocation);
+
+        overlapLeakageData[hash] = {
+          training: this.invocationMetadataMappings[trainingInvocation],
+          testing: this.invocationMetadataMappings[testingInvocation],
         };
       });
 
-    for (const [_, metadata] of Object.entries(leakageMetadatas)) {
+    for (const data of Object.values(overlapLeakageData)) {
       overlapLeakageInstances.push(
         new OverlapLeakageInstance(
-          metadata.training,
-          metadata.testing,
-          new OverlapLeakageSource(this.taints),
+          data.training,
+          data.testing,
+          new OverlapLeakageSource(
+            this.taints.filter((source) => source.getType() === TaintType.Dup),
+          ),
         ),
       );
     }
@@ -84,10 +97,7 @@ export default class OverlapLeakageDetector extends LeakageDetector<OverlapLeaka
     return overlapLeakageInstances;
   }
 
-  private hash(
-    trainingInvocationString: string,
-    testingInvocationString: string,
-  ) {
-    return `${trainingInvocationString}_${testingInvocationString}`;
+  private hash(trainingInvocation: string, testingInvocation: string) {
+    return `${trainingInvocation}_${testingInvocation}`;
   }
 }

@@ -21,6 +21,16 @@ export enum LeakageCause {
 }
 
 export type InternalLineMappings = Record<number, number>;
+
 export type InvocationLineMappings = Record<string, number>;
-export type InvocationFunctionMappings = Record<string, string>;
+
 export type Metadata = Record<string, unknown>;
+
+export type InvocationMetadataMappings = Record<string, Metadata>;
+
+export type InvocationTrainTestMappings = Record<string, Set<string>>;
+
+export type MultitestLeakageOccurrence = {
+  trainingData: Metadata;
+  testingData: Metadata[];
+};
