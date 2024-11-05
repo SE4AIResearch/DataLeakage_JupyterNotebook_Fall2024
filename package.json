@@ -51,6 +51,11 @@
       "leakage-instances": [
         {
           "type": "webview",
+          "id": "data-leakage.leakageSummaryViewProvider",
+          "name": "Leakage Summary View"
+        },
+        {
+          "type": "webview",
           "id": "data-leakage.leakageInstancesViewProvider",
           "name": "Leakage Instances View"
         }
