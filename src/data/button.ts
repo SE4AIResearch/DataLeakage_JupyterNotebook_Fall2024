@@ -150,6 +150,8 @@ async function analyzeNotebook(
       );
       throw err;
     }
+  } else {
+    view.webview.postMessage({ type: 'analysisCompleted' });
   }
 }
 
