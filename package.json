@@ -31,6 +31,11 @@
         "command": "data-leakage.test",
         "category": "Test",
         "title": "Testing Notification"
+      },
+      {
+        "command": "data-leakage.quickfix",
+        "category": "Code Action",
+        "title": "Code Action for Notebook Leakage Detection"
       }
     ],
     "views": {
