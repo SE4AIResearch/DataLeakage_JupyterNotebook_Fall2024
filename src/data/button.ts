@@ -1,13 +1,15 @@
 import * as vscode from 'vscode';
-
 import Docker, { ImageInfo } from 'dockerode';
-import { CellConversion } from '../helpers/CellConversion';
-import { DockerTemp, TempDir } from '../helpers/TempDir';
+
 import path from 'path';
 import fs from 'fs';
-import { StateManager } from '../helpers/StateManager';
 
-let _isRunning = false;
+import { DockerTemp, TempDir } from '../helpers/TempDir';
+import { StateManager } from '../helpers/StateManager';
+import {
+  ConversionToJupyter,
+  ConversionToPython,
+} from '../helpers/LineConversion';
 
 async function ensureImageExist(docker: Docker, imageName: string) {
   try {
@@ -42,21 +44,6 @@ async function ensureImageExist(docker: Docker, imageName: string) {
   }
 }
 
-// TODO: Maybe refactor this into cellConversion
-function getNotebookInNormalFormat(
-  notebookFile: vscode.NotebookDocument,
-): string {
-  const cellConversion = new CellConversion();
-
-  const codeCellsWithIndex: [string, number][] = notebookFile
-    .getCells()
-    .map((cell, i): [vscode.NotebookCell, number] => [cell, i])
-    .filter(([cell]) => cell.kind === 2)
-    .map(([cell, i]) => [cell.document.getText(), i]);
-
-  return cellConversion.insertCellIndices(codeCellsWithIndex)[1];
-}
-
 async function requestAlgorithm(tempDir: TempDir) {
   const docker = new Docker();
   await ensureImageExist(docker, DockerTemp.IMAGE_NAME);
@@ -82,6 +69,15 @@ async function requestAlgorithm(tempDir: TempDir) {
   ]);
 }
 
+function transformInput(
+  notebookFile: vscode.NotebookDocument,
+): [string, Record<string, string>] {
+  const conversionManager = new ConversionToPython(notebookFile);
+  const lineNumberRecord = conversionManager.getLineMapRecord();
+  const pythonStr = conversionManager.getPythonCode();
+  return [pythonStr, lineNumberRecord];
+}
+
 // TODO: Refactor analyzeNotebook & analyzeNotebookWithNotification into one
 
 async function analyzeNotebook(
@@ -93,18 +89,19 @@ async function analyzeNotebook(
     vscode.window.activeNotebookEditor?.notebook.uri.scheme === 'file' &&
     path.extname(vscode.window.activeNotebookEditor?.notebook.uri.fsPath) ===
       '.ipynb' &&
-    _isRunning === false &&
+    StateManager.loadIsRunning(context) === false &&
     view
   ) {
     const startTime = performance.now();
     try {
-      _isRunning = true;
+      StateManager.saveIsRunning(context, true);
 
       // Convert Notebook -> Python
-
-      const pythonStr = getNotebookInNormalFormat(
+      const [pythonStr, jsonObj] = transformInput(
         vscode.window.activeNotebookEditor?.notebook,
       );
+
+      // Write Python to Temp File
 
       const tempDir = new TempDir(pythonStr);
 
@@ -113,13 +110,27 @@ async function analyzeNotebook(
         flag: 'w',
       });
 
+      fs.writeFileSync(
+        tempDir.getAlgoJupyLineMappingPath(),
+        JSON.stringify(jsonObj, undefined, 2),
+        {
+          encoding: 'utf8',
+          flag: 'w',
+        },
+      );
+
+      console.log(`Input Directory is: ${tempDir.getAlgoDirPath()}`);
+      console.log(`Input Python File is:\n${pythonStr}`);
+      console.log(
+        `Input JSON File is:\n${JSON.stringify(jsonObj, undefined, 2)}`,
+      );
+
+      // Save Temp Directory State
+
       StateManager.saveTempDirState(context, {
         ogFilePath: vscode.window.activeNotebookEditor?.notebook.uri.fsPath,
         tempDirPath: tempDir.getAlgoInputFilePath(),
       });
-
-      console.log(`Input Directory is: ${tempDir.getAlgoDirPath()}`);
-      console.log(`Input Python File is:\n${pythonStr}`);
 
       // Run Algorithm & Wait for result
 
@@ -128,16 +139,19 @@ async function analyzeNotebook(
       vscode.window.showInformationMessage(
         `Analysis completed in ${elapsedTime} second${elapsedTime >= 1 && elapsedTime < 2 ? 's' : ''}`,
       );
+
       view.webview.postMessage({ type: 'analysisCompleted' });
-      _isRunning = false;
+      StateManager.saveIsRunning(context, false);
     } catch (err) {
-      _isRunning = false;
+      StateManager.saveIsRunning(context, false);
       view.webview.postMessage({ type: 'analysisCompleted' });
       vscode.window.showInformationMessage(
         'Analysis Failed: Unknown Error Encountered.',
       );
       throw err;
     }
+  } else {
+    view.webview.postMessage({ type: 'analysisCompleted' });
   }
 }
 
