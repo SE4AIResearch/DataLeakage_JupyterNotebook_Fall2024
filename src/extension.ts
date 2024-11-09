@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import Leakages from './data/Leakages/Leakages';
 import { ButtonViewProvider } from './view/ButtonViewProvider';
 import { LeakageInstancesViewProvider } from './view/LeakageInstancesViewProvider';
 import { LeakageSummaryViewProvider } from './view/LeakageSummaryViewProvider';
@@ -11,8 +12,24 @@ import {
 } from './data/notebookDiagnostics';
 
 export function activate(context: vscode.ExtensionContext) {
-  const buttonProvider = new ButtonViewProvider(context.extensionUri, context);
+  const disposable = vscode.commands.registerCommand(
+    'dataleakage-jupyternotebook-fall2024.runLeakageDetector',
+    async () => {
+      try {
+        const leakages = new Leakages('src/_output/All/', context);
+        console.log(await leakages.getLeakages());
+      } catch (error) {
+        console.log(error);
+      }
+      vscode.window.showInformationMessage(
+        'Hello World from DataLeakage_JupyterNotebook_Fall2024!',
+      );
+    },
+  );
+  context.subscriptions.push(disposable);
 
+  const buttonProvider = new ButtonViewProvider(context.extensionUri, context);
+  const provider = new ButtonViewProvider(context.extensionUri, context);
   context.subscriptions.push(
     vscode.window.registerWebviewViewProvider(
       ButtonViewProvider.viewType,

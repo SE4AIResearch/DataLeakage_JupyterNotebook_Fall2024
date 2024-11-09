@@ -30,6 +30,10 @@
     },
     "commands": [
       {
+        "command": "dataleakage-jupyternotebook-fall2024.runLeakageDetector",
+        "title": "Run Leakage Detector"
+      },
+      {
         "command": "data-leakage.analyzeNotebook",
         "category": "Analysis",
         "title": "Analyze Jupyter Notebook file"
