@@ -19,6 +19,13 @@
           "title": "Data Leakage",
           "icon": "media/images/hand.svg"
         }
+      ],
+      "panel": [
+        {
+          "id": "leakage-instances",
+          "title": "Leakage Instances",
+          "icon": ""
+        }
       ]
     },
     "commands": [
@@ -43,7 +50,19 @@
         {
           "type": "webview",
           "id": "data-leakage.buttonView",
-          "name": "Data Leakage"
+          "name": "Button View"
+        }
+      ],
+      "leakage-instances": [
+        {
+          "type": "webview",
+          "id": "data-leakage.leakageSummaryViewProvider",
+          "name": "Leakage Summary View"
+        },
+        {
+          "type": "webview",
+          "id": "data-leakage.leakageInstancesViewProvider",
+          "name": "Leakage Instances View"
         }
       ]
     }
