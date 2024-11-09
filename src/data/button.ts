@@ -10,6 +10,8 @@ import {
   ConversionToJupyter,
   ConversionToPython,
 } from '../helpers/LineConversion';
+import LeakageInstance from './Leakages/LeakageInstance/LeakageInstance';
+import Leakages from './Leakages/Leakages';
 
 async function ensureImageExist(docker: Docker, imageName: string) {
   try {
@@ -83,6 +85,7 @@ function transformInput(
 async function analyzeNotebook(
   view: vscode.WebviewView,
   context: vscode.ExtensionContext,
+  changeView: (leakages: LeakageInstance[]) => void,
 ) {
   if (
     vscode.window.activeNotebookEditor &&
@@ -140,6 +143,10 @@ async function analyzeNotebook(
         `Analysis completed in ${elapsedTime} second${elapsedTime === 1 ? '' : 's'}`,
       );
 
+      const leakages = new Leakages(tempDir.getAlgoOutputDirPath(), context);
+      const leakagesList = await leakages.getLeakages();
+      changeView(leakagesList);
+
       view.webview.postMessage({ type: 'analysisCompleted' });
       StateManager.saveIsRunning(context, false);
     } catch (err) {
@@ -158,6 +165,7 @@ async function analyzeNotebook(
 export async function analyzeNotebookWithProgress(
   view: vscode.WebviewView,
   context: vscode.ExtensionContext,
+  changeView: (leakages: LeakageInstance[]) => void,
 ) {
   vscode.window.withProgress(
     {
@@ -168,7 +176,7 @@ export async function analyzeNotebookWithProgress(
       return (async () => {
         progress.report({ increment: 0 });
         try {
-          await analyzeNotebook(view, context);
+          await analyzeNotebook(view, context, changeView);
         } catch (err) {
           console.error(err);
         }

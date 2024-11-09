@@ -1,4 +1,8 @@
 import * as vscode from 'vscode';
+import Leakages from './Leakages/Leakages';
+import { TempDir } from '../helpers/TempDir';
+import { StateManager } from '../helpers/StateManager';
+import { ConversionToPython } from '../helpers/LineConversion';
 
 export const LEAKAGE_ERROR = 'leak';
 export const COLLECTION_NAME = 'notebook_leakage_error';
@@ -71,9 +75,31 @@ export function subscribeToDocumentChanges(
     );
   }
   context.subscriptions.push(
-    vscode.window.onDidChangeActiveTextEditor((editor) => {
+    vscode.window.onDidChangeActiveTextEditor(async (editor) => {
       if (editor && editor.document.uri.scheme === 'vscode-notebook-cell') {
-        console.log('Hello, ', editor.document.uri);
+        const notebookDocument = await vscode.workspace.openNotebookDocument(
+          vscode.Uri.file(editor.document.uri.fsPath),
+        );
+        const pythonCode = new ConversionToPython(
+          notebookDocument,
+        ).getPythonCode();
+
+        const tempDir = new TempDir(pythonCode);
+        // FIXME: Something is wrong with StateManager
+        // const tempState = StateManager.loadTempDirState(
+        //   context,
+        //   tempDir.getId(),
+        // );
+
+        // if (tempState === undefined) {
+        //   throw new Error(
+        //     `Temp state is undefined. Button has not been run. ${tempDir.getId()} ${tempDir.getAlgoDirPath()}`,
+        //   );
+        // }
+
+        const leakages = new Leakages(tempDir.getAlgoOutputDirPath(), context);
+        console.log(await leakages.getLeakages());
+
         // TODO: When the user switches to a different tab, compute hash and use StateManager to check if the corresponding hash is in RAM, if not, we clear diagnostics, if hash exists, then we refresh diagnostics.
 
         // TODO: Get content of document (assume it is always an ipynb file)

@@ -6,6 +6,7 @@ import * as vscode from 'vscode';
 import { getNonce, getWebviewOptions } from '../helpers/utils';
 import { analyzeNotebookWithProgress } from '../data/button';
 import { StateManager } from '../helpers/StateManager';
+import LeakageInstance from '../data/Leakages/LeakageInstance/LeakageInstance';
 
 /**
  * Manages Button Webview
@@ -18,6 +19,7 @@ export class ButtonViewProvider {
   constructor(
     private readonly _extensionUri: vscode.Uri,
     private readonly _context: vscode.ExtensionContext,
+    private readonly _changeView: (leakages: LeakageInstance[]) => void,
   ) {}
 
   public resolveWebviewView(
@@ -50,7 +52,11 @@ export class ButtonViewProvider {
 
   public async analyzeNotebook() {
     if (this._view) {
-      await analyzeNotebookWithProgress(this._view, this._context);
+      await analyzeNotebookWithProgress(
+        this._view,
+        this._context,
+        this._changeView,
+      );
     } else {
       throw new Error("View wasn't created.");
     }

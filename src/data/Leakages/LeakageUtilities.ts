@@ -8,6 +8,7 @@ import {
   type InvocationTrainTestMappings,
 } from './types';
 import Taint from './LeakageSource/Taint';
+import path from 'path';
 
 /**
  * Utility class that generates info that is shared between all three leakage detectors types.
@@ -216,9 +217,7 @@ export default class LeakageUtilities {
    * @returns An array containing the lines inside the file.
    */
   public async readFile(filename: string): Promise<string[]> {
-    const filepath = this.extensionContext.asAbsolutePath(
-      this.outputDirectory + filename,
-    );
+    const filepath = path.join(this.outputDirectory, filename);
     const bytes = await vscode.workspace.fs.readFile(
       vscode.Uri.parse('file://' + filepath),
     );

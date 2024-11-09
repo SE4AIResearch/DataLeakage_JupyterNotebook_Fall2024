@@ -10,6 +10,8 @@ import {
   COMMAND,
   subscribeToDocumentChanges,
 } from './data/notebookDiagnostics';
+import LeakageInstance from './data/Leakages/LeakageInstance/LeakageInstance';
+import { LeakageType } from './data/Leakages/types';
 
 export function activate(context: vscode.ExtensionContext) {
   const disposable = vscode.commands.registerCommand(
@@ -27,20 +29,6 @@ export function activate(context: vscode.ExtensionContext) {
     },
   );
   context.subscriptions.push(disposable);
-
-  const buttonProvider = new ButtonViewProvider(context.extensionUri, context);
-  const provider = new ButtonViewProvider(context.extensionUri, context);
-  context.subscriptions.push(
-    vscode.window.registerWebviewViewProvider(
-      ButtonViewProvider.viewType,
-      buttonProvider,
-    ),
-  );
-  context.subscriptions.push(
-    vscode.commands.registerCommand('data-leakage.analyzeNotebook', () => {
-      buttonProvider.analyzeNotebook();
-    }),
-  );
 
   const notebookDiagnostics =
     vscode.languages.createDiagnosticCollection(COLLECTION_NAME);
@@ -86,7 +74,8 @@ export function activate(context: vscode.ExtensionContext) {
     },
   ]);
 
-  // Leakage summary
+  // Leakage Summary
+
   const leakageSummaryProvider = new LeakageSummaryViewProvider(
     context.extensionUri,
     context,
@@ -99,9 +88,37 @@ export function activate(context: vscode.ExtensionContext) {
     ),
   );
 
-  setTimeout(() => {
-    leakageSummaryProvider.changeCount(2, 3, 4);
-  }, 5000);
+  const changeView = (leakages: LeakageInstance[]) => {
+    const overlapLeakageCount = leakages.filter(
+      (leakage) => leakage.getLeakageType() === LeakageType.OverlapLeakage,
+    ).length;
+    const multiTestLeakageCount = leakages.filter(
+      (leakage) => leakage.getLeakageType() === LeakageType.MultitestLeakage,
+    ).length;
+    const preprocessingLeakageCount = leakages.filter(
+      (leakage) =>
+        leakage.getLeakageType() === LeakageType.PreprocessingLeakage,
+    ).length;
+    leakageSummaryProvider.changeCount(
+      preprocessingLeakageCount,
+      multiTestLeakageCount,
+      overlapLeakageCount,
+    );
+  };
+
+  // Button View
+
+  const buttonProvider = new ButtonViewProvider(
+    context.extensionUri,
+    context,
+    changeView,
+  );
+  context.subscriptions.push(
+    vscode.window.registerWebviewViewProvider(
+      ButtonViewProvider.viewType,
+      buttonProvider,
+    ),
+  );
 }
 
 /**

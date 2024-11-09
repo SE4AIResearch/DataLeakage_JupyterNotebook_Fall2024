@@ -8,11 +8,14 @@ const PYTHON_FILE_NAME = 'input.py';
 const JUPYTER_LINE_MAPPING_FILE_NAME = 'jupyter_line_mapping.json';
 const tempDir = os.tmpdir();
 
+console.log(tempDir);
+
 export class TempDir {
   private _id: string;
   private _algoInputFilePath: string;
   private _algoJupyLineMappingPath: string;
   private _algoDirPath: string;
+  private _algoOutputDirPath: string;
 
   constructor(str: string) {
     // FIXME: Refactor duplicate code / boilerplate
@@ -24,6 +27,7 @@ export class TempDir {
       JUPYTER_LINE_MAPPING_FILE_NAME,
     );
     this._algoDirPath = path.join(tempDir, this._id);
+    this._algoOutputDirPath = path.join(tempDir, this._id, 'input-fact');
 
     try {
       fs.mkdirSync(this._algoDirPath);
@@ -47,6 +51,9 @@ export class TempDir {
   }
   public getAlgoJupyLineMappingPath() {
     return this._algoJupyLineMappingPath;
+  }
+  public getAlgoOutputDirPath() {
+    return this._algoOutputDirPath;
   }
   public getAlgoDirPath() {
     return this._algoDirPath;
