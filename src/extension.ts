@@ -14,6 +14,8 @@ import LeakageInstance from './data/Leakages/LeakageInstance/LeakageInstance';
 import { LeakageType } from './data/Leakages/types';
 
 export function activate(context: vscode.ExtensionContext) {
+  // Test Command for Leakages Class
+
   const disposable = vscode.commands.registerCommand(
     'dataleakage-jupyternotebook-fall2024.runLeakageDetector',
     async () => {
@@ -30,19 +32,19 @@ export function activate(context: vscode.ExtensionContext) {
   );
   context.subscriptions.push(disposable);
 
+  // Diagnostics
+
   const notebookDiagnostics =
     vscode.languages.createDiagnosticCollection(COLLECTION_NAME);
   context.subscriptions.push(notebookDiagnostics);
   subscribeToDocumentChanges(context, notebookDiagnostics);
 
+  // Code Actions (Quickfix)
+
   context.subscriptions.push(
-    vscode.languages.registerCodeActionsProvider(
-      'markdown',
-      new LeakageInfo(),
-      {
-        providedCodeActionKinds: LeakageInfo.providedCodeActionKinds,
-      },
-    ),
+    vscode.languages.registerCodeActionsProvider('python', new LeakageInfo(), {
+      providedCodeActionKinds: LeakageInfo.providedCodeActionKinds,
+    }),
   );
 
   context.subscriptions.push(
@@ -52,6 +54,8 @@ export function activate(context: vscode.ExtensionContext) {
       ),
     ),
   );
+
+  // Leakage Instances View
 
   const leakageInstanceProvider = new LeakageInstancesViewProvider(
     context.extensionUri,
@@ -136,22 +140,22 @@ export class LeakageInfo implements vscode.CodeActionProvider {
     _token: vscode.CancellationToken,
   ): vscode.CodeAction[] {
     // for each diagnostic entry that has the matching `code`, create a code action command
+    console.log(context.diagnostics);
     return context.diagnostics
       .filter((diagnostic) => diagnostic.code === LEAKAGE_ERROR)
-      .map((diagnostic) => this.createCommandCodeAction(diagnostic));
+      .map((diagnostic) => this.createFix(diagnostic));
   }
 
-  private createCommandCodeAction(
-    diagnostic: vscode.Diagnostic,
-  ): vscode.CodeAction {
+  private createFix(diagnostic: vscode.Diagnostic): vscode.CodeAction {
+    console.log(diagnostic);
     const action = new vscode.CodeAction(
-      'Learn more...',
+      'Leakage Quickfix Suggestion',
       vscode.CodeActionKind.QuickFix,
     );
     action.command = {
       command: COMMAND,
-      title: 'Quickfix',
-      tooltip: 'Quickfix',
+      title: 'Generate Suggestion',
+      tooltip: 'This will generate suggestions on how to fix leakage issues.',
     };
     action.diagnostics = [diagnostic];
     action.isPreferred = true;

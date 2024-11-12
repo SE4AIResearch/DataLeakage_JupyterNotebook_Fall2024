@@ -6,10 +6,7 @@ import fs from 'fs';
 
 import { DockerTemp, TempDir } from '../helpers/TempDir';
 import { StateManager } from '../helpers/StateManager';
-import {
-  ConversionToJupyter,
-  ConversionToPython,
-} from '../helpers/LineConversion';
+import { ConversionToPython } from '../helpers/conversion/LineConversion';
 import LeakageInstance from './Leakages/LeakageInstance/LeakageInstance';
 import Leakages from './Leakages/Leakages';
 

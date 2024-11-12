@@ -9,7 +9,9 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": [],
+  "activationEvents": [
+    "onLanguage:python"
+  ],
   "main": "./dist/extension.js",
   "contributes": {
     "viewsContainers": {
@@ -41,7 +43,7 @@
       {
         "command": "data-leakage.quickfix",
         "category": "Code Action",
-        "title": "Code Action for Notebook Leakage Detection"
+        "title": "Quickfix for Leakage Error"
       }
     ],
     "views": {
