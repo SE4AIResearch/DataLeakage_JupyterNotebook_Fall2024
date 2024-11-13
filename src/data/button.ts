@@ -142,7 +142,12 @@ async function analyzeNotebook(
 
       const leakages = new Leakages(tempDir.getAlgoOutputDirPath(), context);
       const leakagesList = await leakages.getLeakages();
-      changeView(leakagesList);
+
+      try {
+        changeView(leakagesList);
+      } catch (err) {
+        console.error('Panel Table View not active.');
+      }
 
       view.webview.postMessage({ type: 'analysisCompleted' });
       StateManager.saveIsRunning(context, false);
