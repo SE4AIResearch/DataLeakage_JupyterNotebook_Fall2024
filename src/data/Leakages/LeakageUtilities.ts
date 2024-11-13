@@ -218,9 +218,7 @@ export default class LeakageUtilities {
    */
   public async readFile(filename: string): Promise<string[]> {
     const filepath = path.join(this.outputDirectory, filename);
-    const bytes = await vscode.workspace.fs.readFile(
-      vscode.Uri.parse('file://' + filepath),
-    );
+    const bytes = await vscode.workspace.fs.readFile(vscode.Uri.file(filepath));
     return this.textDecoder.decode(bytes).split('\n');
   }
 }
