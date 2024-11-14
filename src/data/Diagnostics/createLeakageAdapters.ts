@@ -11,6 +11,15 @@ export type LeakageAdapter = {
   parent: null | Array<LeakageAdapter>; // not sure what to do with this but it is an array of testingData that are related to each other (array includes the object itself)
 };
 
+export type LeakageAdapterCell = {
+  type: string;
+  line: number;
+  cell: number;
+  variable: string;
+  cause: string;
+  parent: null | Array<LeakageAdapter>; // not sure what to do with this but it is an array of testingData that are related to each other (array includes the object itself)
+};
+
 const adaptOverlapLeakageInstance = (
   leakage: OverlapLeakageInstance,
 ): LeakageAdapter => {
@@ -59,7 +68,7 @@ const adaptMultitestLeakageInstances = (
           line: typeof metadata.line === 'number' ? metadata.line : -1,
           variable:
             typeof metadata.variable === 'string' ? metadata.variable : '',
-          cause: 'Repeat data evaluation',
+          cause: 'repeatDataEvaluation',
           parent: null,
         }))
         .map((leakageAdapter, _, arr) => ({ ...leakageAdapter, parent: arr })),

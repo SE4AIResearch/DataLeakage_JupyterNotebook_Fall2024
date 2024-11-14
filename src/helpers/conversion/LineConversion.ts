@@ -1,4 +1,7 @@
 import * as vscode from 'vscode';
+import fs from 'fs';
+import util from 'util';
+import { isStringRecord } from '../../validation/common';
 
 export type JupyCell = {
   data: string;
@@ -17,7 +20,8 @@ export class ConversionToPython {
   private pythonCode: string;
 
   constructor(notebookFile: vscode.NotebookDocument) {
-    this.jupyCells = this.convertVSCodeNotebookToJupyCells(notebookFile);
+    this.jupyCells =
+      ConversionToPython.convertVSCodeNotebookToJupyCells(notebookFile);
     this.lineMapRecord = ConversionToPython.convertJupyCellsToLineMapRecord(
       this.jupyCells,
     );
@@ -27,7 +31,7 @@ export class ConversionToPython {
   }
 
   // PRIVATE FUNCTIONS
-  private convertVSCodeNotebookToJupyCells(
+  public static convertVSCodeNotebookToJupyCells(
     notebookFile: vscode.NotebookDocument,
   ): JupyCell[] {
     return notebookFile
@@ -131,5 +135,17 @@ export class ConversionToJupyter {
 
   public getJupyCells(): JupyCell[] {
     return this.jupyCells;
+  }
+
+  // STATIC FUNCTION
+  public static async convertJSONFile(
+    jsonPath: string,
+  ): Promise<ConversionToJupyter> {
+    const readFileAsync = util.promisify(fs.readFile);
+    const json = JSON.parse(await readFileAsync(jsonPath, 'utf8'));
+    if (!isStringRecord(json)) {
+      throw new TypeError('JSON file is not an object.');
+    }
+    return new ConversionToJupyter(json);
   }
 }
