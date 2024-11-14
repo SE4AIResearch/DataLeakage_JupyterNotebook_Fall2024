@@ -1,6 +1,13 @@
 import * as vscode from 'vscode';
-import Leakages from './Leakages/Leakages';
-import { TempDir } from '../helpers/TempDir';
+import Leakages from '..//Leakages/Leakages';
+import { TempDir } from '../../helpers/TempDir';
+import OverlapLeakageInstance from '.././Leakages/LeakageInstance/OverlapLeakageInstance';
+import PreprocessingLeakageInstance from '.././Leakages/LeakageInstance/PreprocessingLeakageInstance';
+import MultitestLeakageInstance from '.././Leakages/LeakageInstance/MultitestLeakageInstance';
+import { Metadata, MultitestLeakageOccurrence } from '.././Leakages/types';
+import PreprocessingLeakageSource from '.././Leakages/LeakageSource/PreprocessingLeakageSource';
+import Taint from '.././Leakages/LeakageSource/Taint';
+import { createLeakageAdapters } from './createLeakageAdapters';
 
 export const LEAKAGE_ERROR = 'LEAKAGE_ERROR';
 export const COLLECTION_NAME = 'notebook_leakage_error';
@@ -76,8 +83,13 @@ export function subscribeToDocumentChanges(
     vscode.window.onDidChangeActiveTextEditor(async (editor) => {
       if (editor && editor.document.uri.scheme === 'vscode-notebook-cell') {
         const tempDir = await TempDir.getTempDir(editor.document.uri.fsPath);
-        const leakages = new Leakages(tempDir.getAlgoOutputDirPath(), context);
-        console.log(await leakages.getLeakages());
+        const leakages = await new Leakages(
+          tempDir.getAlgoOutputDirPath(),
+          context,
+        ).getLeakages();
+
+        const leakageAdapters = createLeakageAdapters(leakages);
+        console.log(leakageAdapters);
 
         // TODO: When the user switches to a different tab, compute hash and use StateManager to check if the corresponding hash is in RAM, if not, we clear diagnostics, if hash exists, then we refresh diagnostics.
 

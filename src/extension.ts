@@ -9,7 +9,7 @@ import {
   COLLECTION_NAME,
   COMMAND,
   subscribeToDocumentChanges,
-} from './data/notebookDiagnostics';
+} from './data/Diagnostics/notebookDiagnostics';
 import LeakageInstance from './data/Leakages/LeakageInstance/LeakageInstance';
 import { LeakageType } from './data/Leakages/types';
 
@@ -140,14 +140,12 @@ export class LeakageInfo implements vscode.CodeActionProvider {
     _token: vscode.CancellationToken,
   ): vscode.CodeAction[] {
     // for each diagnostic entry that has the matching `code`, create a code action command
-    console.log(context.diagnostics);
     return context.diagnostics
       .filter((diagnostic) => diagnostic.code === LEAKAGE_ERROR)
       .map((diagnostic) => this.createFix(diagnostic));
   }
 
   private createFix(diagnostic: vscode.Diagnostic): vscode.CodeAction {
-    console.log(diagnostic);
     const action = new vscode.CodeAction(
       'Leakage Quickfix Suggestion',
       vscode.CodeActionKind.QuickFix,
