@@ -17,7 +17,7 @@
         {
           "id": "data-leakage",
           "title": "Data Leakage",
-          "icon": "media/images/hand.svg"
+          "icon": "media/images/hand.png"
         }
       ],
       "panel": [
