@@ -88,6 +88,7 @@ const configureNotebookDiagnostics = async (
   } catch (err) {
     if (err instanceof NotAnalyzedError) {
       console.warn('Warning: Notebook has not been analyzed before.', err);
+      diagnosticCollection.delete(editor.document.uri);
     } else {
       throw err;
     }
