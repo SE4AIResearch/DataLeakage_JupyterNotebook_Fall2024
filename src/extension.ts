@@ -5,13 +5,12 @@ import { LeakageInstancesViewProvider } from './view/LeakageInstancesViewProvide
 import { LeakageSummaryViewProvider } from './view/LeakageSummaryViewProvider';
 
 import {
-  LEAKAGE_ERROR,
   COLLECTION_NAME,
-  COMMAND,
   subscribeToDocumentChanges,
 } from './data/Diagnostics/notebookDiagnostics';
 import LeakageInstance from './data/Leakages/LeakageInstance/LeakageInstance';
 import { LeakageType } from './data/Leakages/types';
+// import { COMMAND, LeakageInfo } from './data/Diagnostics/LeakageInfo';
 
 export function activate(context: vscode.ExtensionContext) {
   // Test Command for Leakages Class
@@ -41,19 +40,19 @@ export function activate(context: vscode.ExtensionContext) {
 
   // Code Actions (Quickfix)
 
-  context.subscriptions.push(
-    vscode.languages.registerCodeActionsProvider('python', new LeakageInfo(), {
-      providedCodeActionKinds: LeakageInfo.providedCodeActionKinds,
-    }),
-  );
+  // context.subscriptions.push(
+  //   vscode.languages.registerCodeActionsProvider('python', new LeakageInfo(), {
+  //     providedCodeActionKinds: LeakageInfo.providedCodeActionKinds,
+  //   }),
+  // );
 
-  context.subscriptions.push(
-    vscode.commands.registerCommand(COMMAND, () =>
-      vscode.env.openExternal(
-        vscode.Uri.parse('https://www.youtube.com/watch?v=dQw4w9WgXcQ'),
-      ),
-    ),
-  );
+  // context.subscriptions.push(
+  //   vscode.commands.registerCommand(COMMAND, () =>
+  //     vscode.env.openExternal(
+  //       vscode.Uri.parse('https://www.youtube.com/watch?v=dQw4w9WgXcQ'),
+  //     ),
+  //   ),
+  // );
 
   // Leakage Instances View
 
@@ -124,40 +123,3 @@ export function activate(context: vscode.ExtensionContext) {
     ),
   );
 }
-
-/**
- * Provides code actions corresponding to diagnostic problems.
- */
-export class LeakageInfo implements vscode.CodeActionProvider {
-  public static readonly providedCodeActionKinds = [
-    vscode.CodeActionKind.QuickFix,
-  ];
-
-  provideCodeActions(
-    _document: vscode.TextDocument,
-    _range: vscode.Range | vscode.Selection,
-    context: vscode.CodeActionContext,
-    _token: vscode.CancellationToken,
-  ): vscode.CodeAction[] {
-    // for each diagnostic entry that has the matching `code`, create a code action command
-    return context.diagnostics
-      .filter((diagnostic) => diagnostic.code === LEAKAGE_ERROR)
-      .map((diagnostic) => this.createFix(diagnostic));
-  }
-
-  private createFix(diagnostic: vscode.Diagnostic): vscode.CodeAction {
-    const action = new vscode.CodeAction(
-      'Leakage Quickfix Suggestion',
-      vscode.CodeActionKind.QuickFix,
-    );
-    action.command = {
-      command: COMMAND,
-      title: 'Generate Suggestion',
-      tooltip: 'This will generate suggestions on how to fix leakage issues.',
-    };
-    action.diagnostics = [diagnostic];
-    action.isPreferred = true;
-    return action;
-  }
-}
-export function deactivate() {}

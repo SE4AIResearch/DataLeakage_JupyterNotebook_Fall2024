@@ -1,7 +1,16 @@
-import LeakageInstance from '../Leakages/LeakageInstance/LeakageInstance';
-import MultitestLeakageInstance from '../Leakages/LeakageInstance/MultitestLeakageInstance';
-import OverlapLeakageInstance from '../Leakages/LeakageInstance/OverlapLeakageInstance';
-import PreprocessingLeakageInstance from '../Leakages/LeakageInstance/PreprocessingLeakageInstance';
+import LeakageInstance from '../../Leakages/LeakageInstance/LeakageInstance';
+import MultitestLeakageInstance from '../../Leakages/LeakageInstance/MultitestLeakageInstance';
+import OverlapLeakageInstance from '../../Leakages/LeakageInstance/OverlapLeakageInstance';
+import PreprocessingLeakageInstance from '../../Leakages/LeakageInstance/PreprocessingLeakageInstance';
+import Leakages from '../../Leakages/Leakages';
+
+import * as vscode from 'vscode';
+import { TempDir } from '../../../helpers/TempDir';
+import {
+  ConversionToJupyter,
+  ConversionToPython,
+  JupyCell,
+} from '../../../helpers/conversion/LineConversion';
 
 export type LeakageAdapter = {
   type: string;
@@ -19,6 +28,13 @@ export type LeakageAdapterCell = {
   cause: string;
   parent: null | Array<LeakageAdapter>; // not sure what to do with this but it is an array of testingData that are related to each other (array includes the object itself)
 };
+
+export class NotAnalyzedError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'NotAnalyzedError';
+  }
+}
 
 const adaptOverlapLeakageInstance = (
   leakage: OverlapLeakageInstance,
@@ -96,4 +112,54 @@ export function createLeakageAdapters(
   });
 
   return leakageAdapters;
+}
+
+export async function getAdaptersFromFile(
+  context: vscode.ExtensionContext,
+  fsPath: string,
+): Promise<LeakageAdapterCell[]> {
+  const notebook = await vscode.workspace.openNotebookDocument(
+    vscode.Uri.file(fsPath),
+  );
+  const jupyCells =
+    ConversionToPython.convertVSCodeNotebookToJupyCells(notebook);
+
+  const tempDir = await TempDir.getTempDir(fsPath);
+  let manager = null;
+
+  try {
+    manager = await ConversionToJupyter.convertJSONFile(
+      tempDir.getAlgoJupyLineMappingPath(),
+    );
+  } catch (err) {
+    console.error('Notebook has not been analyzed before.', err);
+    // diagnosticCollection.delete(editor.document.uri);
+    throw new NotAnalyzedError('Notebook has not been analyzed before.');
+  }
+
+  const leakages = await new Leakages(
+    tempDir.getAlgoOutputDirPath(),
+    context,
+  ).getLeakages();
+
+  const leakageAdapters = createLeakageAdapters(leakages);
+  const rows: LeakageAdapterCell[] = leakageAdapters.map((adapter) => {
+    const jupyCellLine = manager.convertPythonLineToJupyCellLine(adapter.line);
+    return {
+      ...adapter,
+      line: jupyCellLine.lineIndex,
+      cell: jupyCellLine.cellIndex,
+    };
+  });
+
+  const res = rows.filter((row) => {
+    const cell = jupyCells.find((cell) => cell.index === row.cell);
+    if (!cell) {
+      console.warn('Warning: Cell not found. Unexpected behavior.');
+      return false;
+    }
+    return cell.data.includes(row.variable);
+  });
+
+  return res;
 }

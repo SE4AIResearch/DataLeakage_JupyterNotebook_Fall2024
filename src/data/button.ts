@@ -9,6 +9,7 @@ import { StateManager } from '../helpers/StateManager';
 import { ConversionToPython } from '../helpers/conversion/LineConversion';
 import LeakageInstance from './Leakages/LeakageInstance/LeakageInstance';
 import Leakages from './Leakages/Leakages';
+import { LineMapRecord } from '../validation/isLineMapRecord';
 
 async function ensureImageExist(docker: Docker, imageName: string) {
   try {
@@ -70,7 +71,7 @@ async function requestAlgorithm(tempDir: TempDir) {
 
 function transformInput(
   notebookFile: vscode.NotebookDocument,
-): [string, Record<string, string>] {
+): [string, LineMapRecord] {
   const conversionManager = new ConversionToPython(notebookFile);
   const lineNumberRecord = conversionManager.getLineMapRecord();
   const pythonStr = conversionManager.getPythonCode();

@@ -3,23 +3,25 @@ import Leakages from '..//Leakages/Leakages';
 import { TempDir } from '../../helpers/TempDir';
 import {
   createLeakageAdapters,
+  getAdaptersFromFile,
   LeakageAdapterCell,
-} from './createLeakageAdapters';
+  NotAnalyzedError,
+} from '../_helper/Leakages/createLeakageAdapters';
 import {
   ConversionToJupyter,
   ConversionToPython,
 } from '../../helpers/conversion/LineConversion';
+import { findRows } from './_findRows';
 
 export const LEAKAGE_ERROR = 'dataLeakage';
 export const COLLECTION_NAME = 'notebook_leakage_error';
-export const COMMAND = 'data-leakage.quickfix';
 
 function createNotebookDiagnostic(
   doc: vscode.TextDocument,
   index: number,
   adapterCell: LeakageAdapterCell,
 ): vscode.Diagnostic {
-  // limit of this program is that we can't tell which variable in the line caused the problem if there are multiple same variables in the line
+  // FIXME: limit of this extension is that we can't tell which variable in the line caused the problem if there are multiple same variables in the line
 
   const range = new vscode.Range(
     adapterCell.line,
@@ -35,7 +37,7 @@ function createNotebookDiagnostic(
 
   const diagnostic = new vscode.Diagnostic(
     range,
-    `${adapterCell.cause}${cause !== '' ? ':' : ''} ${cause}`,
+    `${adapterCell.type}${cause !== '' ? ':' : ''} ${cause}`,
     vscode.DiagnosticSeverity.Error,
   );
   diagnostic.code = LEAKAGE_ERROR;
@@ -55,8 +57,8 @@ function refreshNotebookDiagnostics(
     const lineData = cellText.split('\n')[adapterCell.line];
     const index = lineData.indexOf(adapterCell.variable);
     if (index === -1) {
-      console.warn(
-        'Warning: Variable not found in line. Most likely an internal variable.',
+      console.error(
+        'Error: Variable not found in line.',
         adapterCell,
         lineData,
       );
@@ -74,53 +76,21 @@ const configureNotebookDiagnostics = async (
   editor: vscode.TextEditor,
   diagnosticCollection: vscode.DiagnosticCollection,
 ) => {
-  const fsPath = editor.document.uri.fsPath;
-  const notebook = await vscode.workspace.openNotebookDocument(
-    vscode.Uri.file(fsPath),
-  );
-  const jupyCells =
-    ConversionToPython.convertVSCodeNotebookToJupyCells(notebook);
-
-  const tempDir = await TempDir.getTempDir(fsPath);
-  let manager = null;
-
   try {
-    manager = await ConversionToJupyter.convertJSONFile(
-      tempDir.getAlgoJupyLineMappingPath(),
-    );
-  } catch (err) {
-    console.error('Notebook has not been analyzed before', err);
-    diagnosticCollection.delete(editor.document.uri);
-    return;
-  }
+    // Get Adapter
+    const fsPath = editor.document.uri.fsPath;
+    const adapters = await getAdaptersFromFile(context, fsPath);
 
-  const leakages = await new Leakages(
-    tempDir.getAlgoOutputDirPath(),
-    context,
-  ).getLeakages();
+    // Get the cell that is being focused
+    const rows = await findRows(editor, fsPath, adapters);
 
-  const leakageAdapters = createLeakageAdapters(leakages);
-  const tableRows: LeakageAdapterCell[] = leakageAdapters.map((adapter) => {
-    const jupyCellLine = manager.convertPythonLineToJupyCellLine(adapter.line);
-    return {
-      ...adapter,
-      line: jupyCellLine.lineIndex,
-      cell: jupyCellLine.cellIndex,
-    };
-  });
-
-  const targetCellData = editor.document.getText();
-
-  const resultingCell = jupyCells.filter(
-    (cell) => cell.data === targetCellData,
-  );
-
-  if (!resultingCell[0]) {
-    throw new Error('Error: Cell not found.');
-  } else {
-    const cellIndex = resultingCell[0].index;
-    const rows = tableRows.filter((row) => row.cell === cellIndex);
     refreshNotebookDiagnostics(editor.document, diagnosticCollection, rows);
+  } catch (err) {
+    if (err instanceof NotAnalyzedError) {
+      console.warn('Warning: Notebook has not been analyzed before.', err);
+    } else {
+      throw err;
+    }
   }
 };
 
