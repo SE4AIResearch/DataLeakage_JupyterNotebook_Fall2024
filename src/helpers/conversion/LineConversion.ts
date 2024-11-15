@@ -1,23 +1,33 @@
 import * as vscode from 'vscode';
+import fs from 'fs';
+import util from 'util';
+import { isStringRecord } from '../../validation/common';
+import {
+  isLineMapRecord,
+  LineMapRecord,
+} from '../../validation/isLineMapRecord';
 
 export type JupyCell = {
   data: string;
   index: number;
+  fragment: string;
 };
 
 export type JupyCellLine = {
   data: string;
   cellIndex: number;
   lineIndex: number;
+  fragment: string;
 };
 
 export class ConversionToPython {
   private jupyCells: JupyCell[];
-  private lineMapRecord: Record<string, string>;
+  private lineMapRecord: LineMapRecord;
   private pythonCode: string;
 
   constructor(notebookFile: vscode.NotebookDocument) {
-    this.jupyCells = this.convertVSCodeNotebookToJupyCells(notebookFile);
+    this.jupyCells =
+      ConversionToPython.convertVSCodeNotebookToJupyCells(notebookFile);
     this.lineMapRecord = ConversionToPython.convertJupyCellsToLineMapRecord(
       this.jupyCells,
     );
@@ -27,26 +37,33 @@ export class ConversionToPython {
   }
 
   // PRIVATE FUNCTIONS
-  private convertVSCodeNotebookToJupyCells(
+  public static convertVSCodeNotebookToJupyCells(
     notebookFile: vscode.NotebookDocument,
   ): JupyCell[] {
     return notebookFile
       .getCells()
       .map((cell, i): [vscode.NotebookCell, number] => [cell, i])
       .filter(([cell]) => cell.kind === 2)
-      .map(([cell, index]) => ({ data: cell.document.getText(), index }));
+      .map(([cell, index]) => ({
+        data: cell.document.getText(),
+        index,
+        fragment: cell.document.uri.fragment,
+      }));
   }
 
   // STATIC FUNCTIONS
   public static convertJupyCellsToLineMapRecord(
     jupyCells: JupyCell[],
-  ): Record<string, string> {
-    const forwardLookup: Record<string, string> = {};
+  ): LineMapRecord {
+    const forwardLookup: LineMapRecord = {};
 
     let pythonLineIdx = 0;
-    jupyCells.forEach(({ data, index }) =>
+    jupyCells.forEach(({ data, index, fragment }) =>
       data.split('\n').forEach((lineContent, lineIdx) => {
-        forwardLookup[`${index}:${lineIdx}:${pythonLineIdx++}`] = lineContent;
+        forwardLookup[`${index}:${lineIdx}:${pythonLineIdx++}`] = {
+          content: lineContent,
+          fragment: fragment,
+        };
       }),
     );
 
@@ -62,7 +79,7 @@ export class ConversionToPython {
     return this.jupyCells;
   }
 
-  public getLineMapRecord(): Record<string, string> {
+  public getLineMapRecord(): LineMapRecord {
     return this.lineMapRecord;
   }
 
@@ -72,10 +89,10 @@ export class ConversionToPython {
 }
 
 export class ConversionToJupyter {
-  private lineMapRecord: Record<string, string>;
+  private lineMapRecord: LineMapRecord;
   private jupyCells: JupyCell[];
 
-  constructor(lineMapRecord: Record<string, string>) {
+  constructor(lineMapRecord: LineMapRecord) {
     this.lineMapRecord = lineMapRecord;
     this.jupyCells = this.convertLineMapRecordToJupyCells(lineMapRecord);
   }
@@ -83,7 +100,7 @@ export class ConversionToJupyter {
   // PRIVATE FUNCTION
 
   private convertLineMapRecordToJupyCells(
-    lineMapRecord: Record<string, string>,
+    lineMapRecord: LineMapRecord,
   ): JupyCell[] {
     const jupyCells: JupyCell[] = [];
 
@@ -91,10 +108,11 @@ export class ConversionToJupyter {
       const [index] = key.split(':').map(Number);
 
       if (!jupyCells[index]) {
-        jupyCells[index] = { data: '', index };
+        jupyCells[index] = { data: '', index, fragment: '' };
       }
 
-      jupyCells[index].data += `${value}\n`;
+      jupyCells[index].data += `${value.content}\n`;
+      jupyCells[index].fragment = value.fragment;
     });
 
     return jupyCells;
@@ -123,13 +141,26 @@ export class ConversionToJupyter {
     const [cellIndex, lineIndex] = key.split(':').map(Number);
 
     return {
-      data,
+      data: data.content,
       cellIndex,
       lineIndex,
+      fragment: data.fragment,
     };
   }
 
   public getJupyCells(): JupyCell[] {
     return this.jupyCells;
+  }
+
+  // STATIC FUNCTION
+  public static async convertJSONFile(
+    jsonPath: string,
+  ): Promise<ConversionToJupyter> {
+    const readFileAsync = util.promisify(fs.readFile);
+    const json = JSON.parse(await readFileAsync(jsonPath, 'utf8'));
+    if (!isLineMapRecord(json)) {
+      throw new TypeError('JSON file is not an object.');
+    }
+    return new ConversionToJupyter(json);
   }
 }

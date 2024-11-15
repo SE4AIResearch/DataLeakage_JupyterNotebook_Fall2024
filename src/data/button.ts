@@ -6,12 +6,10 @@ import fs from 'fs';
 
 import { DockerTemp, TempDir } from '../helpers/TempDir';
 import { StateManager } from '../helpers/StateManager';
-import {
-  ConversionToJupyter,
-  ConversionToPython,
-} from '../helpers/LineConversion';
+import { ConversionToPython } from '../helpers/conversion/LineConversion';
 import LeakageInstance from './Leakages/LeakageInstance/LeakageInstance';
 import Leakages from './Leakages/Leakages';
+import { LineMapRecord } from '../validation/isLineMapRecord';
 
 async function ensureImageExist(docker: Docker, imageName: string) {
   try {
@@ -73,7 +71,7 @@ async function requestAlgorithm(tempDir: TempDir) {
 
 function transformInput(
   notebookFile: vscode.NotebookDocument,
-): [string, Record<string, string>] {
+): [string, LineMapRecord] {
   const conversionManager = new ConversionToPython(notebookFile);
   const lineNumberRecord = conversionManager.getLineMapRecord();
   const pythonStr = conversionManager.getPythonCode();
@@ -145,7 +143,12 @@ async function analyzeNotebook(
 
       const leakages = new Leakages(tempDir.getAlgoOutputDirPath(), context);
       const leakagesList = await leakages.getLeakages();
-      changeView(leakagesList);
+
+      try {
+        changeView(leakagesList);
+      } catch (err) {
+        console.error('Panel Table View not active.');
+      }
 
       view.webview.postMessage({ type: 'analysisCompleted' });
       StateManager.saveIsRunning(context, false);
