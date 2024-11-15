@@ -76,7 +76,6 @@ async function runCommandWithPythonInterpreter(command: string) {
     });
   } catch (err) {
     terminal.dispose();
-    console.log('HELLOOO');
     throw err;
   }
   terminal.dispose();
@@ -89,9 +88,18 @@ export async function runNative(
   const algoProgramDir = await getPathToAlgoProgramDir(context);
 
   const pythonPath = tempDir.getAlgoInputFilePath();
-  const outputDir = tempDir.getAlgoOutputDirPath();
 
-  const command = `"${path.join(algoProgramDir, getOutputByOS(['main', 'main.exe', 'main']))}" "${pythonPath}" -o`;
+  const cleanFn = getOutputByOS([
+    (inp: string) => inp.replaceAll(' ', '\\ '),
+    (inp: string) => inp,
+    (inp: string) => inp.replaceAll(' ', '\\ '),
+  ]);
+
+  const programBinaryPath = cleanFn(
+    `${path.join(algoProgramDir, getOutputByOS(['main', 'main.exe', 'main']))}`,
+  );
+
+  const command = `${programBinaryPath} ${pythonPath} -o`;
 
   await runCommandWithPythonInterpreter(command);
 }
