@@ -9,7 +9,9 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": [],
+  "activationEvents": [
+    "onLanguage:python"
+  ],
   "main": "./dist/extension.js",
   "contributes": {
     "viewsContainers": {
@@ -41,7 +43,7 @@
       {
         "command": "data-leakage.quickfix",
         "category": "Code Action",
-        "title": "Code Action for Notebook Leakage Detection"
+        "title": "Quickfix for Leakage Error"
       }
     ],
     "views": {
@@ -89,6 +91,7 @@
     "@vscode/test-cli": "^0.0.10",
     "@vscode/test-electron": "^2.4.1",
     "eslint": "^9.9.1",
+    "node-loader": "^2.1.0",
     "ts-loader": "^9.5.1",
     "typescript": "^5.5.4",
     "webpack": "^5.94.0",
