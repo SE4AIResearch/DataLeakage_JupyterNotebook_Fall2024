@@ -56,7 +56,7 @@ export class ButtonViewProvider {
           });
 
           if (leakageFolderUri && leakageFolderUri[0]) {
-            installLeakageFolder(this._context, leakageFolderUri);
+            await installLeakageFolder(this._context, leakageFolderUri);
           }
 
           break;
