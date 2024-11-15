@@ -100,5 +100,6 @@
     "js-xxhash": "^4.0.0",
     "prettier": "^3.3.3",
     "tmp": "^0.2.3"
-  }
+  },
+  "publisher": "leakage-detector"
 }
