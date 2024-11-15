@@ -1,3 +1,10 @@
+/**
+ * DEPRECATED
+ * DEPRECATED
+ * DEPRECATED
+ * DEPRECATED
+ */
+
 import * as vscode from 'vscode';
 
 export type TempState = {
