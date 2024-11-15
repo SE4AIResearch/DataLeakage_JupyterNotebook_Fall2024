@@ -4,7 +4,7 @@
 (function () {
   const vscode = acquireVsCodeApi();
   const installLeakageBtn = document.getElementById('install-leakage');
-  const button = document.querySelector('.button');
+  const button = document.getElementById('run-leakage');
 
   installLeakageBtn.addEventListener('click', (e) => {
     vscode.postMessage({ type: 'openFilePicker' });
