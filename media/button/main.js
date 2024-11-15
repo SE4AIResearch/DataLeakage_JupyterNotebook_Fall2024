@@ -3,7 +3,13 @@
 
 (function () {
   const vscode = acquireVsCodeApi();
-  const button = document.querySelector('.button');
+  const installLeakageBtn = document.getElementById('install-leakage');
+  const button = document.getElementById('run-leakage');
+
+  installLeakageBtn.addEventListener('click', (e) => {
+    vscode.postMessage({ type: 'openFilePicker' });
+  });
+
   button.addEventListener('click', (e) => {
     vscode.postMessage({ type: 'analyzeNotebook' });
     button.disabled = true;

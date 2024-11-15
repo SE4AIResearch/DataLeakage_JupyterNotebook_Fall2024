@@ -4,9 +4,10 @@ import path from 'path';
 import * as vscode from 'vscode';
 
 import { getNonce, getWebviewOptions } from '../helpers/utils';
-import { analyzeNotebookWithProgress } from '../data/button';
+import { analyzeNotebookWithProgress } from '../data/Button/button';
 import { StateManager } from '../helpers/StateManager';
 import LeakageInstance from '../data/Leakages/LeakageInstance/LeakageInstance';
+import { installLeakageFolder } from '../data/Button/LeakageProgramInstaller';
 
 /**
  * Manages Button Webview
@@ -45,6 +46,19 @@ export class ButtonViewProvider {
           };
           this._view?.webview.postMessage(data);
           StateManager.loadIsRunning(this._context);
+          break;
+        case 'openFilePicker':
+          const leakageFolderUri = await vscode.window.showOpenDialog({
+            canSelectMany: false,
+            canSelectFiles: false,
+            canSelectFolders: true,
+            openLabel: 'Select Leakage Analysis Program Folder',
+          });
+
+          if (leakageFolderUri && leakageFolderUri[0]) {
+            await installLeakageFolder(this._context, leakageFolderUri);
+          }
+
           break;
       }
     });
@@ -103,8 +117,8 @@ export class ButtonViewProvider {
 				<title>Data Leakage</title>
 			</head>
 			<body>
-
-				<button class="button">Run Data Leakage Analysis</button>
+				<button class="button" id="install-leakage">Install Leakage Analysis Program</button>
+				<button class="button" id="run-leakage">Run Data Leakage Analysis</button>
 
         <script nonce="${nonce}" src="${scriptUri}"></script>
 			</body>
