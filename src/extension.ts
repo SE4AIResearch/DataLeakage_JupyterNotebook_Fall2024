@@ -1,8 +1,7 @@
 import * as vscode from 'vscode';
 import Leakages from './data/Leakages/Leakages';
 import { ButtonViewProvider } from './view/ButtonViewProvider';
-import { LeakageInstancesViewProvider } from './view/LeakageInstancesViewProvider';
-import { LeakageSummaryViewProvider } from './view/LeakageSummaryViewProvider';
+import { LeakageOverviewViewProvider } from './view/LeakageOverviewViewProvider';
 
 import {
   COLLECTION_NAME,
@@ -54,21 +53,22 @@ export function activate(context: vscode.ExtensionContext) {
   //   ),
   // );
 
-  // Leakage Instances View
+  // Leakage Overview View
 
-  const leakageInstanceProvider = new LeakageInstancesViewProvider(
+  const leakageOverviewViewProvider = new LeakageOverviewViewProvider(
     context.extensionUri,
     context,
   );
 
   context.subscriptions.push(
     vscode.window.registerWebviewViewProvider(
-      LeakageInstancesViewProvider.viewType,
-      leakageInstanceProvider,
+      LeakageOverviewViewProvider.viewType,
+      leakageOverviewViewProvider,
     ),
   );
 
-  leakageInstanceProvider.addRows([
+  // Leakage Instances in Overview
+  leakageOverviewViewProvider.addRows([
     {
       type: 'Multi-Test',
       line: 702,
@@ -77,20 +77,7 @@ export function activate(context: vscode.ExtensionContext) {
     },
   ]);
 
-  // Leakage Summary
-
-  const leakageSummaryProvider = new LeakageSummaryViewProvider(
-    context.extensionUri,
-    context,
-  );
-
-  context.subscriptions.push(
-    vscode.window.registerWebviewViewProvider(
-      LeakageSummaryViewProvider.viewType,
-      leakageSummaryProvider,
-    ),
-  );
-
+  // Leakage Summary in Overview
   const changeView = (leakages: LeakageInstance[]) => {
     const overlapLeakageCount = leakages.filter(
       (leakage) => leakage.getLeakageType() === LeakageType.OverlapLeakage,
@@ -102,7 +89,7 @@ export function activate(context: vscode.ExtensionContext) {
       (leakage) =>
         leakage.getLeakageType() === LeakageType.PreprocessingLeakage,
     ).length;
-    leakageSummaryProvider.changeCount(
+    leakageOverviewViewProvider.changeCount(
       preprocessingLeakageCount,
       multiTestLeakageCount,
       overlapLeakageCount,

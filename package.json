@@ -24,8 +24,8 @@
       ],
       "panel": [
         {
-          "id": "leakage-instances",
-          "title": "Leakage Instances",
+          "id": "leakage-overview",
+          "title": "Leakage Overview",
           "icon": ""
         }
       ]
@@ -54,16 +54,11 @@
           "name": "Button View"
         }
       ],
-      "leakage-instances": [
+      "leakage-overview": [
         {
           "type": "webview",
-          "id": "data-leakage.leakageSummaryViewProvider",
-          "name": "Leakage Summary View"
-        },
-        {
-          "type": "webview",
-          "id": "data-leakage.leakageInstancesViewProvider",
-          "name": "Leakage Instances View"
+          "id": "data-leakage.overviewViewProvider",
+          "name": "Leakage Overview"
         }
       ]
     }

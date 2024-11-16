@@ -2,11 +2,18 @@ import * as vscode from 'vscode';
 
 import { getNonce, getWebviewOptions } from '../helpers/utils';
 
+export type Row = {
+  type: string;
+  line: number;
+  variable: string;
+  cause: string;
+};
+
 /**
  * Manages Leakage Summary Webview
  */
-export class LeakageSummaryViewProvider {
-  public static readonly viewType = 'data-leakage.leakageSummaryViewProvider';
+export class LeakageOverviewViewProvider {
+  public static readonly viewType = 'data-leakage.overviewViewProvider';
 
   private _isRunning: Boolean = false;
 
@@ -44,16 +51,21 @@ export class LeakageSummaryViewProvider {
     multiTest: number,
     overlap: number,
   ) {
-		if (this._view) {
-			this._view.webview.postMessage({
-				type: 'changeCount',
-				preprocessing: preprocessing,
-				multiTest: multiTest,
-				overlap: overlap,
-			});
-		} else {
-			throw new Error("View wasn't created.");
-		}
+    if (this._view) {
+      this._view.webview.postMessage({
+        type: 'changeCount',
+        preprocessing: preprocessing,
+        multiTest: multiTest,
+        overlap: overlap,
+      });
+    } else {
+      throw new Error("View wasn't created.");
+    }
+  }
+
+  // Functions called outside the class to add rows
+  public async addRows(Rows: Row[]) {
+    // TODO: Add rows
   }
 
   // Private Helper Function
@@ -64,7 +76,7 @@ export class LeakageSummaryViewProvider {
       vscode.Uri.joinPath(
         this._extensionUri,
         'media',
-        'leakage_summary',
+        'leakage_overview',
         'main.js',
       ),
     );
@@ -74,7 +86,7 @@ export class LeakageSummaryViewProvider {
       vscode.Uri.joinPath(
         this._extensionUri,
         'media',
-        'leakage_summary',
+        'leakage_overview',
         'reset.css',
       ),
     );
@@ -82,7 +94,7 @@ export class LeakageSummaryViewProvider {
       vscode.Uri.joinPath(
         this._extensionUri,
         'media',
-        'leakage_summary',
+        'leakage_overview',
         'vscode.css',
       ),
     );
@@ -90,7 +102,7 @@ export class LeakageSummaryViewProvider {
       vscode.Uri.joinPath(
         this._extensionUri,
         'media',
-        'leakage_summary',
+        'leakage_overview',
         'main.css',
       ),
     );
@@ -99,7 +111,7 @@ export class LeakageSummaryViewProvider {
       vscode.Uri.joinPath(
         this._extensionUri,
         'media',
-        'leakage_summary',
+        'leakage_overview',
         'prio.css',
       ),
     );
@@ -125,7 +137,7 @@ export class LeakageSummaryViewProvider {
 				<link href="${styleMainUri}" rel="stylesheet">
 				<link href="${stylePriorityUri}" rel="stylesheet">
 
-				<title>Data Leakage</title>
+				<title>Data Overview</title>
 			</head>
 			<body>
 				<h1>Leakage Summary</h1>
@@ -147,6 +159,23 @@ export class LeakageSummaryViewProvider {
           <td id='overlap'>-1</td>
         </tr>
       </table>
+
+      <h1>Leakage Instances</h1>
+      <table class='table'>
+					<tr>
+						<th>Type</th>
+						<th>Line</th>
+						<th>Variable</th>
+						<th>Cause</th>
+					</tr>
+					<tr>
+						<td>Multi-Test</td>
+						<td>706</td>
+						<td>X_train</td>
+						<td>Repeat data evaluation</td>
+					</tr>
+				</table>
+        
 				<script nonce="${nonce}" src="${scriptUri}"></script>
 			</body>
 			</html>`;
