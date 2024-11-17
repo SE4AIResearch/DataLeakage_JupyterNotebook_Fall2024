@@ -37,7 +37,6 @@ export async function goToLeakageLine(row: Row) {
       return;
     }
     const document = cell.document;
-    console.log(document.uri)
     const textDocument = await vscode.workspace.openTextDocument(document.uri);
     const editor = await vscode.window.showTextDocument(textDocument);
     const line = row.line;
