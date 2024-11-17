@@ -14,7 +14,7 @@ export type Row = {
 };
 
 /**
- * Manages Leakage Summary Webview
+ * Manages Leakage Overview Webview
  */
 export class LeakageOverviewViewProvider {
   public static readonly viewType = 'data-leakage.overviewViewProvider';
@@ -70,6 +70,7 @@ export class LeakageOverviewViewProvider {
     }
   }
 
+  // Private helper function
   private _updateTables(adapters: LeakageAdapterCell[] | null) {
     if (adapters === null) {
       this.changeCount(0, 0, 0);
@@ -98,8 +99,6 @@ export class LeakageOverviewViewProvider {
       this.addRows(rows);
     }
   }
-
-  // Private Helper Function
 
   public changeCount(
     preprocessing: number,
