@@ -60,47 +60,40 @@ export class LeakageOverviewViewProvider {
           this._context,
           vscode.window.activeNotebookEditor.notebook.uri.fsPath,
         );
-        this._updateTables(adapters);
+        const overlapCount = adapters.filter(
+          (adapter) => adapter.type === 'Overlap',
+        ).length;
+        const preprocessingCount = adapters.filter(
+          (adapter) => adapter.type === 'Preprocessing',
+        ).length;
+        const multiTestCount = adapters.filter(
+          (adapter) => adapter.type === 'Multi-Test',
+        ).length;
+        this.changeCount(preprocessingCount, multiTestCount, overlapCount);
+
+        // Call changeRows to update the Leakage Instances table
+        // Transform adapters to Row[] format
+        const rows: Row[] = adapters.map((adapter) => ({
+          type: adapter.type,
+          cell: adapter.cell,
+          line: adapter.line,
+          variable: adapter.variable,
+          cause: adapter.cause,
+        }));
+        this.changeRows(rows);
       } else {
-        this._updateTables(null);
+        this.changeCount(0, 0, 0);
+        this.changeRows([]); // Clear the table when there are no adapters
       }
     } catch (err) {
+      this.changeCount(0, 0, 0);
+      this.changeRows([]); // Clear the table when there are no adapters
       console.log('Notebook has potentially never been analyzed before.');
       console.error(err);
     }
   }
 
-  // Private helper function
-  private _updateTables(adapters: LeakageAdapterCell[] | null) {
-    if (adapters === null) {
-      this.changeCount(0, 0, 0);
-      this.addRows([]); // Clear the table when there are no adapters
-    } else {
-      const overlapCount = adapters.filter(
-        (adapter) => adapter.type === 'Overlap',
-      ).length;
-      const preprocessingCount = adapters.filter(
-        (adapter) => adapter.type === 'Preprocessing',
-      ).length;
-      const multiTestCount = adapters.filter(
-        (adapter) => adapter.type === 'Multi-Test',
-      ).length;
-      this.changeCount(preprocessingCount, multiTestCount, overlapCount);
-
-      // Call addRows to update the Leakage Instances table
-      // Transform adapters to Row[] format
-      // TODO: should we write this elsewhere? And include cell number? I see LeakageAdapterCell in createLeakageAdapters.ts
-      const rows: Row[] = adapters.map((adapter) => ({
-        type: adapter.type,
-        line: adapter.line,
-        variable: adapter.variable,
-        cause: adapter.cause,
-      }));
-      this.addRows(rows);
-    }
-  }
-
-  public changeCount(
+  private changeCount(
     preprocessing: number,
     multiTest: number,
     overlap: number,
@@ -118,11 +111,10 @@ export class LeakageOverviewViewProvider {
   }
 
   // Functions called outside the class to add rows
-  public async addRows(rows: Row[]) {
-    // TODO: Add rows
+  private async changeRows(rows: Row[]) {
     if (this._view) {
       this._view.webview.postMessage({
-        type: 'addRows',
+        type: 'changeRows',
         rows: rows,
       });
     } else {
@@ -224,6 +216,7 @@ export class LeakageOverviewViewProvider {
       <table id="leakage-instances-table">
         <tr>
           <th>Type</th>
+          <th>Cell</th>
           <th>Line</th>
           <th>Variable</th>
           <th>Cause</th>

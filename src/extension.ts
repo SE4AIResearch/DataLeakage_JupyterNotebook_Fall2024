@@ -74,16 +74,6 @@ export function activate(context: vscode.ExtensionContext) {
     }),
   );
 
-  // // Leakage Instances in Overview
-  // leakageOverviewViewProvider.addRows([
-  //   {
-  //     type: 'Multi-Test',
-  //     line: 702,
-  //     variable: 'X_Train',
-  //     cause: 'Repeat data evaluation',
-  //   },
-  // ]);
-
   // Button View
 
   const changeView = async () =>

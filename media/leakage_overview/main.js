@@ -28,14 +28,28 @@ function createRow(type, line, variable, cause) {
         overlap.textContent = message.overlap;
         break;
       }
-      case 'addRows':
+      case 'changeRows':
         const table = document.getElementById('leakage-instances-table');
+        // Reset table to only headers
+        table.innerHTML = `
+          <tr>
+            <th>Type</th>
+            <th>Cell</th>
+            <th>Line</th>
+            <th>Variable</th>
+            <th>Cause</th>
+          </tr>
+        `;
         message.rows.forEach((row) => {
           const tr = document.createElement('tr');
 
           const typeTd = document.createElement('td');
           typeTd.textContent = row.type;
           tr.appendChild(typeTd);
+
+          const cellTd = document.createElement('td');
+          cellTd.textContent = row.cell;
+          tr.appendChild(cellTd);
 
           const lineTd = document.createElement('td');
           lineTd.textContent = row.line;
@@ -46,7 +60,10 @@ function createRow(type, line, variable, cause) {
           tr.appendChild(variableTd);
 
           const causeTd = document.createElement('td');
-          causeTd.textContent = row.cause;
+          causeTd.textContent = row.cause
+            .replace(/([A-Z])/g, ' $1')
+            .trim()
+            .replace(/\b\w/g, (char) => char.toUpperCase());
           tr.appendChild(causeTd);
 
           table.appendChild(tr);
