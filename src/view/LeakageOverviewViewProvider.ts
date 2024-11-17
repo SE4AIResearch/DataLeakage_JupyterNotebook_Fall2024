@@ -5,13 +5,9 @@ import {
   getAdaptersFromFile,
   LeakageAdapterCell,
 } from '../helpers/Leakages/createLeakageAdapters';
+import { goToLeakageLine } from '../data/Table/table';
+import { isRow, Row } from '../validation/table';
 
-export type Row = {
-  type: string;
-  line: number;
-  variable: string;
-  cause: string;
-};
 
 /**
  * Manages Leakage Overview Webview
@@ -45,6 +41,9 @@ export class LeakageOverviewViewProvider {
       switch (data.type) {
         case 'webviewLoaded':
           this.updateTables();
+        case 'moveCursor':
+          isRow(data.row) &&
+          goToLeakageLine(data.row);
         default:
           throw 'Error: unrecognized data type';
       }

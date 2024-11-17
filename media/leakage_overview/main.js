@@ -42,6 +42,7 @@ function createRow(type, line, variable, cause) {
         `;
         message.rows.forEach((row) => {
           const tr = document.createElement('tr');
+          tr.classList.add('clickable');
 
           const typeTd = document.createElement('td');
           typeTd.textContent = row.type;
@@ -65,8 +66,11 @@ function createRow(type, line, variable, cause) {
             .trim()
             .replace(/\b\w/g, (char) => char.toUpperCase());
           tr.appendChild(causeTd);
-
           table.appendChild(tr);
+
+          tr.onclick = () => {
+            vscode.postMessage({ type: 'moveCursor', row });
+          };
         });
         break;
       default:
@@ -74,14 +78,12 @@ function createRow(type, line, variable, cause) {
     }
   });
 
-  // const button = document.querySelector('.button');
-
   // button.addEventListener('click', (e) => {
   //   vscode.postMessage({ type: 'analyzeNotebook' });
   //   button.disabled = true;
   // });
 
-  // // Handle messages sent from the extension to the webview
+  // Handle messages sent from the extension to the webview
   // window.addEventListener('message', (event) => {
   //   const message = event.data; // The json data that the extension sent
   //   switch (message.type) {
