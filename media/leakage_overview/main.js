@@ -19,13 +19,41 @@ function createRow(type, line, variable, cause) {
   // Handle messages sent from the extension to the webview
   window.addEventListener('message', (event) => {
     const message = event.data; // The json data that the extension sent
+
     switch (message.type) {
+      // Leakage Overview - leakage summary
       case 'changeCount': {
         preprocess.textContent = message.preprocessing;
         multitest.textContent = message.multiTest;
         overlap.textContent = message.overlap;
         break;
       }
+      case 'addRows':
+        const table = document.getElementById('leakage-instances-table');
+        message.rows.forEach((row) => {
+          const tr = document.createElement('tr');
+
+          const typeTd = document.createElement('td');
+          typeTd.textContent = row.type;
+          tr.appendChild(typeTd);
+
+          const lineTd = document.createElement('td');
+          lineTd.textContent = row.line;
+          tr.appendChild(lineTd);
+
+          const variableTd = document.createElement('td');
+          variableTd.textContent = row.variable;
+          tr.appendChild(variableTd);
+
+          const causeTd = document.createElement('td');
+          causeTd.textContent = row.cause;
+          tr.appendChild(causeTd);
+
+          table.appendChild(tr);
+        });
+        break;
+      default:
+        console.error('Unrecognized message type:', message.type);
     }
   });
 

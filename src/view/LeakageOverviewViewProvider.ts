@@ -73,6 +73,7 @@ export class LeakageOverviewViewProvider {
   private _updateTables(adapters: LeakageAdapterCell[] | null) {
     if (adapters === null) {
       this.changeCount(0, 0, 0);
+      this.addRows([]); // Clear the table when there are no adapters
     } else {
       const overlapCount = adapters.filter(
         (adapter) => adapter.type === 'Overlap',
@@ -84,6 +85,17 @@ export class LeakageOverviewViewProvider {
         (adapter) => adapter.type === 'Multi-Test',
       ).length;
       this.changeCount(preprocessingCount, multiTestCount, overlapCount);
+
+      // Call addRows to update the Leakage Instances table
+      // Transform adapters to Row[] format
+      // TODO: should we write this elsewhere? And include cell number? I see LeakageAdapterCell in createLeakageAdapters.ts
+      const rows: Row[] = adapters.map((adapter) => ({
+        type: adapter.type,
+        line: adapter.line,
+        variable: adapter.variable,
+        cause: adapter.cause,
+      }));
+      this.addRows(rows);
     }
   }
 
@@ -107,8 +119,16 @@ export class LeakageOverviewViewProvider {
   }
 
   // Functions called outside the class to add rows
-  public async addRows(Rows: Row[]) {
+  public async addRows(rows: Row[]) {
     // TODO: Add rows
+    if (this._view) {
+      this._view.webview.postMessage({
+        type: 'addRows',
+        rows: rows,
+      });
+    } else {
+      throw new Error("View wasn't created.");
+    }
   }
 
   private _getHtmlForWebview(webview: vscode.Webview) {
@@ -202,20 +222,15 @@ export class LeakageOverviewViewProvider {
       </table>
 
       <h1>Leakage Instances</h1>
-      <table class='table'>
-					<tr>
-						<th>Type</th>
-						<th>Line</th>
-						<th>Variable</th>
-						<th>Cause</th>
-					</tr>
-					<tr>
-						<td>Multi-Test</td>
-						<td>706</td>
-						<td>X_train</td>
-						<td>Repeat data evaluation</td>
-					</tr>
-				</table>
+      <table id="leakage-instances-table">
+        <tr>
+          <th>Type</th>
+          <th>Line</th>
+          <th>Variable</th>
+          <th>Cause</th>
+        </tr>
+        <!-- Rows will be added here dynamically -->
+      </table>
         
 				<script nonce="${nonce}" src="${scriptUri}"></script>
 			</body>
