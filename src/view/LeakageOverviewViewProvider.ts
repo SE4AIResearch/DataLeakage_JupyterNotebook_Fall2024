@@ -1,6 +1,10 @@
 import * as vscode from 'vscode';
 
 import { getNonce, getWebviewOptions } from '../helpers/utils';
+import {
+  getAdaptersFromFile,
+  LeakageAdapterCell,
+} from '../helpers/Leakages/createLeakageAdapters';
 
 export type Row = {
   type: string;
@@ -46,7 +50,27 @@ export class LeakageOverviewViewProvider {
   }
 
   // Functions called outside the class to dynamically change leakage count
-  public async changeCount(
+
+  public updateTables(adapters: LeakageAdapterCell[] | null) {
+    if (adapters === null) {
+      this.changeCount(0, 0, 0);
+    } else {
+      const overlapCount = adapters.filter(
+        (adapter) => adapter.type === 'Overlap',
+      ).length;
+      const preprocessingCount = adapters.filter(
+        (adapter) => adapter.type === 'Preprocessing',
+      ).length;
+      const multiTestCount = adapters.filter(
+        (adapter) => adapter.type === 'Multi-Test',
+      ).length;
+      this.changeCount(preprocessingCount, multiTestCount, overlapCount);
+    }
+  }
+
+  // Private Helper Function
+
+  public changeCount(
     preprocessing: number,
     multiTest: number,
     overlap: number,
@@ -67,8 +91,6 @@ export class LeakageOverviewViewProvider {
   public async addRows(Rows: Row[]) {
     // TODO: Add rows
   }
-
-  // Private Helper Function
 
   private _getHtmlForWebview(webview: vscode.Webview) {
     // Get the local path to main script run in the webview, then convert it to a uri we can use in the webview.
@@ -148,15 +170,15 @@ export class LeakageOverviewViewProvider {
         </tr>
         <tr>
           <td>Pre-Processing</td>
-          <td id='preprocess'>-1</td>
+          <td id='preprocess'>0</td>
         </tr>
         <tr>
           <td>Multi-Test</td>
-          <td id='multitest'>-1</td>
+          <td id='multitest'>0</td>
         </tr>
         <tr>
           <td>Overlap</td>
-          <td id='overlap'>-1</td>
+          <td id='overlap'>0</td>
         </tr>
       </table>
 

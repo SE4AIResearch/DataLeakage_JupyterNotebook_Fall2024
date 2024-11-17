@@ -7,9 +7,10 @@ import {
   COLLECTION_NAME,
   subscribeToDocumentChanges,
 } from './data/Diagnostics/notebookDiagnostics';
-import LeakageInstance from './data/Leakages/LeakageInstance/LeakageInstance';
-import { LeakageType } from './data/Leakages/types';
-// import { COMMAND, LeakageInfo } from './data/Diagnostics/LeakageInfo';
+import {
+  getAdaptersFromFile,
+  LeakageAdapterCell,
+} from './helpers/Leakages/createLeakageAdapters';
 
 export function activate(context: vscode.ExtensionContext) {
   // Test Command for Leakages Class
@@ -67,36 +68,42 @@ export function activate(context: vscode.ExtensionContext) {
     ),
   );
 
-  // Leakage Instances in Overview
-  leakageOverviewViewProvider.addRows([
-    {
-      type: 'Multi-Test',
-      line: 702,
-      variable: 'X_Train',
-      cause: 'Repeat data evaluation',
-    },
-  ]);
+  context.subscriptions.push(
+    vscode.window.onDidChangeActiveNotebookEditor(async (editor) => {
+      if (vscode.window.activeNotebookEditor) {
+        try {
+          const adapters = await getAdaptersFromFile(
+            context,
+            vscode.window.activeNotebookEditor.notebook.uri.fsPath,
+          );
+          leakageOverviewViewProvider.updateTables(adapters);
+        } catch (err) {
+          console.log('Notebook has potentially never been analyzed before.');
+          console.error(err);
+        }
+      } else {
+        leakageOverviewViewProvider.updateTables([]);
+      }
+    }),
+  );
 
-  // Leakage Summary in Overview
-  const changeView = (leakages: LeakageInstance[]) => {
-    const overlapLeakageCount = leakages.filter(
-      (leakage) => leakage.getLeakageType() === LeakageType.OverlapLeakage,
-    ).length;
-    const multiTestLeakageCount = leakages.filter(
-      (leakage) => leakage.getLeakageType() === LeakageType.MultitestLeakage,
-    ).length;
-    const preprocessingLeakageCount = leakages.filter(
-      (leakage) =>
-        leakage.getLeakageType() === LeakageType.PreprocessingLeakage,
-    ).length;
-    leakageOverviewViewProvider.changeCount(
-      preprocessingLeakageCount,
-      multiTestLeakageCount,
-      overlapLeakageCount,
-    );
-  };
+  // // Leakage Instances in Overview
+  // leakageOverviewViewProvider.addRows([
+  //   {
+  //     type: 'Multi-Test',
+  //     line: 702,
+  //     variable: 'X_Train',
+  //     cause: 'Repeat data evaluation',
+  //   },
+  // ]);
 
   // Button View
+
+  const changeView = (adapters: LeakageAdapterCell[]) => {
+    const view = leakageOverviewViewProvider;
+
+    view.updateTables(adapters);
+  };
 
   const buttonProvider = new ButtonViewProvider(
     context.extensionUri,

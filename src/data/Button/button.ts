@@ -12,6 +12,10 @@ import Leakages from '../Leakages/Leakages';
 import { LineMapRecord } from '../../validation/isLineMapRecord';
 import { runDocker } from './_docker';
 import { runNative } from './_native';
+import {
+  LeakageAdapterCell,
+  getAdaptersFromFile,
+} from '../../helpers/Leakages/createLeakageAdapters';
 
 // TODO: Refactor analyzeNotebook & analyzeNotebookWithNotification into one
 
@@ -49,12 +53,20 @@ function transformInput(
 async function analyzeNotebook(
   view: vscode.WebviewView,
   context: vscode.ExtensionContext,
-  changeView: (leakages: LeakageInstance[]) => void,
+  changeView: (adapters: LeakageAdapterCell[]) => void,
 ) {
+  if (vscode.window.activeNotebookEditor === undefined) {
+    vscode.window.showErrorMessage(
+      'Please select an ipynb notebook in the editor for the algorithm to run.',
+    );
+    view.webview.postMessage({ type: 'analysisCompleted' });
+    return;
+  }
+
   if (
     vscode.window.activeNotebookEditor &&
-    vscode.window.activeNotebookEditor?.notebook.uri.scheme === 'file' &&
-    path.extname(vscode.window.activeNotebookEditor?.notebook.uri.fsPath) ===
+    vscode.window.activeNotebookEditor.notebook.uri.scheme === 'file' &&
+    path.extname(vscode.window.activeNotebookEditor.notebook.uri.fsPath) ===
       '.ipynb' &&
     StateManager.loadIsRunning(context) === false &&
     view
@@ -111,8 +123,14 @@ async function analyzeNotebook(
       const leakagesList = await leakages.getLeakages();
 
       try {
-        changeView(leakagesList);
+        changeView(
+          await getAdaptersFromFile(
+            context,
+            vscode.window.activeNotebookEditor.notebook.uri.fsPath,
+          ),
+        );
       } catch (err) {
+        console.error(err);
         console.error('Panel Table View not active.');
       }
 
@@ -134,7 +152,7 @@ async function analyzeNotebook(
 export async function analyzeNotebookWithProgress(
   view: vscode.WebviewView,
   context: vscode.ExtensionContext,
-  changeView: (leakages: LeakageInstance[]) => void,
+  changeView: (adapters: LeakageAdapterCell[]) => void,
 ) {
   vscode.window.withProgress(
     {
