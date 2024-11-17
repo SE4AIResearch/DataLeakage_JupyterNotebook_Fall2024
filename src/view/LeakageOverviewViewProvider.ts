@@ -41,12 +41,30 @@ export class LeakageOverviewViewProvider {
 
     webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
 
-    // webviewView.webview.onDidReceiveMessage((data) => {
-    // switch (data.type) {
-    // default:
-    // 	throw "Error: unrecognized data type";
-    // }
-    // });
+    webviewView.webview.onDidReceiveMessage((data) => {
+      switch (data.type) {
+        case 'webviewLoaded':
+          if (vscode.window.activeNotebookEditor) {
+            getAdaptersFromFile(
+              this._context,
+              vscode.window.activeNotebookEditor.notebook.uri.fsPath,
+            )
+              .then((adapters) => {
+                this.updateTables(adapters);
+              })
+              .catch((err) => {
+                console.log(
+                  'Notebook has potentially never been analyzed before.',
+                );
+                console.error(err);
+              });
+          } else {
+            this.updateTables(null);
+          }
+        default:
+          throw 'Error: unrecognized data type';
+      }
+    });
   }
 
   // Functions called outside the class to dynamically change leakage count

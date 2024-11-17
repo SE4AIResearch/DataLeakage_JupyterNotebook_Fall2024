@@ -46,4 +46,6 @@ function createRow(type, line, variable, cause) {
   //     }
   //   }
   // });
+
+  vscode.postMessage({ type: 'webviewLoaded' });
 })();
