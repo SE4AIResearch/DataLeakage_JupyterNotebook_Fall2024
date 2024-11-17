@@ -6,7 +6,7 @@ import {
   getAdaptersFromFile,
   LeakageAdapterCell,
   NotAnalyzedError,
-} from '../_helper/Leakages/createLeakageAdapters';
+} from '../../helpers/Leakages/createLeakageAdapters';
 import {
   ConversionToJupyter,
   ConversionToPython,

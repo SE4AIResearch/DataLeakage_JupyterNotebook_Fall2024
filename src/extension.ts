@@ -1,16 +1,16 @@
 import * as vscode from 'vscode';
 import Leakages from './data/Leakages/Leakages';
 import { ButtonViewProvider } from './view/ButtonViewProvider';
-import { LeakageInstancesViewProvider } from './view/LeakageInstancesViewProvider';
-import { LeakageSummaryViewProvider } from './view/LeakageSummaryViewProvider';
+import { LeakageOverviewViewProvider } from './view/LeakageOverviewViewProvider';
 
 import {
   COLLECTION_NAME,
   subscribeToDocumentChanges,
 } from './data/Diagnostics/notebookDiagnostics';
-import LeakageInstance from './data/Leakages/LeakageInstance/LeakageInstance';
-import { LeakageType } from './data/Leakages/types';
-// import { COMMAND, LeakageInfo } from './data/Diagnostics/LeakageInfo';
+import {
+  getAdaptersFromFile,
+  LeakageAdapterCell,
+} from './helpers/Leakages/createLeakageAdapters';
 
 export function activate(context: vscode.ExtensionContext) {
   // Test Command for Leakages Class
@@ -54,62 +54,30 @@ export function activate(context: vscode.ExtensionContext) {
   //   ),
   // );
 
-  // Leakage Instances View
+  // Leakage Overview View
 
-  const leakageInstanceProvider = new LeakageInstancesViewProvider(
+  const leakageOverviewViewProvider = new LeakageOverviewViewProvider(
     context.extensionUri,
     context,
   );
 
   context.subscriptions.push(
     vscode.window.registerWebviewViewProvider(
-      LeakageInstancesViewProvider.viewType,
-      leakageInstanceProvider,
+      LeakageOverviewViewProvider.viewType,
+      leakageOverviewViewProvider,
     ),
-  );
-
-  leakageInstanceProvider.addRows([
-    {
-      type: 'Multi-Test',
-      line: 702,
-      variable: 'X_Train',
-      cause: 'Repeat data evaluation',
-    },
-  ]);
-
-  // Leakage Summary
-
-  const leakageSummaryProvider = new LeakageSummaryViewProvider(
-    context.extensionUri,
-    context,
   );
 
   context.subscriptions.push(
-    vscode.window.registerWebviewViewProvider(
-      LeakageSummaryViewProvider.viewType,
-      leakageSummaryProvider,
-    ),
+    vscode.window.onDidChangeActiveNotebookEditor(async () => {
+      await leakageOverviewViewProvider.updateTables();
+    }),
   );
-
-  const changeView = (leakages: LeakageInstance[]) => {
-    const overlapLeakageCount = leakages.filter(
-      (leakage) => leakage.getLeakageType() === LeakageType.OverlapLeakage,
-    ).length;
-    const multiTestLeakageCount = leakages.filter(
-      (leakage) => leakage.getLeakageType() === LeakageType.MultitestLeakage,
-    ).length;
-    const preprocessingLeakageCount = leakages.filter(
-      (leakage) =>
-        leakage.getLeakageType() === LeakageType.PreprocessingLeakage,
-    ).length;
-    leakageSummaryProvider.changeCount(
-      preprocessingLeakageCount,
-      multiTestLeakageCount,
-      overlapLeakageCount,
-    );
-  };
 
   // Button View
+
+  const changeView = async () =>
+    await leakageOverviewViewProvider.updateTables();
 
   const buttonProvider = new ButtonViewProvider(
     context.extensionUri,

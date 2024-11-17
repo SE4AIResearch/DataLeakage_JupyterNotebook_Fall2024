@@ -8,6 +8,7 @@ import { analyzeNotebookWithProgress } from '../data/Button/button';
 import { StateManager } from '../helpers/StateManager';
 import LeakageInstance from '../data/Leakages/LeakageInstance/LeakageInstance';
 import { installLeakageFolder } from '../data/Button/LeakageProgramInstaller';
+import { LeakageAdapterCell } from '../helpers/Leakages/createLeakageAdapters';
 
 /**
  * Manages Button Webview
@@ -20,7 +21,7 @@ export class ButtonViewProvider {
   constructor(
     private readonly _extensionUri: vscode.Uri,
     private readonly _context: vscode.ExtensionContext,
-    private readonly _changeView: (leakages: LeakageInstance[]) => void,
+    private readonly _changeView: () => Promise<void>,
   ) {}
 
   public resolveWebviewView(

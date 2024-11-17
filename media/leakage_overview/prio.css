@@ -21,3 +21,7 @@ th {
 td {
   color: white; /* Set the table text color to white */
 }
+
+.clickable {
+  cursor: pointer;
+}
