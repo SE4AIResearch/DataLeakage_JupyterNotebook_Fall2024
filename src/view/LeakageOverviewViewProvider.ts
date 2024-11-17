@@ -44,23 +44,7 @@ export class LeakageOverviewViewProvider {
     webviewView.webview.onDidReceiveMessage((data) => {
       switch (data.type) {
         case 'webviewLoaded':
-          if (vscode.window.activeNotebookEditor) {
-            getAdaptersFromFile(
-              this._context,
-              vscode.window.activeNotebookEditor.notebook.uri.fsPath,
-            )
-              .then((adapters) => {
-                this.updateTables(adapters);
-              })
-              .catch((err) => {
-                console.log(
-                  'Notebook has potentially never been analyzed before.',
-                );
-                console.error(err);
-              });
-          } else {
-            this.updateTables(null);
-          }
+          this.updateTables();
         default:
           throw 'Error: unrecognized data type';
       }
@@ -69,7 +53,24 @@ export class LeakageOverviewViewProvider {
 
   // Functions called outside the class to dynamically change leakage count
 
-  public updateTables(adapters: LeakageAdapterCell[] | null) {
+  public async updateTables() {
+    try {
+      if (vscode.window.activeNotebookEditor) {
+        const adapters = await getAdaptersFromFile(
+          this._context,
+          vscode.window.activeNotebookEditor.notebook.uri.fsPath,
+        );
+        this._updateTables(adapters);
+      } else {
+        this._updateTables(null);
+      }
+    } catch (err) {
+      console.log('Notebook has potentially never been analyzed before.');
+      console.error(err);
+    }
+  }
+
+  private _updateTables(adapters: LeakageAdapterCell[] | null) {
     if (adapters === null) {
       this.changeCount(0, 0, 0);
     } else {

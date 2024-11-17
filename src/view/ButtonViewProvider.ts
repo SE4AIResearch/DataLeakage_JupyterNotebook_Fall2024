@@ -21,7 +21,7 @@ export class ButtonViewProvider {
   constructor(
     private readonly _extensionUri: vscode.Uri,
     private readonly _context: vscode.ExtensionContext,
-    private readonly _changeView: (adapters: LeakageAdapterCell[]) => void,
+    private readonly _changeView: () => Promise<void>,
   ) {}
 
   public resolveWebviewView(

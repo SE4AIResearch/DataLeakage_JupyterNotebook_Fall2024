@@ -69,21 +69,8 @@ export function activate(context: vscode.ExtensionContext) {
   );
 
   context.subscriptions.push(
-    vscode.window.onDidChangeActiveNotebookEditor(async (editor) => {
-      if (vscode.window.activeNotebookEditor) {
-        try {
-          const adapters = await getAdaptersFromFile(
-            context,
-            vscode.window.activeNotebookEditor.notebook.uri.fsPath,
-          );
-          leakageOverviewViewProvider.updateTables(adapters);
-        } catch (err) {
-          console.log('Notebook has potentially never been analyzed before.');
-          console.error(err);
-        }
-      } else {
-        leakageOverviewViewProvider.updateTables([]);
-      }
+    vscode.window.onDidChangeActiveNotebookEditor(async () => {
+      await leakageOverviewViewProvider.updateTables();
     }),
   );
 
@@ -99,11 +86,8 @@ export function activate(context: vscode.ExtensionContext) {
 
   // Button View
 
-  const changeView = (adapters: LeakageAdapterCell[]) => {
-    const view = leakageOverviewViewProvider;
-
-    view.updateTables(adapters);
-  };
+  const changeView = async () =>
+    await leakageOverviewViewProvider.updateTables();
 
   const buttonProvider = new ButtonViewProvider(
     context.extensionUri,

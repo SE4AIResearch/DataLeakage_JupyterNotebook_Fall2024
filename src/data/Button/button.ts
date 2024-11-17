@@ -53,7 +53,7 @@ function transformInput(
 async function analyzeNotebook(
   view: vscode.WebviewView,
   context: vscode.ExtensionContext,
-  changeView: (adapters: LeakageAdapterCell[]) => void,
+  changeView: () => Promise<void>,
 ) {
   if (vscode.window.activeNotebookEditor === undefined) {
     vscode.window.showErrorMessage(
@@ -123,12 +123,7 @@ async function analyzeNotebook(
       const leakagesList = await leakages.getLeakages();
 
       try {
-        changeView(
-          await getAdaptersFromFile(
-            context,
-            vscode.window.activeNotebookEditor.notebook.uri.fsPath,
-          ),
-        );
+        changeView();
       } catch (err) {
         console.error(err);
         console.error('Panel Table View not active.');
@@ -152,7 +147,7 @@ async function analyzeNotebook(
 export async function analyzeNotebookWithProgress(
   view: vscode.WebviewView,
   context: vscode.ExtensionContext,
-  changeView: (adapters: LeakageAdapterCell[]) => void,
+  changeView: () => Promise<void>,
 ) {
   vscode.window.withProgress(
     {
