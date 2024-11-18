@@ -1,24 +1,24 @@
 import LeakageInstance from './LeakageInstance';
 import PreprocessingLeakageSource from '../LeakageSource/PreprocessingLeakageSource';
-import { LeakageType, type Metadata } from '../types';
+import { LeakageType, type TrainTestSite, type Metadata } from '../types';
 
 /**
  * Class containing all the relevant info about a preprocessing leakage.
  */
 export default class PreprocessingLeakageInstance extends LeakageInstance {
-  private trainingData: Metadata;
-  private testingData: Metadata;
+  private line: number;
+  private occurrences: TrainTestSite[];
   private source: PreprocessingLeakageSource;
 
   constructor(
-    trainingData: Metadata,
-    testingData: Metadata,
+    line: number,
+    occurrences: TrainTestSite[],
     source: PreprocessingLeakageSource,
   ) {
     super();
 
-    this.trainingData = trainingData;
-    this.testingData = testingData;
+    this.line = line;
+    this.occurrences = occurrences;
     this.source = source;
   }
 
@@ -26,12 +26,12 @@ export default class PreprocessingLeakageInstance extends LeakageInstance {
     return LeakageType.PreprocessingLeakage;
   }
 
-  getTrainingData(): Metadata {
-    return this.trainingData;
+  getLine(): number {
+    return this.line;
   }
 
-  getTestingData(): Metadata {
-    return this.testingData;
+  getOccurrences(): TrainTestSite[] {
+    return this.occurrences;
   }
 
   getSource(): PreprocessingLeakageSource {

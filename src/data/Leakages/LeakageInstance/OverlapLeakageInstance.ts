@@ -1,24 +1,24 @@
 import LeakageInstance from './LeakageInstance';
-import { LeakageType, type Metadata } from '../types';
+import { LeakageType, type TrainTestSite, type Metadata } from '../types';
 import OverlapLeakageSource from '../LeakageSource/OverlapLeakageSource';
 
 /**
  * Class containing all the relevant info about an overlap leakage.
  */
 export default class OverlapLeakageInstance extends LeakageInstance {
-  private trainingData: Metadata;
-  private testingData: Metadata;
+  private line: number;
+  private occurrences: TrainTestSite[];
   private source: OverlapLeakageSource;
 
   constructor(
-    trainingData: Metadata,
-    testingData: Metadata,
+    line: number,
+    occurrences: TrainTestSite[],
     source: OverlapLeakageSource,
   ) {
     super();
 
-    this.trainingData = trainingData;
-    this.testingData = testingData;
+    this.line = line;
+    this.occurrences = occurrences;
     this.source = source;
   }
 
@@ -26,12 +26,12 @@ export default class OverlapLeakageInstance extends LeakageInstance {
     return LeakageType.OverlapLeakage;
   }
 
-  getTrainingData(): Metadata {
-    return this.trainingData;
+  getLine(): number {
+    return this.line;
   }
 
-  getTestingData(): Metadata {
-    return this.testingData;
+  getOccurrences(): TrainTestSite[] {
+    return this.occurrences;
   }
 
   getSource(): OverlapLeakageSource {

@@ -30,7 +30,7 @@ export type InvocationMetadataMappings = Record<string, Metadata>;
 
 export type InvocationTrainTestMappings = Record<string, Set<string>>;
 
-export type MultitestLeakageOccurrence = {
+export type TrainTestSite = {
   trainingData: Metadata;
   testingData: Metadata[];
 };
