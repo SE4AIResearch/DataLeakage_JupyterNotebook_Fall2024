@@ -4,69 +4,41 @@ import Docker, { ImageInfo } from 'dockerode';
 import path from 'path';
 import fs from 'fs';
 
-import { DockerTemp, TempDir } from '../helpers/TempDir';
-import { StateManager } from '../helpers/StateManager';
-import { ConversionToPython } from '../helpers/conversion/LineConversion';
-import LeakageInstance from './Leakages/LeakageInstance/LeakageInstance';
-import Leakages from './Leakages/Leakages';
-import { LineMapRecord } from '../validation/isLineMapRecord';
+import { TempDir } from '../../helpers/TempDir';
+import { StateManager } from '../../helpers/StateManager';
+import { ConversionToPython } from '../../helpers/conversion/LineConversion';
+import LeakageInstance from '../Leakages/LeakageInstance/LeakageInstance';
+import Leakages from '../Leakages/Leakages';
+import { LineMapRecord } from '../../validation/isLineMapRecord';
+import { runDocker } from './_docker';
+import { runNative } from './_native';
+import {
+  LeakageAdapterCell,
+  getAdaptersFromFile,
+} from '../../helpers/Leakages/createLeakageAdapters';
 
-async function ensureImageExist(docker: Docker, imageName: string) {
+// TODO: Refactor analyzeNotebook & analyzeNotebookWithNotification into one
+
+async function runAlgorithm(
+  context: vscode.ExtensionContext,
+  tempDir: TempDir,
+) {
   try {
-    const images: ImageInfo[] = await docker.listImages();
-
-    const getImage = async () =>
-      images.find((image) => image.RepoTags?.includes(`${imageName}:latest`));
-
-    if (!(await getImage())) {
-      const imageRes = await new Promise((resolve, reject) => {
-        docker.pull(imageName, (pullError: any, pullStream: any) => {
-          if (pullError) {
-            reject(pullError);
-          }
-          docker.modem.followProgress(
-            pullStream,
-            (progressError: any, output: any) => {
-              if (progressError) {
-                reject(progressError);
-              } else {
-                resolve(output);
-                return;
-              }
-            },
-          );
-        });
-      });
-    }
+    await runNative(context, tempDir);
   } catch (err) {
-    console.error(err);
-    throw err;
+    vscode.window.showErrorMessage(
+      'Native Implementation Failed. Falling back to Docker.',
+    );
+
+    try {
+      await runDocker(tempDir);
+    } catch (err) {
+      vscode.window.showErrorMessage(
+        'Docker Implementation Failed. Extension Exiting.',
+      );
+      throw err;
+    }
   }
-}
-
-async function requestAlgorithm(tempDir: TempDir) {
-  const docker = new Docker();
-  await ensureImageExist(docker, DockerTemp.IMAGE_NAME);
-
-  const timeout = new Promise((res) =>
-    setTimeout(() => res('Timed out'), 20000),
-  );
-
-  const result = await Promise.race([
-    docker.run(
-      DockerTemp.IMAGE_NAME,
-      [`${DockerTemp.PYTHON_FILE_PATH}`, `-o`],
-      process.stdout,
-      {
-        HostConfig: {
-          Binds: [
-            `${tempDir.getAlgoDirPath()}:${DockerTemp.CONTAINER_DIR_PATH}`,
-          ],
-        },
-      },
-    ),
-    timeout,
-  ]);
 }
 
 function transformInput(
@@ -78,17 +50,23 @@ function transformInput(
   return [pythonStr, lineNumberRecord];
 }
 
-// TODO: Refactor analyzeNotebook & analyzeNotebookWithNotification into one
-
 async function analyzeNotebook(
   view: vscode.WebviewView,
   context: vscode.ExtensionContext,
-  changeView: (leakages: LeakageInstance[]) => void,
+  changeView: () => Promise<void>,
 ) {
+  if (vscode.window.activeNotebookEditor === undefined) {
+    vscode.window.showErrorMessage(
+      'Please select an ipynb notebook in the editor for the algorithm to run.',
+    );
+    view.webview.postMessage({ type: 'analysisCompleted' });
+    return;
+  }
+
   if (
     vscode.window.activeNotebookEditor &&
-    vscode.window.activeNotebookEditor?.notebook.uri.scheme === 'file' &&
-    path.extname(vscode.window.activeNotebookEditor?.notebook.uri.fsPath) ===
+    vscode.window.activeNotebookEditor.notebook.uri.scheme === 'file' &&
+    path.extname(vscode.window.activeNotebookEditor.notebook.uri.fsPath) ===
       '.ipynb' &&
     StateManager.loadIsRunning(context) === false &&
     view
@@ -135,7 +113,7 @@ async function analyzeNotebook(
 
       // Run Algorithm & Wait for result
 
-      await requestAlgorithm(tempDir);
+      await runAlgorithm(context, tempDir);
       const elapsedTime = (performance.now() - startTime) / 1000;
       vscode.window.showInformationMessage(
         `Analysis completed in ${elapsedTime} second${elapsedTime === 1 ? '' : 's'}`,
@@ -145,8 +123,9 @@ async function analyzeNotebook(
       const leakagesList = await leakages.getLeakages();
 
       try {
-        changeView(leakagesList);
+        changeView();
       } catch (err) {
+        console.error(err);
         console.error('Panel Table View not active.');
       }
 
@@ -155,7 +134,7 @@ async function analyzeNotebook(
     } catch (err) {
       StateManager.saveIsRunning(context, false);
       view.webview.postMessage({ type: 'analysisCompleted' });
-      vscode.window.showInformationMessage(
+      vscode.window.showErrorMessage(
         'Analysis Failed: Unknown Error Encountered.',
       );
       throw err;
@@ -168,7 +147,7 @@ async function analyzeNotebook(
 export async function analyzeNotebookWithProgress(
   view: vscode.WebviewView,
   context: vscode.ExtensionContext,
-  changeView: (leakages: LeakageInstance[]) => void,
+  changeView: () => Promise<void>,
 ) {
   vscode.window.withProgress(
     {

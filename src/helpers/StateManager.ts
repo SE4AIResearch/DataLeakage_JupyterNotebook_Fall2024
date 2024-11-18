@@ -1,10 +1,3 @@
-/**
- * DEPRECATED
- * DEPRECATED
- * DEPRECATED
- * DEPRECATED
- */
-
 import * as vscode from 'vscode';
 
 export type TempState = {
@@ -12,27 +5,38 @@ export type TempState = {
   tempDirPath: string; // Path of the temporary directory
 };
 
-// TODO: Convert to non-static methods and use <T> for reusability
 export class StateManager {
+  // Base Functions
+  static saveData(context: vscode.ExtensionContext, key: string, data: any) {
+    context.globalState.update(key, data);
+  }
+
+  static loadData(context: vscode.ExtensionContext, key: string): any {
+    return context.globalState.get(key);
+  }
+
+  // Custom Function
+
   static saveTempDirState(
     context: vscode.ExtensionContext,
     tempState: TempState,
   ) {
-    context.globalState.update(tempState.ogFilePath, tempState);
-  }
-
-  static saveIsRunning(context: vscode.ExtensionContext, isRunning: boolean) {
-    context.globalState.update('isRunning', isRunning);
-  }
-
-  static loadIsRunning(context: vscode.ExtensionContext): boolean {
-    return context.globalState.get('isRunning') || false;
+    StateManager.saveData(context, tempState.ogFilePath, tempState);
   }
 
   static loadTempDirState(
     context: vscode.ExtensionContext,
     id: string,
   ): TempState | undefined {
+    return StateManager.loadData(context, id);
     return context.globalState.get(id);
+  }
+
+  static saveIsRunning(context: vscode.ExtensionContext, isRunning: boolean) {
+    StateManager.saveData(context, 'isRunning', isRunning);
+  }
+
+  static loadIsRunning(context: vscode.ExtensionContext): boolean {
+    return StateManager.loadData(context, 'isRunning') || false;
   }
 }

@@ -1,19 +1,19 @@
-import LeakageInstance from '../../Leakages/LeakageInstance/LeakageInstance';
-import MultitestLeakageInstance from '../../Leakages/LeakageInstance/MultitestLeakageInstance';
-import OverlapLeakageInstance from '../../Leakages/LeakageInstance/OverlapLeakageInstance';
-import PreprocessingLeakageInstance from '../../Leakages/LeakageInstance/PreprocessingLeakageInstance';
-import Leakages from '../../Leakages/Leakages';
+import LeakageInstance from '../../data/Leakages/LeakageInstance/LeakageInstance';
+import MultitestLeakageInstance from '../../data/Leakages/LeakageInstance/MultitestLeakageInstance';
+import OverlapLeakageInstance from '../../data/Leakages/LeakageInstance/OverlapLeakageInstance';
+import PreprocessingLeakageInstance from '../../data/Leakages/LeakageInstance/PreprocessingLeakageInstance';
+import Leakages from '../../data/Leakages/Leakages';
 
 import * as vscode from 'vscode';
-import { TempDir } from '../../../helpers/TempDir';
+import { TempDir } from '../TempDir';
 import {
   ConversionToJupyter,
   ConversionToPython,
   JupyCell,
-} from '../../../helpers/conversion/LineConversion';
+} from '../conversion/LineConversion';
 
 export type LeakageAdapter = {
-  type: string;
+  type: 'Overlap' | 'Preprocessing' | 'Multi-Test';
   line: number;
   variable: string;
   cause: string;
@@ -21,7 +21,7 @@ export type LeakageAdapter = {
 };
 
 export type LeakageAdapterCell = {
-  type: string;
+  type: 'Overlap' | 'Preprocessing' | 'Multi-Test';
   line: number;
   cell: number;
   variable: string;
@@ -42,7 +42,7 @@ const adaptOverlapLeakageInstance = (
   const cause = leakage.getSource().getCause().toString();
   const testData = leakage.getTestingData();
 
-  const testAdapter = {
+  const testAdapter: LeakageAdapter = {
     type: 'Overlap',
     line: typeof testData.line === 'number' ? testData.line : -1,
     variable: typeof testData.variable === 'string' ? testData.variable : '',
@@ -60,7 +60,7 @@ const adaptPreprocessingLeakageInstance = (
   const testData = leakage.getTestingData();
   const trainingData = leakage.getTrainingData();
 
-  const testAdapter = {
+  const testAdapter: LeakageAdapter = {
     type: 'Preprocessing',
     line: typeof testData.line === 'number' ? testData.line : -1,
     variable: typeof testData.variable === 'string' ? testData.variable : '',
@@ -79,14 +79,16 @@ const adaptMultitestLeakageInstances = (
     .map((o) => o.testingData)
     .map((metadataArray) =>
       metadataArray
-        .map((metadata) => ({
-          type: 'Multi-Test',
-          line: typeof metadata.line === 'number' ? metadata.line : -1,
-          variable:
-            typeof metadata.variable === 'string' ? metadata.variable : '',
-          cause: 'repeatDataEvaluation',
-          parent: null,
-        }))
+        .map(
+          (metadata): LeakageAdapter => ({
+            type: 'Multi-Test',
+            line: typeof metadata.line === 'number' ? metadata.line : -1,
+            variable:
+              typeof metadata.variable === 'string' ? metadata.variable : '',
+            cause: 'repeatDataEvaluation',
+            parent: null,
+          }),
+        )
         .map((leakageAdapter, _, arr) => ({ ...leakageAdapter, parent: arr })),
     )
     .flat();
