@@ -1,71 +1,23 @@
-# dataleakage-jupyternotebook-fall2024 README
+# Leakage Detector
 
-This is the README for your extension "dataleakage-jupyternotebook-fall2024". After writing up a brief description, we recommend including the following sections.
+Visual Studio Code extension that detects instances of data leakage in Jupyter Notebooks.
 
 ## Features
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+Data leakage is a common problem in machine learning (ML) code where a model is trained on data that isn't in the training dataset. This skews the model results and causes an overly optimistic estimate of performance. This is why ML developers should separate data into three sets — training, evaluation, and a single-use test set — which many model makers overlook [(Yang et al.)](https://dl.acm.org/doi/10.1145/3551349.3556918). This extension will detect data leakage in Jupyter Notebooks (.ipynb) and suggest ways to fix it.
 
-For example if there is an image subfolder under your extension project workspace:
+Leakage comes in three types:
+* Preprocessing — the training and test sets are merged into the same set
+* Multi-Test — the same test data is used in multiple evaluations
+* Overlap — the training and test sets have shared data
 
-\!\[feature X\]\(images/feature-x.png\)
-
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+The extension creates two tables in the bottom panel. "Leakage Summary" shows how many instances of each type there are. "Leakage Instances" isolates each instance, the line it's on, and the variable that caused it. The user can click on each row to open that file and go to the line in question.
 
 ## Requirements
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
-
-## Extension Settings
-
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
-
-For example:
-
-This extension contributes the following settings:
-
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
+* [Docker](https://www.docker.com/) Engine or Desktop
+* [Python extension for VS Code](https://marketplace.visualstudio.com/items?itemName=ms-python.python)
 
 ## Known Issues
 
-Calling out known issues can help limit users opening duplicate issues against your extension.
 
-## Release Notes
-
-Users appreciate release notes as you update your extension.
-
-### 1.0.0
-
-Initial release of ...
-
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
-
----
-
-## Following extension guidelines
-
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
-
-* [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
-
-## Working with Markdown
-
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
-
-## For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**
