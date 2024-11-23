@@ -19,7 +19,7 @@ export function activate(context: vscode.ExtensionContext) {
     async () => {
       try {
         const leakages = new Leakages(
-          '/home/terrence/Projects/leakage-analysis/tests/inputs/nb_424904-fact/',
+          '/home/terrence/Projects/leakage-analysis/tests/inputs/nb_303674-fact/',
           context,
         );
         console.log(await leakages.getLeakages());
