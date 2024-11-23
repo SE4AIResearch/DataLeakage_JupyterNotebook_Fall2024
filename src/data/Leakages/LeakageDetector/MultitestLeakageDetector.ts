@@ -23,7 +23,9 @@ export default class MultitestLeakageDetector extends LeakageDetector<MultitestL
 
     // Lists all the testing variables that are used multiple times
     const noIndependentTestingInvocations: Set<string> = new Set();
-    const noIndependentTestsFile = await this.readFile('ValDataWithModel.csv');
+    const noIndependentTestsFile = await this.readFile(
+      'ValOrTestDataWithModel.csv',
+    );
     noIndependentTestsFile
       .filter((line) => !!line)
       .forEach((line) => {
