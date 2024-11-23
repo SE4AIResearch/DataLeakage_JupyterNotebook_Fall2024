@@ -1,16 +1,29 @@
+/**
+ * Imports
+ */
+
+// Import Node Modules
+import * as vscode from 'vscode';
+
+// Import /src/data
 import LeakageInstance from '../../data/Leakages/LeakageInstance/LeakageInstance';
 import MultitestLeakageInstance from '../../data/Leakages/LeakageInstance/MultitestLeakageInstance';
 import OverlapLeakageInstance from '../../data/Leakages/LeakageInstance/OverlapLeakageInstance';
 import PreprocessingLeakageInstance from '../../data/Leakages/LeakageInstance/PreprocessingLeakageInstance';
 import Leakages from '../../data/Leakages/Leakages';
+import { Metadata } from '../../data/Leakages/types';
 
-import * as vscode from 'vscode';
+// Import /src/helpers
 import { TempDir } from '../TempDir';
 import {
   ConversionToJupyter,
   ConversionToPython,
   JupyCell,
 } from '../conversion/LineConversion';
+
+/**
+ * Types
+ */
 
 export type LeakageAdapter = {
   type: 'Overlap' | 'Preprocessing' | 'Multi-Test';
@@ -29,6 +42,9 @@ export type LeakageAdapterCell = {
   parent: null | Array<LeakageAdapter>; // not sure what to do with this but it is an array of testingData that are related to each other (array includes the object itself)
 };
 
+/**
+ * Custom Error
+ */
 export class NotAnalyzedError extends Error {
   constructor(message: string) {
     super(message);
@@ -36,66 +52,73 @@ export class NotAnalyzedError extends Error {
   }
 }
 
+/**
+ * Helper Functions
+ */
+
+/**
+ *
+ * @param metadataArrays
+ * @param cause
+ * @returns
+ */
+const leakageAdapterHelper = (metadataArrays: Metadata[][], cause: string) =>
+  metadataArrays
+    .map((metadataArray) =>
+      metadataArray.map(
+        (metadata): LeakageAdapter => ({
+          type: 'Overlap',
+          line: typeof metadata.line === 'number' ? metadata.line : -1,
+          variable:
+            typeof metadata.variable === 'string' ? metadata.variable : '',
+          cause,
+          parent: null,
+        }),
+      ),
+    )
+    .flat();
+
 const adaptOverlapLeakageInstance = (
   leakage: OverlapLeakageInstance,
-): LeakageAdapter => {
+): LeakageAdapter[] => {
   const cause = leakage.getSource().getCause().toString();
-  const testData = leakage.getTestingData();
+  const metadataArrays = leakage.getOccurrences().map((o) => o.testingData);
+  const leakageAdapters = leakageAdapterHelper(metadataArrays, cause);
 
-  const testAdapter: LeakageAdapter = {
-    type: 'Overlap',
-    line: typeof testData.line === 'number' ? testData.line : -1,
-    variable: typeof testData.variable === 'string' ? testData.variable : '',
-    cause,
-    parent: null,
-  };
-
-  return testAdapter;
+  return leakageAdapters;
 };
 
 const adaptPreprocessingLeakageInstance = (
   leakage: PreprocessingLeakageInstance,
-): LeakageAdapter => {
+): LeakageAdapter[] => {
   const cause = leakage.getSource().getCause().toString();
-  const testData = leakage.getTestingData();
-  const trainingData = leakage.getTrainingData();
+  const metadataArrays = leakage.getOccurrences().map((o) => o.testingData);
+  const leakageAdapters = leakageAdapterHelper(metadataArrays, cause);
 
-  const testAdapter: LeakageAdapter = {
-    type: 'Preprocessing',
-    line: typeof testData.line === 'number' ? testData.line : -1,
-    variable: typeof testData.variable === 'string' ? testData.variable : '',
-    cause,
-    parent: null,
-  };
-
-  return testAdapter;
+  return leakageAdapters;
 };
 
 const adaptMultitestLeakageInstances = (
   leakage: MultitestLeakageInstance,
 ): LeakageAdapter[] => {
-  const leakageAdapters = leakage
+  const cause = 'repeatDataEvaluation';
+  const metadataArrays = leakage
     .getOccurrences()
-    .map((o) => o.testingData)
-    .map((metadataArray) =>
-      metadataArray
-        .map(
-          (metadata): LeakageAdapter => ({
-            type: 'Multi-Test',
-            line: typeof metadata.line === 'number' ? metadata.line : -1,
-            variable:
-              typeof metadata.variable === 'string' ? metadata.variable : '',
-            cause: 'repeatDataEvaluation',
-            parent: null,
-          }),
-        )
-        .map((leakageAdapter, _, arr) => ({ ...leakageAdapter, parent: arr })),
-    )
-    .flat();
+    .map((o) => o.trainTest.testingData);
+  const leakageAdapters = leakageAdapterHelper(metadataArrays, cause);
 
   return leakageAdapters;
 };
 
+/**
+ * Exported Functions
+ */
+
+/**
+ *
+ * @param leakages
+ * @returns
+ */
 export function createLeakageAdapters(
   leakages: LeakageInstance[],
 ): LeakageAdapter[] {
@@ -103,9 +126,9 @@ export function createLeakageAdapters(
 
   leakages.forEach((leakage) => {
     if (leakage instanceof OverlapLeakageInstance) {
-      leakageAdapters.push(adaptOverlapLeakageInstance(leakage));
+      leakageAdapters.push(...adaptOverlapLeakageInstance(leakage));
     } else if (leakage instanceof PreprocessingLeakageInstance) {
-      leakageAdapters.push(adaptPreprocessingLeakageInstance(leakage));
+      leakageAdapters.push(...adaptPreprocessingLeakageInstance(leakage));
     } else if (leakage instanceof MultitestLeakageInstance) {
       leakageAdapters.push(...adaptMultitestLeakageInstances(leakage));
     } else {

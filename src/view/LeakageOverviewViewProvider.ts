@@ -8,7 +8,6 @@ import {
 import { goToLeakageLine } from '../data/Table/table';
 import { isRow, Row } from '../validation/table';
 
-
 /**
  * Manages Leakage Overview Webview
  */
@@ -42,8 +41,7 @@ export class LeakageOverviewViewProvider {
         case 'webviewLoaded':
           this.updateTables();
         case 'moveCursor':
-          isRow(data.row) &&
-          goToLeakageLine(data.row);
+          isRow(data.row) && goToLeakageLine(data.row);
         default:
           throw 'Error: unrecognized data type';
       }
@@ -59,16 +57,16 @@ export class LeakageOverviewViewProvider {
           this._context,
           vscode.window.activeNotebookEditor.notebook.uri.fsPath,
         );
-        const overlapCount = adapters.filter(
-          (adapter) => adapter.type === 'Overlap',
-        ).length;
         const preprocessingCount = adapters.filter(
           (adapter) => adapter.type === 'Preprocessing',
+        ).length;
+        const overlapCount = adapters.filter(
+          (adapter) => adapter.type === 'Overlap',
         ).length;
         const multiTestCount = adapters.filter(
           (adapter) => adapter.type === 'Multi-Test',
         ).length;
-        this.changeCount(preprocessingCount, multiTestCount, overlapCount);
+        this.changeCount(preprocessingCount, overlapCount, multiTestCount);
 
         // Call changeRows to update the Leakage Instances table
         // Transform adapters to Row[] format
@@ -94,15 +92,15 @@ export class LeakageOverviewViewProvider {
 
   private changeCount(
     preprocessing: number,
-    multiTest: number,
     overlap: number,
+    multiTest: number,
   ) {
     if (this._view) {
       this._view.webview.postMessage({
         type: 'changeCount',
         preprocessing: preprocessing,
-        multiTest: multiTest,
         overlap: overlap,
+        multiTest: multiTest,
       });
     } else {
       throw new Error("View wasn't created.");
@@ -202,12 +200,12 @@ export class LeakageOverviewViewProvider {
           <td id='preprocess'>0</td>
         </tr>
         <tr>
-          <td>Multi-Test</td>
-          <td id='multitest'>0</td>
-        </tr>
-        <tr>
           <td>Overlap</td>
           <td id='overlap'>0</td>
+        </tr>
+        <tr>
+          <td>Multi-Test</td>
+          <td id='multitest'>0</td>
         </tr>
       </table>
 
