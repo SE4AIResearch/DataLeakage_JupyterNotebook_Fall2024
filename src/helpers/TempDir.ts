@@ -2,13 +2,14 @@ import os from 'os';
 import path from 'path';
 import fs from 'fs';
 
+import * as vscode from 'vscode';
+
 import { xxHash32 } from 'js-xxhash';
+import { ConversionToPython } from './conversion/LineConversion';
 
 const PYTHON_FILE_NAME = 'input.py';
 const JUPYTER_LINE_MAPPING_FILE_NAME = 'jupyter_line_mapping.json';
 const tempDir = os.tmpdir();
-
-console.log(tempDir);
 
 export class TempDir {
   private _id: string;
@@ -57,6 +58,15 @@ export class TempDir {
   }
   public getAlgoDirPath() {
     return this._algoDirPath;
+  }
+
+  public static async getTempDir(notebookFilePath: string) {
+    const notebookDocument = await vscode.workspace.openNotebookDocument(
+      vscode.Uri.file(notebookFilePath),
+    );
+    const pythonCode = new ConversionToPython(notebookDocument).getPythonCode();
+    const tempDir = new TempDir(pythonCode);
+    return tempDir;
   }
 }
 

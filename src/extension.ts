@@ -1,19 +1,20 @@
 import * as vscode from 'vscode';
 import Leakages from './data/Leakages/Leakages';
 import { ButtonViewProvider } from './view/ButtonViewProvider';
-import { LeakageInstancesViewProvider } from './view/LeakageInstancesViewProvider';
-import { LeakageSummaryViewProvider } from './view/LeakageSummaryViewProvider';
+import { LeakageOverviewViewProvider } from './view/LeakageOverviewViewProvider';
 
 import {
-  LEAKAGE_ERROR,
   COLLECTION_NAME,
-  COMMAND,
   subscribeToDocumentChanges,
-} from './data/notebookDiagnostics';
-import LeakageInstance from './data/Leakages/LeakageInstance/LeakageInstance';
-import { LeakageType } from './data/Leakages/types';
+} from './data/Diagnostics/notebookDiagnostics';
+import {
+  getAdaptersFromFile,
+  LeakageAdapterCell,
+} from './helpers/Leakages/createLeakageAdapters';
 
 export function activate(context: vscode.ExtensionContext) {
+  // Test Command for Leakages Class
+
   const disposable = vscode.commands.registerCommand(
     'dataleakage-jupyternotebook-fall2024.runLeakageDetector',
     async () => {
@@ -33,83 +34,53 @@ export function activate(context: vscode.ExtensionContext) {
   );
   context.subscriptions.push(disposable);
 
+  // Diagnostics
+
   const notebookDiagnostics =
     vscode.languages.createDiagnosticCollection(COLLECTION_NAME);
   context.subscriptions.push(notebookDiagnostics);
   subscribeToDocumentChanges(context, notebookDiagnostics);
 
-  context.subscriptions.push(
-    vscode.languages.registerCodeActionsProvider(
-      'markdown',
-      new LeakageInfo(),
-      {
-        providedCodeActionKinds: LeakageInfo.providedCodeActionKinds,
-      },
-    ),
-  );
+  // Code Actions (Quickfix)
 
-  context.subscriptions.push(
-    vscode.commands.registerCommand(COMMAND, () =>
-      vscode.env.openExternal(
-        vscode.Uri.parse('https://www.youtube.com/watch?v=dQw4w9WgXcQ'),
-      ),
-    ),
-  );
+  // context.subscriptions.push(
+  //   vscode.languages.registerCodeActionsProvider('python', new LeakageInfo(), {
+  //     providedCodeActionKinds: LeakageInfo.providedCodeActionKinds,
+  //   }),
+  // );
 
-  const leakageInstanceProvider = new LeakageInstancesViewProvider(
+  // context.subscriptions.push(
+  //   vscode.commands.registerCommand(COMMAND, () =>
+  //     vscode.env.openExternal(
+  //       vscode.Uri.parse('https://www.youtube.com/watch?v=dQw4w9WgXcQ'),
+  //     ),
+  //   ),
+  // );
+
+  // Leakage Overview View
+
+  const leakageOverviewViewProvider = new LeakageOverviewViewProvider(
     context.extensionUri,
     context,
   );
 
   context.subscriptions.push(
     vscode.window.registerWebviewViewProvider(
-      LeakageInstancesViewProvider.viewType,
-      leakageInstanceProvider,
+      LeakageOverviewViewProvider.viewType,
+      leakageOverviewViewProvider,
     ),
-  );
-
-  leakageInstanceProvider.addRows([
-    {
-      type: 'Multi-Test',
-      line: 702,
-      variable: 'X_Train',
-      cause: 'Repeat data evaluation',
-    },
-  ]);
-
-  // Leakage Summary
-
-  const leakageSummaryProvider = new LeakageSummaryViewProvider(
-    context.extensionUri,
-    context,
   );
 
   context.subscriptions.push(
-    vscode.window.registerWebviewViewProvider(
-      LeakageSummaryViewProvider.viewType,
-      leakageSummaryProvider,
-    ),
+    vscode.window.onDidChangeActiveNotebookEditor(async () => {
+      await leakageOverviewViewProvider.updateTables();
+    }),
   );
-
-  const changeView = (leakages: LeakageInstance[]) => {
-    const overlapLeakageCount = leakages.filter(
-      (leakage) => leakage.getLeakageType() === LeakageType.OverlapLeakage,
-    ).length;
-    const multiTestLeakageCount = leakages.filter(
-      (leakage) => leakage.getLeakageType() === LeakageType.MultitestLeakage,
-    ).length;
-    const preprocessingLeakageCount = leakages.filter(
-      (leakage) =>
-        leakage.getLeakageType() === LeakageType.PreprocessingLeakage,
-    ).length;
-    leakageSummaryProvider.changeCount(
-      preprocessingLeakageCount,
-      multiTestLeakageCount,
-      overlapLeakageCount,
-    );
-  };
 
   // Button View
+
+  const changeView = async () =>
+    await leakageOverviewViewProvider.updateTables();
 
   const buttonProvider = new ButtonViewProvider(
     context.extensionUri,
@@ -123,42 +94,3 @@ export function activate(context: vscode.ExtensionContext) {
     ),
   );
 }
-
-/**
- * Provides code actions corresponding to diagnostic problems.
- */
-export class LeakageInfo implements vscode.CodeActionProvider {
-  public static readonly providedCodeActionKinds = [
-    vscode.CodeActionKind.QuickFix,
-  ];
-
-  provideCodeActions(
-    _document: vscode.TextDocument,
-    _range: vscode.Range | vscode.Selection,
-    context: vscode.CodeActionContext,
-    _token: vscode.CancellationToken,
-  ): vscode.CodeAction[] {
-    // for each diagnostic entry that has the matching `code`, create a code action command
-    return context.diagnostics
-      .filter((diagnostic) => diagnostic.code === LEAKAGE_ERROR)
-      .map((diagnostic) => this.createCommandCodeAction(diagnostic));
-  }
-
-  private createCommandCodeAction(
-    diagnostic: vscode.Diagnostic,
-  ): vscode.CodeAction {
-    const action = new vscode.CodeAction(
-      'Learn more...',
-      vscode.CodeActionKind.QuickFix,
-    );
-    action.command = {
-      command: COMMAND,
-      title: 'Quickfix',
-      tooltip: 'Quickfix',
-    };
-    action.diagnostics = [diagnostic];
-    action.isPreferred = true;
-    return action;
-  }
-}
-export function deactivate() {}
