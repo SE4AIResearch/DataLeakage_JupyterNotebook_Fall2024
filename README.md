@@ -15,7 +15,7 @@ The extension creates two tables in the bottom panel. "Leakage Summary" shows ho
 
 ## Requirements
 
-* Pre-built binaries
+* [Pre-built binaries](https://stevens0-my.sharepoint.com/:f:/g/personal/ealomar_stevens_edu/EoM72dehZWZClpFgI1-0IkUB86VFR9w3n1iTngOCc4f4Cw?e=seYaux)
 ** Failing that, [Docker](https://www.docker.com/) Engine or Desktop
 * [Python extension for VS Code](https://marketplace.visualstudio.com/items?itemName=ms-python.python)
 
