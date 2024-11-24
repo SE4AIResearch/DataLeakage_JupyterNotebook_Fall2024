@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { TempDir } from '../../helpers/TempDir';
+import { checkTerminalEnded } from './_buttonUtils';
 
 async function getPathToAlgoProgramDir(
   context: vscode.ExtensionContext,
@@ -22,25 +23,6 @@ function getOutputByOS(input: [any, any, any]) {
   } else {
     return input[2];
   }
-}
-
-function checkTerminalEnded(
-  targetTerminal: vscode.Terminal,
-  resolve: (value: unknown) => void,
-  reject: (reason?: any) => void,
-) {
-  // Listen to terminal output
-  const disposable = vscode.window.onDidEndTerminalShellExecution((e) => {
-    if (e.terminal === targetTerminal) {
-      disposable.dispose(); // Clean up the event listener
-
-      if (e.exitCode === 0) {
-        resolve(null);
-      } else {
-        reject(`Terminal exited with code ${e.exitCode}`);
-      }
-    }
-  });
 }
 
 async function runCommandWithPythonInterpreter(command: string) {

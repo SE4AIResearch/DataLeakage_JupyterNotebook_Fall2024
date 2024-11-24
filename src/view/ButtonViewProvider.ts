@@ -41,25 +41,39 @@ export class ButtonViewProvider {
           await this.analyzeNotebook();
           break;
         case 'webviewLoaded':
-          const data = {
-            type: 'webviewLoaded',
-            isRunning: StateManager.loadIsRunning(this._context),
-          };
-          this._view?.webview.postMessage(data);
-          StateManager.loadIsRunning(this._context);
+          try {
+            const data = {
+              type: 'webviewLoaded',
+              isRunning: StateManager.loadIsRunning(this._context),
+            };
+            this._view?.webview.postMessage(data);
+          } catch (error) {
+            console.error(error);
+            this._view?.webview.postMessage({
+              type: 'webviewLoaded',
+              isRunning: false,
+            });
+          }
           break;
         case 'openFilePicker':
-          const leakageFolderUri = await vscode.window.showOpenDialog({
-            canSelectMany: false,
-            canSelectFiles: false,
-            canSelectFolders: true,
-            openLabel: 'Select Leakage Analysis Program Folder',
-          });
+          try {
+            const leakageFolderUri = await vscode.window.showOpenDialog({
+              canSelectMany: false,
+              canSelectFiles: false,
+              canSelectFolders: true,
+              openLabel: 'Select Leakage Analysis Program Folder',
+            });
 
-          if (leakageFolderUri && leakageFolderUri[0]) {
-            await installLeakageFolder(this._context, leakageFolderUri);
+            if (leakageFolderUri && leakageFolderUri[0]) {
+              await installLeakageFolder(this._context, leakageFolderUri);
+            }
+          } catch (error) {
+            console.error(error);
           }
-
+          this._view?.webview.postMessage({
+            type: 'filePickerDone',
+            isRunning: StateManager.loadIsRunning(this._context),
+          });
           break;
       }
     });
@@ -94,6 +108,10 @@ export class ButtonViewProvider {
       vscode.Uri.joinPath(this._extensionUri, 'media', 'button', 'main.css'),
     );
 
+    const stylePriorityUri = webview.asWebviewUri(
+      vscode.Uri.joinPath(this._extensionUri, 'media', 'button', 'prio.css'),
+    );
+
     StateManager.saveIsRunning(this._context, false);
 
     const nonce = getNonce();
@@ -114,12 +132,13 @@ export class ButtonViewProvider {
 				<link href="${styleResetUri}" rel="stylesheet">
 				<link href="${styleVSCodeUri}" rel="stylesheet">
 				<link href="${styleMainUri}" rel="stylesheet">
+        <link href="${stylePriorityUri}" rel="stylesheet">
 
 				<title>Data Leakage</title>
 			</head>
 			<body>
-				<button class="button" id="install-leakage">Install Leakage Analysis Program</button>
-				<button class="button" id="run-leakage">Run Data Leakage Analysis</button>
+      	<button class="button" id="run-leakage">Run Data Leakage Analysis</button>
+				<button class="button secondary" id="install-leakage">Install Leakage Analysis Program</button>
 
         <script nonce="${nonce}" src="${scriptUri}"></script>
 			</body>
