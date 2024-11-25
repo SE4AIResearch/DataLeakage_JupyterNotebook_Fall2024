@@ -106,5 +106,6 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/SE4AIResearch/DataLeakage_JupyterNotebook_Fall2024.git"
-  }
+  },
+  "license": "ISC"
 }
