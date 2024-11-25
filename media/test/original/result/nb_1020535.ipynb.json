@@ -1,0 +1,32 @@
+{
+  "preprocessing": [],
+  "overlap": [],
+  "multitest": [
+    {
+      "lines": [
+        782
+      ],
+      "occurrences": [
+        {
+          "otherUsageLines": [],
+          "trainTest": {
+            "trainingData": {
+              "model": "naive_bayes_0",
+              "variable": "training_data",
+              "function": "MultinomialNB.fit",
+              "line": 763
+            },
+            "testingData": [
+              {
+                "model": "naive_bayes_0",
+                "variable": "testing_data",
+                "function": "MultinomialNB.predict",
+                "line": 782
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

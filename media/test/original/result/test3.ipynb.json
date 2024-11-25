@@ -1,0 +1,32 @@
+{
+  "preprocessing": [],
+  "overlap": [],
+  "multitest": [
+    {
+      "lines": [
+        20
+      ],
+      "occurrences": [
+        {
+          "otherUsageLines": [],
+          "trainTest": {
+            "trainingData": {
+              "model": "clf_0",
+              "variable": "X_train",
+              "function": "LogisticRegression.fit",
+              "line": 19
+            },
+            "testingData": [
+              {
+                "model": "clf_0",
+                "variable": "X_test",
+                "function": "LogisticRegression.predict",
+                "line": 20
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

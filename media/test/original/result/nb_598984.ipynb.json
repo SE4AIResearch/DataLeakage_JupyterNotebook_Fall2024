@@ -1,0 +1,115 @@
+{
+  "preprocessing": [
+    {
+      "line": 223,
+      "occurrences": [
+        {
+          "trainingData": {
+            "model": "classifier_0",
+            "variable": "X_train_1",
+            "function": "Unknown.fit",
+            "line": 146
+          },
+          "testingData": [
+            {
+              "model": "classifier_0",
+              "variable": "X_test_2",
+              "function": "Unknown.predict",
+              "line": 223
+            }
+          ]
+        }
+      ],
+      "source": {
+        "taints": [
+          {
+            "type": "rowset",
+            "destinationVariable": "sc_X",
+            "sourceVariable": "X_train",
+            "sourceFunction": "StandardScaler.fit_transform",
+            "line": 102
+          },
+          {
+            "type": "rowset",
+            "destinationVariable": "sc_X",
+            "sourceVariable": "X_test_1",
+            "sourceFunction": "StandardScaler.fit_transform",
+            "line": 216
+          },
+          {
+            "type": "rowset",
+            "destinationVariable": "X_train_0",
+            "sourceVariable": "X_train",
+            "sourceFunction": "StandardScaler.fit_transform",
+            "line": 102
+          },
+          {
+            "type": "rowset",
+            "destinationVariable": "X_test_2",
+            "sourceVariable": "X_test_1",
+            "sourceFunction": "StandardScaler.fit_transform",
+            "line": 216
+          },
+          {
+            "type": "rowset",
+            "destinationVariable": "billMean",
+            "sourceVariable": "_var60",
+            "sourceFunction": "Unknown.mean",
+            "line": 53
+          },
+          {
+            "type": "rowset",
+            "destinationVariable": "payMean",
+            "sourceVariable": "_var65",
+            "sourceFunction": "Unknown.mean",
+            "line": 54
+          },
+          {
+            "type": "rowset",
+            "destinationVariable": "billMean_0",
+            "sourceVariable": "_var232",
+            "sourceFunction": "Unknown.mean",
+            "line": 169
+          },
+          {
+            "type": "rowset",
+            "destinationVariable": "payMean_0",
+            "sourceVariable": "_var237",
+            "sourceFunction": "Unknown.mean",
+            "line": 170
+          }
+        ],
+        "cause": "unknownPreprocessing"
+      }
+    }
+  ],
+  "overlap": [],
+  "multitest": [
+    {
+      "lines": [
+        223
+      ],
+      "occurrences": [
+        {
+          "otherUsageLines": [],
+          "trainTest": {
+            "trainingData": {
+              "model": "classifier_0",
+              "variable": "X_train_1",
+              "function": "Unknown.fit",
+              "line": 146
+            },
+            "testingData": [
+              {
+                "model": "classifier_0",
+                "variable": "X_test_2",
+                "function": "Unknown.predict",
+                "line": 223
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

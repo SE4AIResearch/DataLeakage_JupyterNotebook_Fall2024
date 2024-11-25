@@ -1,0 +1,94 @@
+{
+  "preprocessing": [],
+  "overlap": [],
+  "multitest": [
+    {
+      "lines": [
+        305,
+        313,
+        321,
+        443,
+        591
+      ],
+      "occurrences": [
+        {
+          "otherUsageLines": [
+            591
+          ],
+          "trainTest": {
+            "trainingData": {
+              "model": "lr_model",
+              "variable": "X_train",
+              "function": "LogisticRegression.fit",
+              "line": 266
+            },
+            "testingData": [
+              {
+                "model": "lr_model",
+                "variable": "X_test",
+                "function": "LogisticRegression.predict",
+                "line": 305
+              },
+              {
+                "model": "lr_model",
+                "variable": "X_test",
+                "function": "LogisticRegression.predict_proba",
+                "line": 313
+              },
+              {
+                "model": "lr_model",
+                "variable": "X_test",
+                "function": "LogisticRegression.score",
+                "line": 321
+              }
+            ]
+          }
+        },
+        {
+          "otherUsageLines": [
+            591
+          ],
+          "trainTest": {
+            "trainingData": {
+              "model": "gs_model",
+              "variable": "X_train",
+              "function": "LogisticRegression.fit",
+              "line": 439
+            },
+            "testingData": [
+              {
+                "model": "gs_model",
+                "variable": "X_test",
+                "function": "LogisticRegression.predict",
+                "line": 443
+              }
+            ]
+          }
+        },
+        {
+          "otherUsageLines": [
+            305,
+            321,
+            443
+          ],
+          "trainTest": {
+            "trainingData": {
+              "model": "gscv_model",
+              "variable": "X_train",
+              "function": "Unknown.fit",
+              "line": 546
+            },
+            "testingData": [
+              {
+                "model": "gscv_model",
+                "variable": "X_test",
+                "function": "Unknown.predict",
+                "line": 591
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

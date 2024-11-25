@@ -1,0 +1,80 @@
+{
+  "preprocessing": [
+    {
+      "line": 49,
+      "occurrences": [
+        {
+          "trainingData": {
+            "model": "clf_0",
+            "variable": "X_train",
+            "function": "LogisticRegression.fit",
+            "line": 48
+          },
+          "testingData": [
+            {
+              "model": "clf_0",
+              "variable": "X_test",
+              "function": "LogisticRegression.predict",
+              "line": 49
+            }
+          ]
+        }
+      ],
+      "source": {
+        "taints": [
+          {
+            "type": "rowset",
+            "destinationVariable": "_var27",
+            "sourceVariable": "_var26",
+            "sourceFunction": "numpy.mean",
+            "line": 22
+          },
+          {
+            "type": "rowset",
+            "destinationVariable": "age_avg",
+            "sourceVariable": "_var30",
+            "sourceFunction": "Unknown.mean",
+            "line": 25
+          },
+          {
+            "type": "rowset",
+            "destinationVariable": "age_std",
+            "sourceVariable": "_var32",
+            "sourceFunction": "Unknown.std",
+            "line": 26
+          }
+        ],
+        "cause": "unknownPreprocessing"
+      }
+    }
+  ],
+  "overlap": [],
+  "multitest": [
+    {
+      "lines": [
+        49
+      ],
+      "occurrences": [
+        {
+          "otherUsageLines": [],
+          "trainTest": {
+            "trainingData": {
+              "model": "clf_0",
+              "variable": "X_train",
+              "function": "LogisticRegression.fit",
+              "line": 48
+            },
+            "testingData": [
+              {
+                "model": "clf_0",
+                "variable": "X_test",
+                "function": "LogisticRegression.predict",
+                "line": 49
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

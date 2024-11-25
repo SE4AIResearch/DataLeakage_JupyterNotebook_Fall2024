@@ -1,0 +1,168 @@
+{
+  "preprocessing": [],
+  "overlap": [
+    {
+      "line": 1109,
+      "occurrences": [
+        {
+          "trainingData": {
+            "model": "lr",
+            "variable": "X_train_3",
+            "function": "LogisticRegressionCV.fit",
+            "line": 1103
+          },
+          "testingData": [
+            {
+              "model": "lr",
+              "variable": "X_train_3",
+              "function": "LogisticRegressionCV.score",
+              "line": 1109
+            },
+            {
+              "model": "lr",
+              "variable": "X_test_3",
+              "function": "LogisticRegressionCV.score",
+              "line": 1115
+            },
+            {
+              "model": "lr",
+              "variable": "X_test_3",
+              "function": "LogisticRegressionCV.predict",
+              "line": 1122
+            }
+          ]
+        }
+      ],
+      "source": {
+        "taints": [],
+        "cause": "splitBeforeSample"
+      }
+    }
+  ],
+  "multitest": [
+    {
+      "lines": [
+        148,
+        260,
+        315
+      ],
+      "occurrences": [
+        {
+          "otherUsageLines": [
+            260,
+            315
+          ],
+          "trainTest": {
+            "trainingData": {
+              "model": "model_3",
+              "variable": "X_train_2",
+              "function": "Unknown.fit",
+              "line": 142
+            },
+            "testingData": [
+              {
+                "model": "model_3",
+                "variable": "X_test_2",
+                "function": "Unknown.evaluate",
+                "line": 148
+              }
+            ]
+          }
+        },
+        {
+          "otherUsageLines": [
+            148
+          ],
+          "trainTest": {
+            "trainingData": {
+              "model": "history",
+              "variable": "X_train_2",
+              "function": "Unknown.fit",
+              "line": 253
+            },
+            "testingData": [
+              {
+                "model": "model_10",
+                "variable": "X_test_2",
+                "function": "Unknown.evaluate",
+                "line": 260
+              },
+              {
+                "model": "model_10",
+                "variable": "X_test_2",
+                "function": "Unknown.evaluate",
+                "line": 315
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "lines": [
+        496
+      ],
+      "occurrences": [
+        {
+          "otherUsageLines": [],
+          "trainTest": {
+            "trainingData": {
+              "model": "history_cnn",
+              "variable": "X_train_images",
+              "function": "Unknown.fit",
+              "line": 483
+            },
+            "testingData": [
+              {
+                "model": "cnn_0",
+                "variable": "X_test_images",
+                "function": "Unknown.evaluate",
+                "line": 496
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "lines": [
+        1109,
+        1115,
+        1122
+      ],
+      "occurrences": [
+        {
+          "otherUsageLines": [],
+          "trainTest": {
+            "trainingData": {
+              "model": "lr",
+              "variable": "X_train_3",
+              "function": "LogisticRegressionCV.fit",
+              "line": 1103
+            },
+            "testingData": [
+              {
+                "model": "lr",
+                "variable": "X_train_3",
+                "function": "LogisticRegressionCV.score",
+                "line": 1109
+              },
+              {
+                "model": "lr",
+                "variable": "X_test_3",
+                "function": "LogisticRegressionCV.score",
+                "line": 1115
+              },
+              {
+                "model": "lr",
+                "variable": "X_test_3",
+                "function": "LogisticRegressionCV.predict",
+                "line": 1122
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

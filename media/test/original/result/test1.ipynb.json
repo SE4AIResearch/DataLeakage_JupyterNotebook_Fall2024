@@ -1,0 +1,118 @@
+{
+  "preprocessing": [
+    {
+      "line": 19,
+      "occurrences": [
+        {
+          "trainingData": {
+            "model": "clf_0",
+            "variable": "X_train_0",
+            "function": "LogisticRegression.fit",
+            "line": 17
+          },
+          "testingData": [
+            {
+              "model": "clf_0",
+              "variable": "X_train_0",
+              "function": "LogisticRegression.predict",
+              "line": 18
+            },
+            {
+              "model": "clf_0",
+              "variable": "X_test_0",
+              "function": "LogisticRegression.predict",
+              "line": 19
+            }
+          ]
+        }
+      ],
+      "source": {
+        "taints": [
+          {
+            "type": "rowset",
+            "destinationVariable": "_var15",
+            "sourceVariable": "_var14",
+            "sourceFunction": "numpy.mean",
+            "line": 12
+          },
+          {
+            "type": "rowset",
+            "destinationVariable": "_var23",
+            "sourceVariable": "_var22",
+            "sourceFunction": "numpy.mean",
+            "line": 13
+          }
+        ],
+        "cause": "unknownPreprocessing"
+      }
+    }
+  ],
+  "overlap": [
+    {
+      "line": 18,
+      "occurrences": [
+        {
+          "trainingData": {
+            "model": "clf_0",
+            "variable": "X_train_0",
+            "function": "LogisticRegression.fit",
+            "line": 17
+          },
+          "testingData": [
+            {
+              "model": "clf_0",
+              "variable": "X_train_0",
+              "function": "LogisticRegression.predict",
+              "line": 18
+            },
+            {
+              "model": "clf_0",
+              "variable": "X_test_0",
+              "function": "LogisticRegression.predict",
+              "line": 19
+            }
+          ]
+        }
+      ],
+      "source": {
+        "taints": [],
+        "cause": "splitBeforeSample"
+      }
+    }
+  ],
+  "multitest": [
+    {
+      "lines": [
+        18,
+        19
+      ],
+      "occurrences": [
+        {
+          "otherUsageLines": [],
+          "trainTest": {
+            "trainingData": {
+              "model": "clf_0",
+              "variable": "X_train_0",
+              "function": "LogisticRegression.fit",
+              "line": 17
+            },
+            "testingData": [
+              {
+                "model": "clf_0",
+                "variable": "X_train_0",
+                "function": "LogisticRegression.predict",
+                "line": 18
+              },
+              {
+                "model": "clf_0",
+                "variable": "X_test_0",
+                "function": "LogisticRegression.predict",
+                "line": 19
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

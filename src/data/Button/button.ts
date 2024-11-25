@@ -19,6 +19,8 @@ import {
 
 // TODO: Refactor analyzeNotebook & analyzeNotebookWithNotification into one
 
+// FIXME: Docker container still running even tho it shows analysis as completed. Example is nb_471253.ipynb
+
 async function runAlgorithm(
   context: vscode.ExtensionContext,
   tempDir: TempDir,

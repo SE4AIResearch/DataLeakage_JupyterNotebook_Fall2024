@@ -1,0 +1,32 @@
+{
+  "preprocessing": [],
+  "overlap": [],
+  "multitest": [
+    {
+      "lines": [
+        22
+      ],
+      "occurrences": [
+        {
+          "otherUsageLines": [],
+          "trainTest": {
+            "trainingData": {
+              "model": "model_0",
+              "variable": "X_resampled",
+              "function": "HistGradientBoostingClassifier.fit",
+              "line": 21
+            },
+            "testingData": [
+              {
+                "model": "model_0",
+                "variable": "X_test",
+                "function": "BaseHistGradientBoosting.predict",
+                "line": 22
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

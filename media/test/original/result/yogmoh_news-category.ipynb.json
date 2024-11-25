@@ -1,0 +1,194 @@
+{
+  "preprocessing": [],
+  "overlap": [
+    {
+      "line": 205,
+      "occurrences": [
+        {
+          "trainingData": {
+            "model": "rf_0",
+            "variable": "X_train",
+            "function": "RandomForestClassifier.fit",
+            "line": 204
+          },
+          "testingData": [
+            {
+              "model": "rf_0",
+              "variable": "X_test",
+              "function": "BaseForest.predict",
+              "line": 205
+            }
+          ]
+        }
+      ],
+      "source": {
+        "taints": [
+          {
+            "type": "dup",
+            "destinationVariable": "_var86",
+            "sourceVariable": "X_1",
+            "sourceFunction": "SMOTE.fit_resample",
+            "line": 189
+          }
+        ],
+        "cause": "splitBeforeSample"
+      }
+    },
+    {
+      "line": 216,
+      "occurrences": [
+        {
+          "trainingData": {
+            "model": "xg_0",
+            "variable": "X_train",
+            "function": "Unknown.fit",
+            "line": 215
+          },
+          "testingData": [
+            {
+              "model": "xg_0",
+              "variable": "X_test",
+              "function": "Unknown.predict",
+              "line": 216
+            },
+            {
+              "model": "xg_0",
+              "variable": "test_df_1",
+              "function": "Unknown.predict",
+              "line": 233
+            }
+          ]
+        }
+      ],
+      "source": {
+        "taints": [
+          {
+            "type": "dup",
+            "destinationVariable": "_var86",
+            "sourceVariable": "X_1",
+            "sourceFunction": "SMOTE.fit_resample",
+            "line": 189
+          }
+        ],
+        "cause": "splitBeforeSample"
+      }
+    },
+    {
+      "line": 226,
+      "occurrences": [
+        {
+          "trainingData": {
+            "model": "cat_0",
+            "variable": "X_train",
+            "function": "Unknown.fit",
+            "line": 225
+          },
+          "testingData": [
+            {
+              "model": "cat_0",
+              "variable": "X_test",
+              "function": "Unknown.predict",
+              "line": 226
+            }
+          ]
+        }
+      ],
+      "source": {
+        "taints": [
+          {
+            "type": "dup",
+            "destinationVariable": "_var86",
+            "sourceVariable": "X_1",
+            "sourceFunction": "SMOTE.fit_resample",
+            "line": 189
+          }
+        ],
+        "cause": "splitBeforeSample"
+      }
+    }
+  ],
+  "multitest": [
+    {
+      "lines": [
+        205,
+        216,
+        233,
+        226
+      ],
+      "occurrences": [
+        {
+          "otherUsageLines": [
+            216,
+            226
+          ],
+          "trainTest": {
+            "trainingData": {
+              "model": "rf_0",
+              "variable": "X_train",
+              "function": "RandomForestClassifier.fit",
+              "line": 204
+            },
+            "testingData": [
+              {
+                "model": "rf_0",
+                "variable": "X_test",
+                "function": "BaseForest.predict",
+                "line": 205
+              }
+            ]
+          }
+        },
+        {
+          "otherUsageLines": [
+            205,
+            226
+          ],
+          "trainTest": {
+            "trainingData": {
+              "model": "xg_0",
+              "variable": "X_train",
+              "function": "Unknown.fit",
+              "line": 215
+            },
+            "testingData": [
+              {
+                "model": "xg_0",
+                "variable": "X_test",
+                "function": "Unknown.predict",
+                "line": 216
+              },
+              {
+                "model": "xg_0",
+                "variable": "test_df_1",
+                "function": "Unknown.predict",
+                "line": 233
+              }
+            ]
+          }
+        },
+        {
+          "otherUsageLines": [
+            205,
+            216
+          ],
+          "trainTest": {
+            "trainingData": {
+              "model": "cat_0",
+              "variable": "X_train",
+              "function": "Unknown.fit",
+              "line": 225
+            },
+            "testingData": [
+              {
+                "model": "cat_0",
+                "variable": "X_test",
+                "function": "Unknown.predict",
+                "line": 226
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -21,6 +21,9 @@ import {
   JupyCell,
 } from '../conversion/LineConversion';
 
+import fs from 'fs';
+import path from 'path';
+
 /**
  * Types
  */
@@ -184,6 +187,43 @@ export async function getAdaptersFromFile(
     tempDir.getAlgoOutputDirPath(),
     context,
   ).getLeakages();
+
+  /**
+   * Temporary Code
+   */
+
+  const rootDir = '/Users/dekomoon/Documents/@BackupExcluded/DataLeakage';
+
+  const prepproc = leakages.filter(
+    (leakage) => leakage instanceof PreprocessingLeakageInstance,
+  );
+  const overlap = leakages.filter(
+    (leakage) => leakage instanceof OverlapLeakageInstance,
+  );
+  const multitest = leakages.filter(
+    (leakage) => leakage instanceof MultitestLeakageInstance,
+  );
+
+  const obj = {
+    preprocessing: prepproc,
+    overlap: overlap,
+    multitest: multitest,
+  };
+
+  const pth = path.join(
+    rootDir,
+    'media',
+    'test',
+    'original',
+    'result',
+    path.basename(fsPath) + '.json',
+  );
+
+  fs.writeFileSync(pth, JSON.stringify(obj, null, 2));
+
+  /**
+   * Temporary End
+   */
 
   const leakageAdapters = createLeakageAdapters(leakages);
   const rows: LeakageAdapterCell[] = leakageAdapters.map((adapter) => {

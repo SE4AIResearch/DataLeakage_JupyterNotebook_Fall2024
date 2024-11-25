@@ -1,0 +1,192 @@
+{
+  "preprocessing": [
+    {
+      "line": 242,
+      "occurrences": [
+        {
+          "trainingData": {
+            "model": "_var153_0",
+            "variable": "x_train_1",
+            "function": "Unknown.fit",
+            "line": 241
+          },
+          "testingData": [
+            {
+              "model": "_var154",
+              "variable": "x_test_1",
+              "function": "Unknown.predict",
+              "line": 242
+            }
+          ]
+        }
+      ],
+      "source": {
+        "taints": [
+          {
+            "type": "rowset",
+            "destinationVariable": "imr",
+            "sourceVariable": "df",
+            "sourceFunction": "SimpleImputer.fit",
+            "line": 35
+          },
+          {
+            "type": "rowset",
+            "destinationVariable": "mms",
+            "sourceVariable": "X_train",
+            "sourceFunction": "MinMaxScaler.fit_transform",
+            "line": 82
+          },
+          {
+            "type": "rowset",
+            "destinationVariable": "std",
+            "sourceVariable": "X_train",
+            "sourceFunction": "StandardScaler.fit_transform",
+            "line": 88
+          },
+          {
+            "type": "rowset",
+            "destinationVariable": "X_train_std",
+            "sourceVariable": "X_train",
+            "sourceFunction": "StandardScaler.fit_transform",
+            "line": 88
+          },
+          {
+            "type": "rowset",
+            "destinationVariable": "imr_0",
+            "sourceVariable": "df",
+            "sourceFunction": "SimpleImputer.fit",
+            "line": 35
+          },
+          {
+            "type": "rowset",
+            "destinationVariable": "X_train_norm",
+            "sourceVariable": "X_train",
+            "sourceFunction": "MinMaxScaler.fit_transform",
+            "line": 82
+          }
+        ],
+        "cause": "unknownPreprocessing"
+      }
+    }
+  ],
+  "overlap": [
+    {
+      "line": 106,
+      "occurrences": [
+        {
+          "trainingData": {
+            "model": "lr_0",
+            "variable": "X_train_std",
+            "function": "LogisticRegression.fit",
+            "line": 105
+          },
+          "testingData": [
+            {
+              "model": "lr_0",
+              "variable": "X_train_std",
+              "function": "LogisticRegression.score",
+              "line": 106
+            },
+            {
+              "model": "lr_0",
+              "variable": "X_test_std",
+              "function": "LogisticRegression.score",
+              "line": 107
+            }
+          ]
+        }
+      ],
+      "source": {
+        "taints": [],
+        "cause": "splitBeforeSample"
+      }
+    }
+  ],
+  "multitest": [
+    {
+      "lines": [
+        106,
+        107
+      ],
+      "occurrences": [
+        {
+          "otherUsageLines": [],
+          "trainTest": {
+            "trainingData": {
+              "model": "lr_0",
+              "variable": "X_train_std",
+              "function": "LogisticRegression.fit",
+              "line": 105
+            },
+            "testingData": [
+              {
+                "model": "lr_0",
+                "variable": "X_train_std",
+                "function": "LogisticRegression.score",
+                "line": 106
+              },
+              {
+                "model": "lr_0",
+                "variable": "X_test_std",
+                "function": "LogisticRegression.score",
+                "line": 107
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "lines": [
+        201
+      ],
+      "occurrences": [
+        {
+          "otherUsageLines": [],
+          "trainTest": {
+            "trainingData": {
+              "model": "_var121_0",
+              "variable": "x_train_0",
+              "function": "Unknown.fit",
+              "line": 200
+            },
+            "testingData": [
+              {
+                "model": "_var122",
+                "variable": "x_test_0",
+                "function": "Unknown.predict",
+                "line": 201
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "lines": [
+        242
+      ],
+      "occurrences": [
+        {
+          "otherUsageLines": [],
+          "trainTest": {
+            "trainingData": {
+              "model": "_var153_0",
+              "variable": "x_train_1",
+              "function": "Unknown.fit",
+              "line": 241
+            },
+            "testingData": [
+              {
+                "model": "_var154",
+                "variable": "x_test_1",
+                "function": "Unknown.predict",
+                "line": 242
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
