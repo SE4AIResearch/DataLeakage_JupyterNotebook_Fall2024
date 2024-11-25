@@ -62,12 +62,16 @@ export class NotAnalyzedError extends Error {
  * @param cause
  * @returns
  */
-const leakageAdapterHelper = (metadataArrays: Metadata[][], cause: string) =>
+const leakageAdapterHelper = (
+  type: 'Overlap' | 'Preprocessing' | 'Multi-Test',
+  metadataArrays: Metadata[][],
+  cause: string,
+) =>
   metadataArrays
     .map((metadataArray) =>
       metadataArray.map(
         (metadata): LeakageAdapter => ({
-          type: 'Overlap',
+          type: type,
           line: typeof metadata.line === 'number' ? metadata.line : -1,
           variable:
             typeof metadata.variable === 'string' ? metadata.variable : '',
@@ -78,12 +82,18 @@ const leakageAdapterHelper = (metadataArrays: Metadata[][], cause: string) =>
     )
     .flat();
 
+// FIXME: Get main line and match metaarray lines and only return those
+
 const adaptOverlapLeakageInstance = (
   leakage: OverlapLeakageInstance,
 ): LeakageAdapter[] => {
   const cause = leakage.getSource().getCause().toString();
   const metadataArrays = leakage.getOccurrences().map((o) => o.testingData);
-  const leakageAdapters = leakageAdapterHelper(metadataArrays, cause);
+  const leakageAdapters = leakageAdapterHelper(
+    'Overlap',
+    metadataArrays,
+    cause,
+  );
 
   return leakageAdapters;
 };
@@ -93,7 +103,11 @@ const adaptPreprocessingLeakageInstance = (
 ): LeakageAdapter[] => {
   const cause = leakage.getSource().getCause().toString();
   const metadataArrays = leakage.getOccurrences().map((o) => o.testingData);
-  const leakageAdapters = leakageAdapterHelper(metadataArrays, cause);
+  const leakageAdapters = leakageAdapterHelper(
+    'Preprocessing',
+    metadataArrays,
+    cause,
+  );
 
   return leakageAdapters;
 };
@@ -105,7 +119,11 @@ const adaptMultitestLeakageInstances = (
   const metadataArrays = leakage
     .getOccurrences()
     .map((o) => o.trainTest.testingData);
-  const leakageAdapters = leakageAdapterHelper(metadataArrays, cause);
+  const leakageAdapters = leakageAdapterHelper(
+    'Multi-Test',
+    metadataArrays,
+    cause,
+  );
 
   return leakageAdapters;
 };
@@ -185,6 +203,8 @@ export async function getAdaptersFromFile(
     }
     return cell.data.includes(row.variable);
   });
+
+  // const res = rows;
 
   return res;
 }
