@@ -15,7 +15,7 @@ The extension creates two tables in the bottom panel. "Leakage Summary" shows ho
 
 ## Requirements
 
-* [Pre-built binaries](https://data-leakage-jupyter-notebook-website-fall2024.vercel.app/download) (failing that, [Docker](https://www.docker.com/) Engine or Desktop)
+* [Pre-built binaries](https://data-leakage-jupyter-notebook-website-fall2024.vercel.app/download) for Windows or macOS (failing that, [Docker](https://www.docker.com/) Engine or Desktop)
 * [Python extension for VS Code](https://marketplace.visualstudio.com/items?itemName=ms-python.python)
 
 ## Known Issues
