@@ -1,7 +1,8 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs-extra';
-import { exec } from 'child_process';
+
+import { checkTerminalEnded } from './_buttonUtils';
 
 export async function installLeakageFolder(
   context: vscode.ExtensionContext,
@@ -30,14 +31,31 @@ export async function installLeakageFolder(
       'pyright',
     );
 
-    exec('npm install pyright-1.1.188.tgz', { cwd: pyrightDir });
+    const terminal = vscode.window.createTerminal({
+      name: 'Pyright Install',
+      cwd: pyrightDir,
+    });
+
+    terminal.sendText('npm install pyright-1.1.188.tgz');
+    terminal.show();
+
+    try {
+      await new Promise((resolve, reject) => {
+        checkTerminalEnded(terminal, resolve, reject);
+      });
+    } catch (err) {
+      terminal.dispose();
+      throw err;
+    }
+    terminal.dispose();
+
     console.log('Pyright successfully installed!');
+    vscode.window.showInformationMessage(
+      'Leakage program successfully installed!',
+    );
   } catch (err) {
     console.error('Error installing Pyright:', err);
     vscode.window.showErrorMessage('Error installing Pyright module');
+    await fs.rmdir(globalStoragePath, { recursive: true });
   }
-
-  vscode.window.showInformationMessage(
-    'Leakage program successfully installed!',
-  );
 }

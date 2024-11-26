@@ -8,6 +8,7 @@
 
   installLeakageBtn.addEventListener('click', (e) => {
     vscode.postMessage({ type: 'openFilePicker' });
+    installLeakageBtn.disabled = true;
   });
 
   button.addEventListener('click', (e) => {
@@ -27,6 +28,10 @@
       }
       case 'webviewLoaded': {
         button.disabled = message.isRunning ?? false;
+        break;
+      }
+      case 'filePickerDone': {
+        installLeakageBtn.disabled = false;
         break;
       }
     }
