@@ -45,6 +45,10 @@ export type LeakageAdapterCell = {
   parent: null | Array<LeakageAdapter>; // not sure what to do with this but it is an array of testingData that are related to each other (array includes the object itself)
 };
 
+export type LeakageAdapterExtra = {
+  leakageAdapters: LeakageAdapter[];
+};
+
 /**
  * Custom Error
  */
@@ -59,43 +63,52 @@ export class NotAnalyzedError extends Error {
  * Helper Functions
  */
 
-/**
- *
- * @param metadataArrays
- * @param cause
- * @returns
- */
 const leakageAdapterHelper = (
   type: 'Overlap' | 'Preprocessing' | 'Multi-Test',
   metadataArrays: Metadata[][],
   cause: string,
-) =>
-  metadataArrays
+  line: number | number[],
+) => {
+  const leakageAdapters = metadataArrays
     .map((metadataArray) =>
-      metadataArray.map(
-        (metadata): LeakageAdapter => ({
-          type: type,
-          line: typeof metadata.line === 'number' ? metadata.line : -1,
-          variable:
-            typeof metadata.variable === 'string' ? metadata.variable : '',
-          cause,
-          parent: null,
-        }),
-      ),
+      metadataArray
+        .filter((metadata) =>
+          Array.isArray(line)
+            ? line.includes(metadata.line as number)
+            : metadata.line === line,
+        )
+        .map(
+          (metadata): LeakageAdapter => ({
+            type: type,
+            line: metadata.line as number,
+            variable:
+              typeof metadata.variable === 'string'
+                ? metadata.variable.replace(/_0$/, '')
+                : '',
+            cause,
+            parent: null,
+          }),
+        ),
     )
     .flat();
 
-// FIXME: Get main line and match metaarray lines and only return those
+  return leakageAdapters;
+};
+
+// FIXME: Find out how to choose taints to display for each leakage
 
 const adaptOverlapLeakageInstance = (
   leakage: OverlapLeakageInstance,
 ): LeakageAdapter[] => {
-  const cause = leakage.getSource().getCause().toString();
+  const source = leakage.getSource();
+  const cause = source.getCause().toString();
+  const line = leakage.getLine();
   const metadataArrays = leakage.getOccurrences().map((o) => o.testingData);
   const leakageAdapters = leakageAdapterHelper(
     'Overlap',
     metadataArrays,
     cause,
+    line,
   );
 
   return leakageAdapters;
@@ -104,12 +117,15 @@ const adaptOverlapLeakageInstance = (
 const adaptPreprocessingLeakageInstance = (
   leakage: PreprocessingLeakageInstance,
 ): LeakageAdapter[] => {
-  const cause = leakage.getSource().getCause().toString();
+  const source = leakage.getSource();
+  const cause = source.getCause().toString();
+  const line = leakage.getLine();
   const metadataArrays = leakage.getOccurrences().map((o) => o.testingData);
   const leakageAdapters = leakageAdapterHelper(
     'Preprocessing',
     metadataArrays,
     cause,
+    line,
   );
 
   return leakageAdapters;
@@ -119,6 +135,7 @@ const adaptMultitestLeakageInstances = (
   leakage: MultitestLeakageInstance,
 ): LeakageAdapter[] => {
   const cause = 'repeatDataEvaluation';
+  const lines = leakage.getLines();
   const metadataArrays = leakage
     .getOccurrences()
     .map((o) => o.trainTest.testingData);
@@ -126,6 +143,7 @@ const adaptMultitestLeakageInstances = (
     'Multi-Test',
     metadataArrays,
     cause,
+    lines,
   );
 
   return leakageAdapters;
@@ -188,43 +206,6 @@ export async function getAdaptersFromFile(
     context,
   ).getLeakages();
 
-  /**
-   * Temporary Code
-   */
-
-  const rootDir = '/Users/dekomoon/Documents/@BackupExcluded/DataLeakage';
-
-  const prepproc = leakages.filter(
-    (leakage) => leakage instanceof PreprocessingLeakageInstance,
-  );
-  const overlap = leakages.filter(
-    (leakage) => leakage instanceof OverlapLeakageInstance,
-  );
-  const multitest = leakages.filter(
-    (leakage) => leakage instanceof MultitestLeakageInstance,
-  );
-
-  const obj = {
-    preprocessing: prepproc,
-    overlap: overlap,
-    multitest: multitest,
-  };
-
-  const pth = path.join(
-    rootDir,
-    'media',
-    'test',
-    'original',
-    'result',
-    path.basename(fsPath) + '.json',
-  );
-
-  fs.writeFileSync(pth, JSON.stringify(obj, null, 2));
-
-  /**
-   * Temporary End
-   */
-
   const leakageAdapters = createLeakageAdapters(leakages);
   const rows: LeakageAdapterCell[] = leakageAdapters.map((adapter) => {
     const jupyCellLine = manager.convertPythonLineToJupyCellLine(adapter.line);
@@ -243,8 +224,5 @@ export async function getAdaptersFromFile(
     }
     return cell.data.includes(row.variable);
   });
-
-  // const res = rows;
-
   return res;
 }
