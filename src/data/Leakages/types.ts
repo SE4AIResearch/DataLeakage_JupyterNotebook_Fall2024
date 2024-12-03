@@ -14,7 +14,7 @@ export type LeakageInstances = Record<LeakageType, number[]>;
 export type LeakageLines = Record<
   number,
   {
-    metadata: Metadata;
+    metadata?: Metadata;
     tags: LineTag[];
   }
 >;
@@ -26,7 +26,7 @@ export type Metadata = {
 };
 
 export type LineTag = {
-  name: string;
+  name?: string;
   isButton: boolean;
   highlightLines?: number[];
   markLeakSources?: number[];

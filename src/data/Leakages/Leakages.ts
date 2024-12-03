@@ -13,23 +13,23 @@ import {
 
 export default class Leakages {
   private outputDirectory: string;
-  private file: string;
+  private filename: string;
   private fileLines: number;
   private textDecoder: TextDecoder;
 
-  constructor(outputDirectory: string, file: string, fileLines: number) {
+  constructor(outputDirectory: string, filename: string, fileLines: number) {
     this.outputDirectory = outputDirectory;
-    this.file = file;
+    this.filename = filename;
     this.fileLines = fileLines;
     this.textDecoder = new TextDecoder();
   }
 
   /**
    * Parses the necessary output files to extract all the leakage info.
-   * @returns An array of all the leakages.
+   * @returns An object containing all the lines where each leakage occurs as well as the additional tags per line.
    */
   public async getLeakages(): Promise<LeakageOutput> {
-    const file = await this.readFile(`${this.file}.html`);
+    const file = await this.readFile(`${this.filename}.html`);
 
     const internalLineMappings = await this.getInternalLineMappings();
     const invocationLineMappings = await this.getInvocationLineMappings();
@@ -46,6 +46,7 @@ export default class Leakages {
       MultiTestLeakage: [],
     };
 
+    // Parses the table at the top of the HTML file to find all the lines where each leakage occurs.
     $('table.sum')
       .find('tr')
       .each((i, row) => {
@@ -67,6 +68,7 @@ export default class Leakages {
 
     const leakageLines: LeakageLines = {};
 
+    // Parses line by line in the HTML file to get all the additional tags per line.
     for (let i = 0; i < this.fileLines; i++) {
       const leakageLine = $(`#${i}`);
 
@@ -83,31 +85,28 @@ export default class Leakages {
       buttons.forEach((button) => {
         if (button.type === 'tag' && button.name === 'button') {
           const tag: LineTag = {
-            name: '',
             isButton: false,
           };
 
           const text = button.firstChild;
           if (text && text.type === 'text') {
-            tag.name = text.data!;
+            tag.name = text.data;
           }
 
           const attributes = button.attribs;
-          const onClick = attributes['onclick'];
-          if (onClick.includes('highlight_lines')) {
+          const onClickAttr = attributes['onclick'];
+          if (onClickAttr.includes('highlight_lines')) {
             tag.isButton = true;
             const regex = /(?:^|\s)highlight_lines\((.*?)\)(?:\s|$)/g;
-            const matches = onClick.matchAll(regex).toArray()[0];
+            const matches = onClickAttr.matchAll(regex).toArray()[0];
             const lines = JSON.parse(matches[1]);
             tag.highlightLines = lines;
-          } else if (onClick.includes('mark_leak_lines')) {
+          } else if (onClickAttr.includes('mark_leak_lines')) {
             tag.isButton = true;
             const regex = /(?:^|\s)mark_leak_lines\((.*?)\)(?:\s|$)/g;
-            const matches = onClick.matchAll(regex).toArray()[0];
+            const matches = onClickAttr.matchAll(regex).toArray()[0];
             const lines = JSON.parse(matches[1]);
             tag.markLeakSources = lines;
-          } else {
-            tag.isButton = false;
           }
 
           if (!(i in leakageLines)) {
@@ -139,6 +138,11 @@ export default class Leakages {
     return this.textDecoder.decode(bytes);
   }
 
+  /**
+   * Converts a given string to its respective leakage type enum value.
+   * @param string The string to be converted to an enum value.
+   * @returns A leakage type enum value.
+   */
   private getLeakageType(string: string): LeakageType {
     switch (string) {
       case 'Overlap leakage':
@@ -152,11 +156,14 @@ export default class Leakages {
     }
   }
 
+  /**
+   * @returns All the mappings from internal program line numbers to external user line numbers.
+   */
   private async getInternalLineMappings(): Promise<Record<number, number>> {
     const internalLineMappings: Record<number, number> = {};
 
     const file = await this.readFile(
-      path.join(`${this.file}-fact`, 'LinenoMapping.facts'),
+      path.join(`${this.filename}-fact`, 'LinenoMapping.facts'),
     );
     file
       .split('\n')
@@ -169,11 +176,14 @@ export default class Leakages {
     return internalLineMappings;
   }
 
+  /**
+   * @returns All the mappings from internal invocations to internal program line numbers.
+   */
   private async getInvocationLineMappings(): Promise<Record<string, number>> {
     const invocationLineMappings: Record<string, number> = {};
 
     const file = await this.readFile(
-      path.join(`${this.file}-fact`, 'InvokeLineno.facts'),
+      path.join(`${this.filename}-fact`, 'InvokeLineno.facts'),
     );
     file
       .split('\n')
@@ -186,6 +196,11 @@ export default class Leakages {
     return invocationLineMappings;
   }
 
+  /**
+   * @param internalLineMappings All the mappings from internal program line numbers to external user line numbers.
+   * @param invocationLineMappings All the mappings from internal invocations to internal program line numbers.
+   * @returns All the mappings from external user line numbers to metadata info.
+   */
   public async getLineMetadataMappings(
     internalLineMappings: Record<number, number>,
     invocationLineMappings: Record<string, number>,
@@ -193,7 +208,7 @@ export default class Leakages {
     const lineMetadataMappings: Record<string, Metadata> = {};
 
     const file = await this.readFile(
-      path.join(`${this.file}-fact`, 'Telemetry_ModelPair.csv'),
+      path.join(`${this.filename}-fact`, 'Telemetry_ModelPair.csv'),
     );
     file
       .split('\n')
