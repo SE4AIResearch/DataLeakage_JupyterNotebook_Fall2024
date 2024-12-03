@@ -2,7 +2,14 @@ import * as vscode from 'vscode';
 import * as cheerio from 'cheerio';
 import { TextDecoder } from 'util';
 import path from 'path';
-import { type LeakageOutput, LeakageType, LineTag } from './types';
+import {
+  LeakageType,
+  type LeakageInstances,
+  type LeakageLines,
+  type LeakageOutput,
+  type LineTag,
+  type Metadata,
+} from './types';
 
 export default class Leakages {
   private outputDirectory: string;
@@ -23,9 +30,17 @@ export default class Leakages {
    */
   public async getLeakages(): Promise<LeakageOutput> {
     const file = await this.readFile(`${this.file}.html`);
+
+    const internalLineMappings = await this.getInternalLineMappings();
+    const invocationLineMappings = await this.getInvocationLineMappings();
+    const lineMetadataMappings = await this.getLineMetadataMappings(
+      internalLineMappings,
+      invocationLineMappings,
+    );
+
     const $ = cheerio.load(file);
 
-    const leakageInstances: Record<LeakageType, number[]> = {
+    const leakageInstances: LeakageInstances = {
       OverlapLeakage: [],
       PreProcessingLeakage: [],
       MultiTestLeakage: [],
@@ -50,7 +65,7 @@ export default class Leakages {
         leakageInstances[leakageType] = lines;
       });
 
-    const leakageLines: Record<number, LineTag[]> = {};
+    const leakageLines: LeakageLines = {};
 
     for (let i = 0; i < this.fileLines; i++) {
       const leakageLine = $(`#${i}`);
@@ -96,10 +111,13 @@ export default class Leakages {
           }
 
           if (!(i in leakageLines)) {
-            leakageLines[i] = [];
+            leakageLines[i] = {
+              metadata: lineMetadataMappings[i],
+              tags: [],
+            };
           }
 
-          leakageLines[i] = [...leakageLines[i], tag];
+          leakageLines[i].tags.push(tag);
         }
       });
     }
@@ -168,12 +186,11 @@ export default class Leakages {
     return invocationLineMappings;
   }
 
-  public async getInvocationMappings(
+  public async getLineMetadataMappings(
     internalLineMappings: Record<number, number>,
     invocationLineMappings: Record<string, number>,
-  ): Promise<[Record<string, unknown>, Record<string, Set<string>>]> {
-    const invocationMetadataMappings: Record<string, unknown> = {};
-    const invocationTrainTestMappings: Record<string, Set<string>> = {};
+  ): Promise<Record<number, Metadata>> {
+    const lineMetadataMappings: Record<string, Metadata> = {};
 
     const file = await this.readFile(
       path.join(`${this.file}-fact`, 'Telemetry_ModelPair.csv'),
@@ -195,27 +212,22 @@ export default class Leakages {
           testingContext,
         ] = line.split('\t');
 
-        invocationMetadataMappings[trainingInvocation] = {
+        lineMetadataMappings[
+          internalLineMappings[invocationLineMappings[trainingInvocation]]
+        ] = {
           model: trainingModel,
           variable: trainingVariable,
           method: trainingMethod,
-          line: internalLineMappings[
-            invocationLineMappings[trainingInvocation]
-          ],
         };
-        invocationMetadataMappings[testingInvocation] = {
+        lineMetadataMappings[
+          internalLineMappings[invocationLineMappings[testingInvocation]]
+        ] = {
           model: testingModel,
           variable: testingVariable,
           method: testingMethod,
-          line: internalLineMappings[invocationLineMappings[testingInvocation]],
         };
-
-        if (!(trainingInvocation in invocationTrainTestMappings)) {
-          invocationTrainTestMappings[trainingInvocation] = new Set();
-        }
-        invocationTrainTestMappings[trainingInvocation].add(testingInvocation);
       });
 
-    return [invocationMetadataMappings, invocationTrainTestMappings];
+    return lineMetadataMappings;
   }
 }

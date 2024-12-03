@@ -5,8 +5,24 @@ export enum LeakageType {
 }
 
 export type LeakageOutput = {
-  leakageInstances: Record<LeakageType, number[]>;
-  leakageLines: Record<number, LineTag[]>;
+  leakageInstances: LeakageInstances;
+  leakageLines: LeakageLines;
+};
+
+export type LeakageInstances = Record<LeakageType, number[]>;
+
+export type LeakageLines = Record<
+  number,
+  {
+    metadata: Metadata;
+    tags: LineTag[];
+  }
+>;
+
+export type Metadata = {
+  model: string;
+  variable: string;
+  method: string;
 };
 
 export type LineTag = {
