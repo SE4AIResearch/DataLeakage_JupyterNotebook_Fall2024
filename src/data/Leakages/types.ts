@@ -1,36 +1,17 @@
 export enum LeakageType {
-  OverlapLeakage,
-  PreprocessingLeakage,
-  MultitestLeakage,
+  OverlapLeakage = 'OverlapLeakage',
+  PreProcessingLeakage = 'PreProcessingLeakage',
+  MultiTestLeakage = 'MultiTestLeakage',
 }
 
-export enum TaintType {
-  Dup = 'dup',
-  Rowset = 'rowset',
-  Unknown = 'unknown',
-}
+export type LeakageOutput = {
+  leakageInstances: Record<LeakageType, number[]>;
+  leakageLines: Record<number, LineTag[]>;
+};
 
-export enum LeakageCause {
-  SplitBeforeSample = 'splitBeforeSample',
-  DataAugmentation = 'dataAugmentation',
-  VectorizingTextData = 'vectorizingTextData',
-  RepeatDataEvaluation = 'repeatDataEvaluation',
-  UnknownOverlap = 'unknownOverlap',
-  UnknownPreprocessing = 'unknownPreprocessing',
-  Unknown = 'unknown',
-}
-
-export type InternalLineMappings = Record<number, number>;
-
-export type InvocationLineMappings = Record<string, number>;
-
-export type Metadata = Record<string, unknown>;
-
-export type InvocationMetadataMappings = Record<string, Metadata>;
-
-export type InvocationTrainTestMappings = Record<string, Set<string>>;
-
-export type MultitestLeakageOccurrence = {
-  trainingData: Metadata;
-  testingData: Metadata[];
+export type LineTag = {
+  name: string;
+  isButton: boolean;
+  highlightLines?: number[];
+  markLeakSources?: number[];
 };

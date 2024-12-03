@@ -1,74 +1,221 @@
-import { ExtensionContext } from 'vscode';
-import LeakageUtilities from './LeakageUtilities';
-import OverlapLeakageDetector from './LeakageDetector/OverlapLeakageDetector';
-import PreprocessingLeakageDetector from './LeakageDetector/PreprocessingLeakageDetector';
-import MultitestLeakageDetector from './LeakageDetector/MultitestLeakageDetector';
-import LeakageInstance from './LeakageInstance/LeakageInstance';
+import * as vscode from 'vscode';
+import * as cheerio from 'cheerio';
+import { TextDecoder } from 'util';
+import path from 'path';
+import { type LeakageOutput, LeakageType, LineTag } from './types';
 
-/**
- * Main class responsible for getting all the leakage data.
- */
 export default class Leakages {
-  private leakageUtilities: LeakageUtilities;
-  private leakageDetectors: [
-    OverlapLeakageDetector,
-    PreprocessingLeakageDetector,
-    MultitestLeakageDetector,
-  ];
+  private outputDirectory: string;
+  private file: string;
+  private fileLines: number;
+  private textDecoder: TextDecoder;
 
-  constructor(outputDirectory: string, extensionContext: ExtensionContext) {
-    const textDecoder = new TextDecoder();
-
-    this.leakageUtilities = new LeakageUtilities(
-      outputDirectory,
-      extensionContext,
-      textDecoder,
-    );
-    this.leakageDetectors = [
-      new OverlapLeakageDetector(
-        outputDirectory,
-        extensionContext,
-        textDecoder,
-      ),
-      new PreprocessingLeakageDetector(
-        outputDirectory,
-        extensionContext,
-        textDecoder,
-      ),
-      new MultitestLeakageDetector(
-        outputDirectory,
-        extensionContext,
-        textDecoder,
-      ),
-    ];
+  constructor(outputDirectory: string, file: string, fileLines: number) {
+    this.outputDirectory = outputDirectory;
+    this.file = file;
+    this.fileLines = fileLines;
+    this.textDecoder = new TextDecoder();
   }
 
   /**
-   * Goes through all the leakage detectors and runs each of their respective methods to get an array of all the
-   * leakages within the program.
-   *
-   * @returns An array of all the leakages in the program.
+   * Parses the necessary output files to extract all the leakage info.
+   * @returns An array of all the leakages.
    */
-  async getLeakages(): Promise<LeakageInstance[]> {
-    const leakageInstances: LeakageInstance[] = [];
+  public async getLeakages(): Promise<LeakageOutput> {
+    const file = await this.readFile(`${this.file}.html`);
+    const $ = cheerio.load(file);
 
-    await this.leakageUtilities.readInternalLineMappings();
-    await this.leakageUtilities.readInvocationLineMappings();
-    await this.leakageUtilities.readInvocationTrainTestMappings();
-    await this.leakageUtilities.readTaintFile();
+    const leakageInstances: Record<LeakageType, number[]> = {
+      OverlapLeakage: [],
+      PreProcessingLeakage: [],
+      MultiTestLeakage: [],
+    };
 
-    for (const leakageDetector of this.leakageDetectors) {
-      leakageDetector.addInformation(
-        this.leakageUtilities.readFile,
-        this.leakageUtilities.getInternalLineMappings(),
-        this.leakageUtilities.getInvocationLineMappings(),
-        this.leakageUtilities.getInvocationMetadataMappings(),
-        this.leakageUtilities.getInvocationTrainTestMappings(),
-        this.leakageUtilities.getTaints(),
-      );
-      leakageInstances.push(...(await leakageDetector.getLeakageInstances()));
+    $('table.sum')
+      .find('tr')
+      .each((i, row) => {
+        if (i === 0) {
+          return;
+        }
+
+        const leakage = $(row).find('td, th');
+        const leakageType = this.getLeakageType(leakage.first().text());
+        const lines = $(leakage.last())
+          .find('button')
+          .contents()
+          .toArray()
+          .map((e) => parseInt(e.data ?? 'NaN'))
+          .filter((e) => !Number.isNaN(e));
+
+        leakageInstances[leakageType] = lines;
+      });
+
+    const leakageLines: Record<number, LineTag[]> = {};
+
+    for (let i = 0; i < this.fileLines; i++) {
+      const leakageLine = $(`#${i}`);
+
+      const buttons = leakageLine
+        .nextUntil('span')
+        .toArray()
+        .flatMap((e) => {
+          if (e.type === 'tag') {
+            return e.name === 'a' ? e.childNodes : e;
+          }
+        })
+        .filter((e) => !!e);
+
+      buttons.forEach((button) => {
+        if (button.type === 'tag' && button.name === 'button') {
+          const tag: LineTag = {
+            name: '',
+            isButton: false,
+          };
+
+          const text = button.firstChild;
+          if (text && text.type === 'text') {
+            tag.name = text.data!;
+          }
+
+          const attributes = button.attribs;
+          const onClick = attributes['onclick'];
+          if (onClick.includes('highlight_lines')) {
+            tag.isButton = true;
+            const regex = /(?:^|\s)highlight_lines\((.*?)\)(?:\s|$)/g;
+            const matches = onClick.matchAll(regex).toArray()[0];
+            const lines = JSON.parse(matches[1]);
+            tag.highlightLines = lines;
+          } else if (onClick.includes('mark_leak_lines')) {
+            tag.isButton = true;
+            const regex = /(?:^|\s)mark_leak_lines\((.*?)\)(?:\s|$)/g;
+            const matches = onClick.matchAll(regex).toArray()[0];
+            const lines = JSON.parse(matches[1]);
+            tag.markLeakSources = lines;
+          } else {
+            tag.isButton = false;
+          }
+
+          if (!(i in leakageLines)) {
+            leakageLines[i] = [];
+          }
+
+          leakageLines[i] = [...leakageLines[i], tag];
+        }
+      });
     }
 
-    return leakageInstances;
+    return {
+      leakageInstances: leakageInstances,
+      leakageLines: leakageLines,
+    };
+  }
+
+  /**
+   * Reads a file that is located inside the output directory.
+   * @param filename The name of the file to be read.
+   * @returns An array containing the lines inside the file.
+   */
+  private async readFile(filename: string): Promise<string> {
+    const filepath = path.join(this.outputDirectory, filename);
+    const bytes = await vscode.workspace.fs.readFile(vscode.Uri.file(filepath));
+    return this.textDecoder.decode(bytes);
+  }
+
+  private getLeakageType(string: string): LeakageType {
+    switch (string) {
+      case 'Overlap leakage':
+        return LeakageType.OverlapLeakage;
+      case 'Pre-processing leakage':
+        return LeakageType.PreProcessingLeakage;
+      case 'No independence test data':
+        return LeakageType.MultiTestLeakage;
+      default:
+        throw new Error('Unknown leakage type.');
+    }
+  }
+
+  private async getInternalLineMappings(): Promise<Record<number, number>> {
+    const internalLineMappings: Record<number, number> = {};
+
+    const file = await this.readFile(
+      path.join(`${this.file}-fact`, 'LinenoMapping.facts'),
+    );
+    file
+      .split('\n')
+      .filter((line) => !!line)
+      .forEach((line) => {
+        const [internal, external] = line.split('\t');
+        internalLineMappings[parseInt(internal)] = parseInt(external);
+      });
+
+    return internalLineMappings;
+  }
+
+  private async getInvocationLineMappings(): Promise<Record<string, number>> {
+    const invocationLineMappings: Record<string, number> = {};
+
+    const file = await this.readFile(
+      path.join(`${this.file}-fact`, 'InvokeLineno.facts'),
+    );
+    file
+      .split('\n')
+      .filter((line) => !!line)
+      .forEach((line) => {
+        const [invocation, internal] = line.split('\t');
+        invocationLineMappings[invocation] = parseInt(internal);
+      });
+
+    return invocationLineMappings;
+  }
+
+  public async getInvocationMappings(
+    internalLineMappings: Record<number, number>,
+    invocationLineMappings: Record<string, number>,
+  ): Promise<[Record<string, unknown>, Record<string, Set<string>>]> {
+    const invocationMetadataMappings: Record<string, unknown> = {};
+    const invocationTrainTestMappings: Record<string, Set<string>> = {};
+
+    const file = await this.readFile(
+      path.join(`${this.file}-fact`, 'Telemetry_ModelPair.csv'),
+    );
+    file
+      .split('\n')
+      .filter((line) => !!line)
+      .forEach((line) => {
+        const [
+          trainingModel,
+          trainingVariable,
+          trainingInvocation,
+          trainingMethod,
+          trainingContext,
+          testingModel,
+          testingVariable,
+          testingInvocation,
+          testingMethod,
+          testingContext,
+        ] = line.split('\t');
+
+        invocationMetadataMappings[trainingInvocation] = {
+          model: trainingModel,
+          variable: trainingVariable,
+          method: trainingMethod,
+          line: internalLineMappings[
+            invocationLineMappings[trainingInvocation]
+          ],
+        };
+        invocationMetadataMappings[testingInvocation] = {
+          model: testingModel,
+          variable: testingVariable,
+          method: testingMethod,
+          line: internalLineMappings[invocationLineMappings[testingInvocation]],
+        };
+
+        if (!(trainingInvocation in invocationTrainTestMappings)) {
+          invocationTrainTestMappings[trainingInvocation] = new Set();
+        }
+        invocationTrainTestMappings[trainingInvocation].add(testingInvocation);
+      });
+
+    return [invocationMetadataMappings, invocationTrainTestMappings];
   }
 }
