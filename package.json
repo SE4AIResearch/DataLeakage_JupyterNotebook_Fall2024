@@ -1,8 +1,8 @@
 {
   "name": "data-leakage",
-  "displayName": "data-leakage",
+  "displayName": "Leakage Detector",
   "description": "",
-  "version": "0.0.1",
+  "version": "1.0.1",
   "engines": {
     "vscode": "^1.93.0"
   },
@@ -106,5 +106,6 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/SE4AIResearch/DataLeakage_JupyterNotebook_Fall2024.git"
-  }
+  },
+  "license": "ISC"
 }
