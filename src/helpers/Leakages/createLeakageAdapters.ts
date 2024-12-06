@@ -60,6 +60,12 @@ export class NotAnalyzedError extends Error {
 }
 
 /**
+ * Constants
+ */
+
+export const INTERNAL_VARIABLE_NAME = 'Internal Variable';
+
+/**
  * Helper Functions
  */
 
@@ -216,13 +222,20 @@ export async function getAdaptersFromFile(
     };
   });
 
-  const res = rows.filter((row) => {
+  const res = rows.map((row) => {
     const cell = jupyCells.find((cell) => cell.index === row.cell);
     if (!cell) {
-      console.warn('Warning: Cell not found. Unexpected behavior.');
-      return false;
+      console.warn('Warning: Cell not found.');
+      throw new Error('Cell not found.');
     }
-    return cell.data.includes(row.variable);
+    if (!cell.data.includes(row.variable)) {
+      console.warn('Warning: Internal variable found in cell.');
+      row.variable = INTERNAL_VARIABLE_NAME;
+    }
+    return row;
   });
+
+  console.log('RESULT: ', res);
+
   return res;
 }
