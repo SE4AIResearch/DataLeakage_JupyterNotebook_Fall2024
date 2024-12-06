@@ -3,7 +3,7 @@ import { TextDecoder } from 'util';
 import LeakageDetector from './LeakageDetector';
 import PreprocessingLeakageInstance from '../LeakageInstance/PreprocessingLeakageInstance';
 import PreprocessingLeakageSource from '../LeakageSource/PreprocessingLeakageSource';
-import { LeakageType, TaintType, type Metadata } from '../types';
+import { LeakageType, TaintType, type TrainTestSite } from '../types';
 
 export default class PreprocessingLeakageDetector extends LeakageDetector<PreprocessingLeakageInstance> {
   constructor(
@@ -21,13 +21,11 @@ export default class PreprocessingLeakageDetector extends LeakageDetector<Prepro
 
   async getLeakageInstances(): Promise<PreprocessingLeakageInstance[]> {
     const preprocessingLeakageInstances: PreprocessingLeakageInstance[] = [];
-    const preprocessingLeakageData: Record<
+    const occurrences: Record<
       string,
-      {
-        training: Metadata;
-        testing: Metadata;
-      }
+      { line: number; trainingData: string; testingData: Set<string> }
     > = {};
+    const preprocessingLeakageData: Record<number, Set<TrainTestSite>> = {};
 
     const leakagesFile = await this.readFile(
       'Telemetry_FinalPreProcessingLeak.csv',
@@ -78,19 +76,42 @@ export default class PreprocessingLeakageDetector extends LeakageDetector<Prepro
           testingInvocation,
         );
 
-        const hash = this.hash(trainingInvocation, testingInvocation);
-
-        preprocessingLeakageData[hash] = {
-          training: this.invocationMetadataMappings[trainingInvocation],
-          testing: this.invocationMetadataMappings[testingInvocation],
+        const hash = `${trainingInvocation}_${testingInvocation}`;
+        occurrences[hash] = {
+          line: this.internalLineMappings[
+            this.invocationLineMappings[testingInvocation]
+          ],
+          trainingData: trainingInvocation,
+          testingData: new Set([testingInvocation]),
         };
       });
 
-    for (const data of Object.values(preprocessingLeakageData)) {
+    for (const occurrence of Object.values(occurrences)) {
+      const trainingData = occurrence.trainingData;
+      const testingData = Array.from(
+        this.invocationTrainTestMappings[trainingData],
+      );
+      const trainTestSite: TrainTestSite = {
+        trainingData: this.invocationMetadataMappings[trainingData],
+        testingData: testingData.map(
+          (testingInvocation) =>
+            this.invocationMetadataMappings[testingInvocation],
+        ),
+      };
+
+      if (!(occurrence.line in preprocessingLeakageData)) {
+        preprocessingLeakageData[occurrence.line] = new Set();
+      }
+      preprocessingLeakageData[occurrence.line].add(trainTestSite);
+    }
+
+    for (const [line, trainTestSites] of Object.entries(
+      preprocessingLeakageData,
+    )) {
       preprocessingLeakageInstances.push(
         new PreprocessingLeakageInstance(
-          data.training,
-          data.testing,
+          parseInt(line),
+          Array.from(trainTestSites),
           new PreprocessingLeakageSource(
             this.taints.filter(
               (source) => source.getType() === TaintType.Rowset,
@@ -101,12 +122,5 @@ export default class PreprocessingLeakageDetector extends LeakageDetector<Prepro
     }
 
     return preprocessingLeakageInstances;
-  }
-
-  private hash(
-    trainingInvocationString: string,
-    testingInvocationString: string,
-  ) {
-    return `${trainingInvocationString}_${testingInvocationString}`;
   }
 }

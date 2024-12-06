@@ -4,6 +4,7 @@ import { TempDir } from '../../helpers/TempDir';
 import {
   createLeakageAdapters,
   getAdaptersFromFile,
+  INTERNAL_VARIABLE_NAME,
   LeakageAdapterCell,
   NotAnalyzedError,
 } from '../../helpers/Leakages/createLeakageAdapters';
@@ -23,12 +24,22 @@ function createNotebookDiagnostic(
 ): vscode.Diagnostic {
   // FIXME: limit of this extension is that we can't tell which variable in the line caused the problem if there are multiple same variables in the line
 
-  const range = new vscode.Range(
-    adapterCell.line,
-    index,
-    adapterCell.line,
-    index + adapterCell.variable.length,
-  );
+  const endOfCharacterAtLine = doc.lineAt(adapterCell.line).range.end.character;
+
+  const range =
+    adapterCell.variable === INTERNAL_VARIABLE_NAME
+      ? new vscode.Range(
+          adapterCell.line,
+          0,
+          adapterCell.line,
+          endOfCharacterAtLine,
+        )
+      : new vscode.Range(
+          adapterCell.line,
+          index,
+          adapterCell.line,
+          index + adapterCell.variable.length,
+        );
 
   const cause = adapterCell.cause
     .replace(/([A-Z])/g, ' $1')
@@ -55,7 +66,11 @@ function refreshNotebookDiagnostics(
 
   for (const adapterCell of adapterCells) {
     const lineData = cellText.split('\n')[adapterCell.line];
-    const index = lineData.indexOf(adapterCell.variable);
+    const index =
+      adapterCell.variable === INTERNAL_VARIABLE_NAME
+        ? 0
+        : lineData.indexOf(adapterCell.variable);
+
     if (index === -1) {
       console.error(
         'Error: Variable not found in line.',

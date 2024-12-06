@@ -1,12 +1,23 @@
 import LeakageInstance from './LeakageInstance';
-import { LeakageType, type MultitestLeakageOccurrence } from '../types';
+import { LeakageType, type TrainTestSite } from '../types';
 
 export default class MultitestLeakageInstance extends LeakageInstance {
-  private occurrences: MultitestLeakageOccurrence[];
+  private lines: number[];
+  private occurrences: {
+    trainTest: TrainTestSite;
+    otherUsageLines: number[];
+  }[];
 
-  constructor(occurrences: MultitestLeakageOccurrence[]) {
+  constructor(
+    lines: number[],
+    occurrences: {
+      trainTest: TrainTestSite;
+      otherUsageLines: number[];
+    }[],
+  ) {
     super();
 
+    this.lines = lines;
     this.occurrences = occurrences;
   }
 
@@ -14,7 +25,14 @@ export default class MultitestLeakageInstance extends LeakageInstance {
     return LeakageType.MultitestLeakage;
   }
 
-  getOccurrences(): MultitestLeakageOccurrence[] {
+  getLines(): number[] {
+    return this.lines;
+  }
+
+  getOccurrences(): {
+    trainTest: TrainTestSite;
+    otherUsageLines: number[];
+  }[] {
     return this.occurrences;
   }
 }
