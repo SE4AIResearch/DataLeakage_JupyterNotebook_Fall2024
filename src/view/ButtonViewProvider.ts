@@ -137,9 +137,13 @@ export class ButtonViewProvider {
 				<title>Data Leakage</title>
 			</head>
 			<body>
+        <div class="help">
+          <span>Need help? </span>
+          <a class="" id="website-link" href="https://data-leakage-jupyter-notebook-website-fall2024.vercel.app">Click here to learn more about data leakage</a>
+        </div>
+        
       	<button class="button" id="run-leakage">Run Data Leakage Analysis</button>
 				<button class="button secondary" id="install-leakage">Install Leakage Analysis Program</button>
-        <span>Need help? </span> <a class="" id="website-link" href="https://data-leakage-jupyter-notebook-website-fall2024.vercel.app">Click here to learn more about data leakage</a>
 
         <script nonce="${nonce}" src="${scriptUri}"></script>
 			</body>
