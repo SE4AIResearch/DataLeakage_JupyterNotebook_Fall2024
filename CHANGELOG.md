@@ -7,3 +7,7 @@
 ## 1.0.1
 
 - Fixed Marketplace display name
+
+## 1.0.2
+
+- Fixed various bugs
