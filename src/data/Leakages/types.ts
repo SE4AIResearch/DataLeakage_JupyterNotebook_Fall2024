@@ -32,8 +32,9 @@ export type Metadata = {
 };
 
 export type LineTag = {
-  name?: string;
+  name: string;
   isButton: boolean;
-  highlightLines?: number[];
+  highlightTrainTestSites?: number[];
   markLeakSources?: number[];
+  highlightOtherUses?: number[];
 };

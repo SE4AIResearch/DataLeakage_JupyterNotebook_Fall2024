@@ -98,23 +98,35 @@ export default class Leakages {
       buttons.forEach((button) => {
         if (button.type === 'tag' && button.name === 'button') {
           const tag: LineTag = {
+            name: '',
             isButton: false,
           };
 
           const text = button.firstChild;
           if (text && text.type === 'text') {
-            tag.name = text.data;
+            tag.name = text.data!;
           }
 
           const attributes = button.attribs;
           const onClickAttr = attributes['onclick'];
           if (onClickAttr.includes('highlight_lines')) {
-            tag.isButton = true;
-            const regex = /(?:^|\s)highlight_lines\((.*?)\)(?:\s|$)/g;
-            const matches = onClickAttr.matchAll(regex).toArray()[0];
-            const lines = JSON.parse(matches[1]);
-            tag.highlightLines = lines;
-          } else if (onClickAttr.includes('mark_leak_lines')) {
+            if (tag.name === 'highlight train/test sites') {
+              tag.isButton = true;
+              const regex = /(?:^|\s)highlight_lines\((.*?)\)(?:\s|$)/g;
+              const matches = onClickAttr.matchAll(regex).toArray()[0];
+              const lines = JSON.parse(matches[1]);
+              tag.highlightTrainTestSites = lines;
+            } else if (tag.name === 'highlight other usage') {
+              tag.isButton = true;
+              const regex = /(?:^|\s)highlight_lines\((.*?)\)(?:\s|$)/g;
+              const matches = onClickAttr.matchAll(regex).toArray()[0];
+              const lines = JSON.parse(matches[1]);
+              tag.highlightOtherUses = lines;
+            }
+          } else if (
+            onClickAttr.includes('mark_leak_lines') &&
+            tag.name === 'show and go to first leak src'
+          ) {
             tag.isButton = true;
             const regex = /(?:^|\s)mark_leak_lines\((.*?)\)(?:\s|$)/g;
             const matches = onClickAttr.matchAll(regex).toArray()[0];
