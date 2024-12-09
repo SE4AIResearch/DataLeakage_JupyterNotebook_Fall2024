@@ -9,7 +9,13 @@ export type LeakageOutput = {
   leakageLines: LeakageLines;
 };
 
-export type LeakageInstances = Record<LeakageType, number[]>;
+export type LeakageInstances = Record<
+  LeakageType,
+  {
+    count: number;
+    lines: number[];
+  }
+>;
 
 export type LeakageLines = Record<
   number,

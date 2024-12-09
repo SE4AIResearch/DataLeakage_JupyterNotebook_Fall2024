@@ -41,9 +41,18 @@ export default class Leakages {
     const $ = cheerio.load(file);
 
     const leakageInstances: LeakageInstances = {
-      OverlapLeakage: [],
-      PreProcessingLeakage: [],
-      MultiTestLeakage: [],
+      OverlapLeakage: {
+        count: -1,
+        lines: [],
+      },
+      PreProcessingLeakage: {
+        count: -1,
+        lines: [],
+      },
+      MultiTestLeakage: {
+        count: -1,
+        lines: [],
+      },
     };
 
     // Parses the table at the top of the HTML file to find all the lines where each leakage occurs.
@@ -56,6 +65,7 @@ export default class Leakages {
 
         const leakage = $(row).find('td, th');
         const leakageType = this.getLeakageType(leakage.first().text());
+        const count = leakage.first().next().text();
         const lines = $(leakage.last())
           .find('button')
           .contents()
@@ -63,7 +73,10 @@ export default class Leakages {
           .map((e) => parseInt(e.data ?? 'NaN'))
           .filter((e) => !Number.isNaN(e));
 
-        leakageInstances[leakageType] = lines;
+        leakageInstances[leakageType] = {
+          count: parseInt(count),
+          lines: lines,
+        };
       });
 
     const leakageLines: LeakageLines = {};
