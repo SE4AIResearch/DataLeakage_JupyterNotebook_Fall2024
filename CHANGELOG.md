@@ -10,4 +10,6 @@
 
 ## 1.0.2
 
-- Fixed various bugs
+- Add link to website inside the extension
+- Modified button colors
+- Bugfixes to leakage tables
