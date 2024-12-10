@@ -139,7 +139,7 @@ export class ButtonViewProvider {
 			<body>
         <div class="help">
           <span>Need help? </span>
-          <a class="" id="website-link" href="https://data-leakage-jupyter-notebook-website-fall2024.vercel.app">Click here to learn more about data leakage</a>
+          <a class="" id="website-link" href="https://leakage-detector.vercel.app/">Click here to learn more data leakage</a>
         </div>
         
       	<button class="button" id="run-leakage">Run Data Leakage Analysis</button>
