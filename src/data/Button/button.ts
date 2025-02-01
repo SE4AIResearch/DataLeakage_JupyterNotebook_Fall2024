@@ -19,6 +19,8 @@ import {
 
 // TODO: Refactor analyzeNotebook & analyzeNotebookWithNotification into one
 
+// FIXME: Docker container still running even tho it shows analysis as completed. Example is nb_471253.ipynb
+
 async function runAlgorithm(
   context: vscode.ExtensionContext,
   tempDir: TempDir,
@@ -119,11 +121,8 @@ async function analyzeNotebook(
         `Analysis completed in ${elapsedTime} second${elapsedTime === 1 ? '' : 's'}`,
       );
 
-      const leakages = new Leakages(tempDir.getAlgoOutputDirPath(), context);
-      const leakagesList = await leakages.getLeakages();
-
       try {
-        changeView();
+        await changeView();
       } catch (err) {
         console.error(err);
         console.error('Panel Table View not active.');

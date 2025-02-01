@@ -24,8 +24,8 @@ function createRow(type, line, variable, cause) {
       // Leakage Overview - leakage summary
       case 'changeCount': {
         preprocess.textContent = message.preprocessing;
-        multitest.textContent = message.multiTest;
         overlap.textContent = message.overlap;
+        multitest.textContent = message.multiTest;
         break;
       }
       case 'changeRows':

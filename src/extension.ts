@@ -16,7 +16,7 @@ export function activate(context: vscode.ExtensionContext) {
     'dataleakage-jupyternotebook-fall2024.runLeakageDetector',
     async () => {
       try {
-        const leakages = new Leakages(
+        const leakages = new Leakages( // FIXME: Need to talk to Terrence to remove this direct reference to his local path
           '/home/terrence/Projects/leakage-analysis/tests/inputs',
           'nb_303674',
           397,
