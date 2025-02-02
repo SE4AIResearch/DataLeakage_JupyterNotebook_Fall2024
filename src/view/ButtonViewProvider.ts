@@ -146,14 +146,15 @@ export class ButtonViewProvider {
       	<button class="button" id="run-leakage">Run Data Leakage Analysis</button>
 				<button class="button secondary" id="install-leakage">Install Leakage Analysis Program</button>
         <br></br>
-        <div> 
-          <span>Click one of the links below to download the binary for your OS. </span>
-          <a class="" id="website-link" href="https://leakage-detector.vercel.app/binaries/windows-x64.zip">Windows-x64</a>
-          <a class="" id="website-link" href="https://leakage-detector.vercel.app/binaries/macos14-arm64.zip">MacOS14-ARM64</a>
-          <a class="" id="website-link" href="https://leakage-detector.vercel.app/binaries/linux-amd64.zip">Linux-x64</a>
+        <div class="dropdown"> 
+          <button class="dropbtn">Click one of the links below to download the binary for your OS. </button>
+          <div class="dropdown-content"> 
+            <a class="" id="website-link" href="https://leakage-detector.vercel.app/binaries/windows-x64.zip">Windows-x64</a>
+            <a class="" id="website-link" href="https://leakage-detector.vercel.app/binaries/macos14-arm64.zip">MacOS14-ARM64</a>
+            <a class="" id="website-link" href="https://leakage-detector.vercel.app/binaries/linux-amd64.zip">Linux-x64</a>
+          </div>
         </div>
         
-
         <script nonce="${nonce}" src="${scriptUri}"></script>
 			</body>
 			</html>`;
