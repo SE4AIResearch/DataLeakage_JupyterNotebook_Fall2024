@@ -156,22 +156,26 @@ export class ButtonViewProvider {
 				<title>Data Leakage</title>
 			</head>
 			<body>
-        <div class="help">
-          <span>Need help? </span>
-          <a class="" id="website-link" href="https://leakage-detector.vercel.app/">Click here to learn more data leakage</a>
-        </div>
-          
+        
+        <span>Docker Solution </span>  
         <button class="button" id="run-leakage-docker">Run Data Leakage Analysis (Docker)</button>
-      	<button class="button" id="run-leakage-native">Run Data Leakage Analysis (Native Binaries)</button>
+        <br></br>
+        <span>Native Binary Solution </span>
+      	<button class="button" id="run-leakage-native">Run Data Leakage Analysis (Native Binary)</button>
 				<button class="button secondary" id="install-leakage">Install Leakage Analysis Program</button>
         <br></br>
         <div class="dropdown"> 
-          <button class="dropbtn">Click one of the links below to download the binary for your OS. </button>
+          <button class="dropbtn">Click one of the links below to download the native binary for your OS. </button>
           <div class="dropdown-content"> 
             <a class="" id="website-link" href="https://leakage-detector.vercel.app/binaries/windows-x64.zip">Windows-x64</a>
             <a class="" id="website-link" href="https://leakage-detector.vercel.app/binaries/macos14-arm64.zip">MacOS14-ARM64</a>
             <a class="" id="website-link" href="https://leakage-detector.vercel.app/binaries/linux-amd64.zip">Linux-x64</a>
           </div>
+        </div>
+
+        <div class="help">
+          <span>Need help? </span>
+          <a class="" id="website-link" href="https://leakage-detector.vercel.app/">Click here to learn more data leakage</a>
         </div>
 
         <script nonce="${nonce}" src="${scriptUri}"></script>
