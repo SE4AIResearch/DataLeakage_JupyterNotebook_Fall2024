@@ -74,7 +74,8 @@
     "lint": "eslint src",
     "test": "vscode-test",
     "prettier:check": "prettier --list-different 'src/**/*.{js,jsx,ts,tsx}'",
-    "prettier:fix": "prettier --write 'src/**/*.{js,jsx,ts,tsx}'"
+    "prettier:fix": "prettier --write 'src/**/*.{js,jsx,ts,tsx}'",
+    "deploy": "vsce publish"
   },
   "devDependencies": {
     "@types/dockerode": "^3.3.31",
@@ -86,6 +87,7 @@
     "@typescript-eslint/parser": "^8.3.0",
     "@vscode/test-cli": "^0.0.10",
     "@vscode/test-electron": "^2.4.1",
+    "@vscode/vsce": "^3.2.2",
     "eslint": "^9.9.1",
     "node-loader": "^2.1.0",
     "ts-loader": "^9.5.1",
