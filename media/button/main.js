@@ -4,16 +4,24 @@
 (function () {
   const vscode = acquireVsCodeApi();
   const installLeakageBtn = document.getElementById('install-leakage');
-  const button = document.getElementById('run-leakage');
+  const native_button = document.getElementById('run-leakage-native');
+  const docker_button = document.getElementById('run-leakage-docker');
 
   installLeakageBtn.addEventListener('click', (e) => {
     vscode.postMessage({ type: 'openFilePicker' });
     installLeakageBtn.disabled = true;
   });
 
-  button.addEventListener('click', (e) => {
-    vscode.postMessage({ type: 'analyzeNotebook' });
-    button.disabled = true;
+  native_button.addEventListener('click', (e) => {
+    vscode.postMessage({ type: 'analyzeNotebookNative' });
+    native_button.disabled = true;
+    docker_button.disabled = true;
+  });
+
+  docker_button.addEventListener('click', (e) => {
+    vscode.postMessage({ type: 'analyzeNotebookDocker' });
+    native_button.disabled = true;
+    docker_button.disabled = true;
   });
 
   vscode.postMessage({ type: 'webviewLoaded' });
@@ -23,11 +31,13 @@
     const message = event.data; // The json data that the extension sent
     switch (message.type) {
       case 'analysisCompleted': {
-        button.disabled = false;
+        native_button.disabled = false;
+        docker_button.disabled = false;
         break;
       }
       case 'webviewLoaded': {
-        button.disabled = message.isRunning ?? false;
+        native_button.disabled = message.isRunning ?? false;
+        docker_button.disabled = message.isRunning ?? false;
         break;
       }
       case 'filePickerDone': {

@@ -37,9 +37,12 @@ export class ButtonViewProvider {
 
     webviewView.webview.onDidReceiveMessage(async (data) => {
       switch (data.type) {
-        case 'analyzeNotebook':
-          await this.analyzeNotebook();
+        case 'analyzeNotebookNative':
+          await this.analyzeNotebookNative();
           break;
+          case 'analyzeNotebookDocker':
+            await this.analyzeNotebookDocker();
+            break;
         case 'webviewLoaded':
           try {
             const data = {
@@ -79,12 +82,28 @@ export class ButtonViewProvider {
     });
   }
 
-  public async analyzeNotebook() {
+  public async analyzeNotebookNative() {
+    console.log("native method was chosen");
     if (this._view) {
       await analyzeNotebookWithProgress(
         this._view,
         this._context,
         this._changeView,
+        "native"
+      );
+    } else {
+      throw new Error("View wasn't created.");
+    }
+  }
+
+  public async analyzeNotebookDocker() {
+    console.log("docker method was chosen");
+    if (this._view) {
+      await analyzeNotebookWithProgress(
+        this._view,
+        this._context,
+        this._changeView,
+        "docker"
       );
     } else {
       throw new Error("View wasn't created.");
@@ -142,8 +161,8 @@ export class ButtonViewProvider {
           <a class="" id="website-link" href="https://leakage-detector.vercel.app/">Click here to learn more data leakage</a>
         </div>
           
-        
-      	<button class="button" id="run-leakage">Run Data Leakage Analysis</button>
+        <button class="button" id="run-leakage-docker">Run Data Leakage Analysis (Docker)</button>
+      	<button class="button" id="run-leakage-native">Run Data Leakage Analysis (Native Binaries)</button>
 				<button class="button secondary" id="install-leakage">Install Leakage Analysis Program</button>
         <br></br>
         <div class="dropdown"> 
@@ -154,7 +173,7 @@ export class ButtonViewProvider {
             <a class="" id="website-link" href="https://leakage-detector.vercel.app/binaries/linux-amd64.zip">Linux-x64</a>
           </div>
         </div>
-        
+
         <script nonce="${nonce}" src="${scriptUri}"></script>
 			</body>
 			</html>`;
