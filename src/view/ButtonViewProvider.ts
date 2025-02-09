@@ -156,16 +156,18 @@ export class ButtonViewProvider {
 				<title>Data Leakage</title>
 			</head>
 			<body>
-        
-        <span>Docker Solution </span>  
-        <button class="button" id="run-leakage-docker">Run Data Leakage Analysis (Docker)</button>
+        <div class="dropdown"> 
+            <button class="dropbtn">Run Data Leakage Analysis</button>
+            <div class="dropdown-content"> 
+              <button class="button" id="run-leakage-docker">Docker</button>
+              <button class="button" id="run-leakage-native">Native Binary</button>
+            </div>
+        </div>
         <br></br>
-        <span>Native Binary Solution </span>
-      	<button class="button" id="run-leakage-native">Run Data Leakage Analysis (Native Binary)</button>
 				<button class="button secondary" id="install-leakage">Install Leakage Analysis Program</button>
         <br></br>
         <div class="dropdown"> 
-          <button class="dropbtn">Click one of the links below to download the native binary for your OS. </button>
+          <button class="dropbtn">Download Native Binary </button>
           <div class="dropdown-content"> 
             <a class="" id="website-link" href="https://leakage-detector.vercel.app/binaries/windows-x64.zip">Windows-x64</a>
             <a class="" id="website-link" href="https://leakage-detector.vercel.app/binaries/macos14-arm64.zip">MacOS14-ARM64</a>
