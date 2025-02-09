@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.0.2-test.20250209
+## 1.0.3
 
 - 2nd test build with automated CI/CD GitHub Actions
 
