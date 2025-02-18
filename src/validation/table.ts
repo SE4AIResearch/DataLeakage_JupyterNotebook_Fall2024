@@ -5,7 +5,6 @@ export type Row = {
   cell: number;
   line: number;
   variable: string;
-  cause: string;
 };
 
 export function isRow(unk: unknown): unk is Row {

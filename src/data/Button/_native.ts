@@ -68,6 +68,7 @@ export async function runNative(
   tempDir: TempDir,
 ) {
   const algoProgramDir = await getPathToAlgoProgramDir(context);
+  console.log(algoProgramDir);
 
   const pythonPath = tempDir.getAlgoInputFilePath();
 

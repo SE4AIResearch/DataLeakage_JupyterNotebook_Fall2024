@@ -28,7 +28,7 @@ export class TempDir {
       JUPYTER_LINE_MAPPING_FILE_NAME,
     );
     this._algoDirPath = path.join(tempDir, this._id);
-    this._algoOutputDirPath = path.join(tempDir, this._id, 'input-fact');
+    this._algoOutputDirPath = path.join(tempDir, this._id);
 
     try {
       fs.mkdirSync(this._algoDirPath);

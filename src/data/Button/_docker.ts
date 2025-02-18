@@ -2,8 +2,6 @@ import * as vscode from 'vscode';
 import Docker, { ImageInfo } from 'dockerode';
 
 import { DockerTemp, TempDir } from '../../helpers/TempDir';
-import { ConversionToPython } from '../../helpers/conversion/LineConversion';
-import { LineMapRecord } from '../../validation/isLineMapRecord';
 
 export async function ensureImageExist(docker: Docker, imageName: string) {
   try {

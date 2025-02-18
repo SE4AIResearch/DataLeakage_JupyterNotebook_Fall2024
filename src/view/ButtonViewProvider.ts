@@ -6,9 +6,7 @@ import * as vscode from 'vscode';
 import { getNonce, getWebviewOptions } from '../helpers/utils';
 import { analyzeNotebookWithProgress } from '../data/Button/button';
 import { StateManager } from '../helpers/StateManager';
-import LeakageInstance from '../data/Leakages/LeakageInstance/LeakageInstance';
 import { installLeakageFolder } from '../data/Button/LeakageProgramInstaller';
-import { LeakageAdapterCell } from '../helpers/Leakages/createLeakageAdapters';
 
 /**
  * Manages Button Webview

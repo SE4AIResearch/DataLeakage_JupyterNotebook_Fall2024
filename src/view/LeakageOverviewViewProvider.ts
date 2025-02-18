@@ -7,6 +7,7 @@ import {
 } from '../helpers/Leakages/createLeakageAdapters';
 import { goToLeakageLine } from '../data/Table/table';
 import { isRow, Row } from '../validation/table';
+import { LeakageType } from '../data/Leakages/types';
 
 /**
  * Manages Leakage Overview Webview
@@ -58,13 +59,13 @@ export class LeakageOverviewViewProvider {
           vscode.window.activeNotebookEditor.notebook.uri.fsPath,
         );
         const preprocessingCount = adapters.filter(
-          (adapter) => adapter.type === 'Preprocessing',
+          (adapter) => adapter.type === LeakageType.PreProcessingLeakage,
         ).length;
         const overlapCount = adapters.filter(
-          (adapter) => adapter.type === 'Overlap',
+          (adapter) => adapter.type === LeakageType.OverlapLeakage,
         ).length;
         const multiTestCount = adapters.filter(
-          (adapter) => adapter.type === 'Multi-Test',
+          (adapter) => adapter.type === LeakageType.MultiTestLeakage,
         ).length;
         this.changeCount(preprocessingCount, overlapCount, multiTestCount);
 
@@ -75,7 +76,6 @@ export class LeakageOverviewViewProvider {
           cell: adapter.cell,
           line: adapter.line,
           variable: adapter.variable,
-          cause: adapter.cause,
         }));
         this.changeRows(rows);
       } else {
@@ -216,7 +216,6 @@ export class LeakageOverviewViewProvider {
           <th>Cell</th>
           <th>Line</th>
           <th>Variable</th>
-          <th>Cause</th>
         </tr>
         <!-- Rows will be added here dynamically -->
       </table>

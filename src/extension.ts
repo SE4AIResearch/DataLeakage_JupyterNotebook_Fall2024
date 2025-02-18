@@ -1,46 +1,21 @@
 import * as vscode from 'vscode';
-import Leakages from './data/Leakages/Leakages';
-// import { ButtonViewProvider } from './view/ButtonViewProvider';
-// import { LeakageOverviewViewProvider } from './view/LeakageOverviewViewProvider';
+import { ButtonViewProvider } from './view/ButtonViewProvider';
+import { LeakageOverviewViewProvider } from './view/LeakageOverviewViewProvider';
 
-// import {
-//   COLLECTION_NAME,
-//   subscribeToDocumentChanges,
-// } from './data/notebookDiagnostics';
-// import { LeakageType } from './data/Leakages/types';
+import {
+  COLLECTION_NAME,
+  subscribeToDocumentChanges,
+} from './data/Diagnostics/notebookDiagnostics';
 
 export function activate(context: vscode.ExtensionContext) {
-  // Test Command for Leakages Class
+  /* Diagnostics */
 
-  const disposable = vscode.commands.registerCommand(
-    'dataleakage-jupyternotebook-fall2024.runLeakageDetector',
-    async () => {
-      try {
-        const leakages = new Leakages( // FIXME: Need to talk to Terrence to remove this direct reference to his local path
-          '/home/terrence/Projects/leakage-analysis/tests/inputs',
-          'nb_303674',
-          397,
-        );
-        const output = await leakages.getLeakages();
-        console.log(output);
-      } catch (error) {
-        console.log(error);
-      }
-      vscode.window.showInformationMessage(
-        'Hello World from DataLeakage_JupyterNotebook_Fall2024!',
-      );
-    },
-  );
-  context.subscriptions.push(disposable);
+  const notebookDiagnostics =
+    vscode.languages.createDiagnosticCollection(COLLECTION_NAME);
+  context.subscriptions.push(notebookDiagnostics);
+  subscribeToDocumentChanges(context, notebookDiagnostics);
 
-  // Diagnostics
-
-  // const notebookDiagnostics =
-  //   vscode.languages.createDiagnosticCollection(COLLECTION_NAME);
-  // context.subscriptions.push(notebookDiagnostics);
-  // subscribeToDocumentChanges(context, notebookDiagnostics);
-
-  // Code Actions (Quickfix)
+  /* Code Actions (Quickfix) */
 
   // context.subscriptions.push(
   //   vscode.languages.registerCodeActionsProvider('python', new LeakageInfo(), {
@@ -56,56 +31,40 @@ export function activate(context: vscode.ExtensionContext) {
   //   ),
   // );
 
-  // Leakage Overview View
+  /* Leakage Overview View */
 
-  // const leakageOverviewViewProvider = new LeakageOverviewViewProvider(
-  //   context.extensionUri,
-  //   context,
-  // );
+  const leakageOverviewViewProvider = new LeakageOverviewViewProvider(
+    context.extensionUri,
+    context,
+  );
 
-  // context.subscriptions.push(
-  //   vscode.window.registerWebviewViewProvider(
-  //     LeakageOverviewViewProvider.viewType,
-  //     leakageOverviewViewProvider,
-  //   ),
-  // );
+  context.subscriptions.push(
+    vscode.window.registerWebviewViewProvider(
+      LeakageOverviewViewProvider.viewType,
+      leakageOverviewViewProvider,
+    ),
+  );
 
-  // context.subscriptions.push(
-  //   vscode.window.registerWebviewViewProvider(
-  //     LeakageSummaryViewProvider.viewType,
-  //     leakageSummaryProvider,
-  //   ),
-  // );
+  context.subscriptions.push(
+    vscode.window.onDidChangeActiveNotebookEditor(async () => {
+      await leakageOverviewViewProvider.updateTables();
+    }),
+  );
 
-  // const changeView = (leakages: LeakageInstance[]) => {
-  //   const overlapLeakageCount = leakages.filter(
-  //     (leakage) => leakage.getLeakageType() === LeakageType.OverlapLeakage,
-  //   ).length;
-  //   const multiTestLeakageCount = leakages.filter(
-  //     (leakage) => leakage.getLeakageType() === LeakageType.MultitestLeakage,
-  //   ).length;
-  //   const preprocessingLeakageCount = leakages.filter(
-  //     (leakage) =>
-  //       leakage.getLeakageType() === LeakageType.PreprocessingLeakage,
-  //   ).length;
-  //   leakageSummaryProvider.changeCount(
-  //     preprocessingLeakageCount,
-  //     multiTestLeakageCount,
-  //     overlapLeakageCount,
-  //   );
-  // };
+  /* Button View */
 
-  // Button View
+  const changeView = async () =>
+    await leakageOverviewViewProvider.updateTables();
 
-  // const buttonProvider = new ButtonViewProvider(
-  //   context.extensionUri,
-  //   context,
-  //   changeView,
-  // );
-  // context.subscriptions.push(
-  //   vscode.window.registerWebviewViewProvider(
-  //     ButtonViewProvider.viewType,
-  //     buttonProvider,
-  //   ),
-  // );
+  const buttonProvider = new ButtonViewProvider(
+    context.extensionUri,
+    context,
+    changeView,
+  );
+  context.subscriptions.push(
+    vscode.window.registerWebviewViewProvider(
+      ButtonViewProvider.viewType,
+      buttonProvider,
+    ),
+  );
 }

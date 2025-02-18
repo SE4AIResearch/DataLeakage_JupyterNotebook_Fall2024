@@ -6,12 +6,14 @@
 import * as vscode from 'vscode';
 
 // Import /src/data
-import LeakageInstance from '../../data/Leakages/LeakageInstance/LeakageInstance';
-import MultitestLeakageInstance from '../../data/Leakages/LeakageInstance/MultitestLeakageInstance';
-import OverlapLeakageInstance from '../../data/Leakages/LeakageInstance/OverlapLeakageInstance';
-import PreprocessingLeakageInstance from '../../data/Leakages/LeakageInstance/PreprocessingLeakageInstance';
 import Leakages from '../../data/Leakages/Leakages';
-import { Metadata } from '../../data/Leakages/types';
+import {
+  LeakageOutput,
+  LeakageInstances,
+  Metadata,
+  LeakageType,
+  LeakageLines,
+} from '../../data/Leakages/types';
 
 // Import /src/helpers
 import { TempDir } from '../TempDir';
@@ -29,20 +31,16 @@ import path from 'path';
  */
 
 export type LeakageAdapter = {
-  type: 'Overlap' | 'Preprocessing' | 'Multi-Test';
+  type: LeakageType;
   line: number;
   variable: string;
-  cause: string;
-  parent: null | Array<LeakageAdapter>; // not sure what to do with this but it is an array of testingData that are related to each other (array includes the object itself)
 };
 
 export type LeakageAdapterCell = {
-  type: 'Overlap' | 'Preprocessing' | 'Multi-Test';
+  type: LeakageType;
   line: number;
   cell: number;
   variable: string;
-  cause: string;
-  parent: null | Array<LeakageAdapter>; // not sure what to do with this but it is an array of testingData that are related to each other (array includes the object itself)
 };
 
 export type LeakageAdapterExtra = {
@@ -52,6 +50,7 @@ export type LeakageAdapterExtra = {
 /**
  * Custom Error
  */
+
 export class NotAnalyzedError extends Error {
   constructor(message: string) {
     super(message);
@@ -70,88 +69,43 @@ export const INTERNAL_VARIABLE_NAME = 'Internal Variable';
  */
 
 const leakageAdapterHelper = (
-  type: 'Overlap' | 'Preprocessing' | 'Multi-Test',
-  metadataArrays: Metadata[][],
-  cause: string,
-  line: number | number[],
-) => {
-  const leakageAdapters = metadataArrays
-    .map((metadataArray) =>
-      metadataArray
-        .filter((metadata) =>
-          Array.isArray(line)
-            ? line.includes(metadata.line as number)
-            : metadata.line === line,
-        )
-        .map(
-          (metadata): LeakageAdapter => ({
-            type: type,
-            line: metadata.line as number,
-            variable:
-              typeof metadata.variable === 'string'
-                ? metadata.variable.replace(/_0$/, '')
-                : '',
-            cause,
-            parent: null,
-          }),
-        ),
-    )
-    .flat();
-
-  return leakageAdapters;
-};
-
-// FIXME: Find out how to choose taints to display for each leakage
-
-const adaptOverlapLeakageInstance = (
-  leakage: OverlapLeakageInstance,
+  type: LeakageType,
+  lines: LeakageLines,
 ): LeakageAdapter[] => {
-  const source = leakage.getSource();
-  const cause = source.getCause().toString();
-  const line = leakage.getLine();
-  const metadataArrays = leakage.getOccurrences().map((o) => o.testingData);
-  const leakageAdapters = leakageAdapterHelper(
-    'Overlap',
-    metadataArrays,
-    cause,
-    line,
+  const leakageAdapters: LeakageAdapter[] = Object.entries(lines).map(
+    (leakageLine) => ({
+      type: type,
+      line: Number(leakageLine[0]),
+      // variable:
+      //   typeof metadata.variable === 'string'
+      //     ? metadata.variable.replace(/_0$/, '')
+      //     : '',
+      variable: leakageLine[1].metadata?.variable || 'Unknown Variable',
+    }),
   );
 
   return leakageAdapters;
 };
 
-const adaptPreprocessingLeakageInstance = (
-  leakage: PreprocessingLeakageInstance,
+const getLines = (
+  leakageInstance: LeakageInstances[LeakageType],
+  leakageLines: LeakageLines,
+) =>
+  Object.entries(leakageLines)
+    .filter((line) => leakageInstance.lines.includes(Number(line[0])))
+    .reduce(
+      (acc: LeakageLines, [key, value]): LeakageLines =>
+        Object.assign(acc, { [Number(key)]: value }),
+      {},
+    );
+
+const adaptLeakages = (
+  leakageType: LeakageType,
+  leakageInstance: LeakageInstances[LeakageType],
+  leakageLines: LeakageLines,
 ): LeakageAdapter[] => {
-  const source = leakage.getSource();
-  const cause = source.getCause().toString();
-  const line = leakage.getLine();
-  const metadataArrays = leakage.getOccurrences().map((o) => o.testingData);
-  const leakageAdapters = leakageAdapterHelper(
-    'Preprocessing',
-    metadataArrays,
-    cause,
-    line,
-  );
-
-  return leakageAdapters;
-};
-
-const adaptMultitestLeakageInstances = (
-  leakage: MultitestLeakageInstance,
-): LeakageAdapter[] => {
-  const cause = 'repeatDataEvaluation';
-  const lines = leakage.getLines();
-  const metadataArrays = leakage
-    .getOccurrences()
-    .map((o) => o.trainTest.testingData);
-  const leakageAdapters = leakageAdapterHelper(
-    'Multi-Test',
-    metadataArrays,
-    cause,
-    lines,
-  );
-
+  const lines = getLines(leakageInstance, leakageLines);
+  const leakageAdapters = leakageAdapterHelper(leakageType, lines);
   return leakageAdapters;
 };
 
@@ -165,21 +119,21 @@ const adaptMultitestLeakageInstances = (
  * @returns
  */
 export function createLeakageAdapters(
-  leakages: LeakageInstance[],
+  leakages: LeakageOutput,
 ): LeakageAdapter[] {
   const leakageAdapters: LeakageAdapter[] = [];
 
-  leakages.forEach((leakage) => {
-    if (leakage instanceof OverlapLeakageInstance) {
-      leakageAdapters.push(...adaptOverlapLeakageInstance(leakage));
-    } else if (leakage instanceof PreprocessingLeakageInstance) {
-      leakageAdapters.push(...adaptPreprocessingLeakageInstance(leakage));
-    } else if (leakage instanceof MultitestLeakageInstance) {
-      leakageAdapters.push(...adaptMultitestLeakageInstances(leakage));
-    } else {
-      console.error('Error: Unknown Leakage Instance Type.');
+  for (const type of Object.values(LeakageType)) {
+    if (leakages.leakageInstances[type]) {
+      leakageAdapters.push(
+        ...adaptLeakages(
+          type,
+          leakages.leakageInstances[type],
+          leakages.leakageLines,
+        ),
+      );
     }
-  });
+  }
 
   return leakageAdapters;
 }
@@ -203,13 +157,17 @@ export async function getAdaptersFromFile(
     );
   } catch (err) {
     console.error('Notebook has not been analyzed before.', err);
-    // diagnosticCollection.delete(editor.document.uri);
     throw new NotAnalyzedError('Notebook has not been analyzed before.');
   }
 
+  const pythonFileTotalLines = ConversionToPython.convertJupyCellsToPythonCode(
+    manager.getJupyCells(),
+  ).split('\n').length;
+
   const leakages = await new Leakages(
     tempDir.getAlgoOutputDirPath(),
-    context,
+    path.basename(fsPath),
+    pythonFileTotalLines, // Assuming fileLines is not needed here
   ).getLeakages();
 
   const leakageAdapters = createLeakageAdapters(leakages);
@@ -228,10 +186,10 @@ export async function getAdaptersFromFile(
       console.warn('Warning: Cell not found.');
       throw new Error('Cell not found.');
     }
-    if (!cell.data.includes(row.variable)) {
-      console.warn('Warning: Internal variable found in cell.');
-      row.variable = INTERNAL_VARIABLE_NAME;
-    }
+    // if (!cell.data.includes(row.variable)) {
+    //   console.warn('Warning: Internal variable found in cell.');
+    //   row.variable = INTERNAL_VARIABLE_NAME;
+    // }
     return row;
   });
 

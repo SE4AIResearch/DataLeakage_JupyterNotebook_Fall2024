@@ -1,5 +1,4 @@
 import * as vscode from 'vscode';
-import Docker, { ImageInfo } from 'dockerode';
 
 import path from 'path';
 import fs from 'fs';
@@ -7,15 +6,9 @@ import fs from 'fs';
 import { TempDir } from '../../helpers/TempDir';
 import { StateManager } from '../../helpers/StateManager';
 import { ConversionToPython } from '../../helpers/conversion/LineConversion';
-import LeakageInstance from '../Leakages/LeakageInstance/LeakageInstance';
-import Leakages from '../Leakages/Leakages';
 import { LineMapRecord } from '../../validation/isLineMapRecord';
 import { runDocker } from './_docker';
 import { runNative } from './_native';
-import {
-  LeakageAdapterCell,
-  getAdaptersFromFile,
-} from '../../helpers/Leakages/createLeakageAdapters';
 
 // TODO: Refactor analyzeNotebook & analyzeNotebookWithNotification into one
 

@@ -1,17 +1,10 @@
 import * as vscode from 'vscode';
-import Leakages from '..//Leakages/Leakages';
-import { TempDir } from '../../helpers/TempDir';
 import {
-  createLeakageAdapters,
   getAdaptersFromFile,
   INTERNAL_VARIABLE_NAME,
   LeakageAdapterCell,
   NotAnalyzedError,
 } from '../../helpers/Leakages/createLeakageAdapters';
-import {
-  ConversionToJupyter,
-  ConversionToPython,
-} from '../../helpers/conversion/LineConversion';
 import { findRows } from './_findRows';
 
 export const LEAKAGE_ERROR = 'dataLeakage';
@@ -41,14 +34,9 @@ function createNotebookDiagnostic(
           index + adapterCell.variable.length,
         );
 
-  const cause = adapterCell.cause
-    .replace(/([A-Z])/g, ' $1')
-    .trim()
-    .replace(/\b\w/g, (char) => char.toUpperCase());
-
   const diagnostic = new vscode.Diagnostic(
     range,
-    `${adapterCell.type}${cause !== '' ? ':' : ''} ${cause}`,
+    `Data Leakage: ${adapterCell.type}`,
     vscode.DiagnosticSeverity.Error,
   );
   diagnostic.code = LEAKAGE_ERROR;
