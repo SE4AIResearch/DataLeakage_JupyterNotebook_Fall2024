@@ -28,7 +28,10 @@
         // Reset table to only headers
         table.innerHTML = `
           <tr>
+            <th>ID</th>
+            <th>Relation ID</th>
             <th>Type</th>
+            <th>General Cause</th>
             <th>Cell</th>
             <th>Line</th>
             <th>Model Variable Name</th>
@@ -41,9 +44,21 @@
           const tr = document.createElement('tr');
           tr.classList.add('clickable');
 
+          const idTd = document.createElement('td');
+          idTd.textContent = row.id;
+          tr.appendChild(idTd);
+
+          const relationIdTd = document.createElement('td');
+          relationIdTd.textContent = row.relationId;
+          tr.appendChild(relationIdTd);
+
           const typeTd = document.createElement('td');
           typeTd.textContent = row.type;
           tr.appendChild(typeTd);
+
+          const causeTd = document.createElement('td');
+          causeTd.textContent = row.cause;
+          tr.appendChild(causeTd);
 
           const cellTd = document.createElement('td');
           cellTd.textContent = row.cell;

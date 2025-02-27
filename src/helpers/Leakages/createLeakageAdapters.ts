@@ -28,11 +28,14 @@ import {
  */
 
 export type LeakageAdapter = {
+  id: number;
+  relationId: number;
   type: LeakageType;
   displayType:
     | 'Overlap Leakage'
     | 'Pre-Processing Leakage'
     | 'Multi-Test Leakage';
+  cause: string;
   line: number;
   model: string;
   variable: string;
@@ -40,11 +43,14 @@ export type LeakageAdapter = {
 };
 
 export type LeakageAdapterCell = {
+  id: number;
+  relationId: number;
   type: LeakageType;
   displayType:
     | 'Overlap Leakage'
     | 'Pre-Processing Leakage'
     | 'Multi-Test Leakage';
+  cause: string;
   line: number;
   cell: number;
   model: string;
@@ -68,6 +74,14 @@ export class NotAnalyzedError extends Error {
 }
 
 /**
+ * Variable
+ */
+
+let _relationIdIndex = 1;
+
+export const INTERNAL_VARIABLE_NAME = 'Name Not Found';
+
+/**
  * Helper Functions
  */
 
@@ -83,6 +97,13 @@ const leakageAdapterHelper = (
           : type === LeakageType.OverlapLeakage
             ? 'Overlap Leakage'
             : 'Multi-Test Leakage';
+
+      const createCause = (type: LeakageType) =>
+        type === LeakageType.PreProcessingLeakage
+          ? 'Vectorizer fit on train and test data together'
+          : type === LeakageType.OverlapLeakage
+            ? 'Same/Similar data in both train and test'
+            : 'Repeat data evaluation';
 
       const renameDuplicates = (model: string) => {
         const regex = /_(\d+)$/;
@@ -124,8 +145,11 @@ const leakageAdapterHelper = (
       };
 
       return {
+        id: -1,
+        relationId: -1,
         type: type,
         displayType: convertTypeToReadableString(type),
+        cause: createCause(type),
         line: Number(leakageLine[0]),
         model: renamePrivateVar(
           renameDuplicates(leakageLine[1].metadata?.model || 'Unknown Model'),
@@ -178,8 +202,9 @@ const adaptLeakages = (
 export function createLeakageAdapters(
   leakages: LeakageOutput,
 ): LeakageAdapter[] {
-  const internalVariableRegex = /^_var/;
   const leakageAdapters: LeakageAdapter[] = [];
+
+  let idIndex = 1;
 
   for (const type of Object.values(LeakageType)) {
     if (leakages.leakageInstances[type]) {
@@ -188,7 +213,10 @@ export function createLeakageAdapters(
           type,
           leakages.leakageInstances[type],
           leakages.leakageLines,
-        ),
+        ).map((adapter) => ({
+          ...adapter,
+          id: idIndex++,
+        })),
       );
     }
   }
@@ -259,4 +287,38 @@ export async function getAdaptersFromFile(
   console.log('RESULT: ', res);
 
   return res;
+}
+
+export async function getCounts(fsPath: string) {
+  const notebook = await vscode.workspace.openNotebookDocument(
+    vscode.Uri.file(fsPath),
+  );
+
+  const tempDir = await TempDir.getTempDir(fsPath);
+  let manager = null;
+
+  try {
+    manager = await ConversionToJupyter.convertJSONFile(
+      tempDir.getAlgoJupyLineMappingPath(),
+    );
+  } catch (err) {
+    console.error('Notebook has not been analyzed before.', err);
+    throw new NotAnalyzedError('Notebook has not been analyzed before.');
+  }
+
+  const pythonFileTotalLines = ConversionToPython.convertJupyCellsToPythonCode(
+    manager.getJupyCells(),
+  ).split('\n').length;
+
+  const leakages = await new Leakages(
+    tempDir.getAlgoOutputDirPath(),
+    'input',
+    pythonFileTotalLines, // Assuming fileLines is not needed here
+  ).getLeakages();
+
+  return {
+    preprocessingCount: leakages.leakageInstances.PreProcessingLeakage.count,
+    overlapCount: leakages.leakageInstances.OverlapLeakage.count,
+    multiTestCount: leakages.leakageInstances.MultiTestLeakage.count,
+  };
 }

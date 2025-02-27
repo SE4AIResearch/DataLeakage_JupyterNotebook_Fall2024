@@ -3,6 +3,7 @@ import * as vscode from 'vscode';
 import { getNonce, getWebviewOptions } from '../helpers/utils';
 import {
   getAdaptersFromFile,
+  getCounts,
   LeakageAdapterCell,
 } from '../helpers/Leakages/createLeakageAdapters';
 import { goToLeakageLine } from '../data/Table/table';
@@ -59,22 +60,22 @@ export class LeakageOverviewViewProvider {
           this._context,
           vscode.window.activeNotebookEditor.notebook.uri.fsPath,
         );
-        const preprocessingCount = adapters.filter(
-          (adapter) => adapter.type === LeakageType.PreProcessingLeakage,
-        ).length;
-        const overlapCount = adapters.filter(
-          (adapter) => adapter.type === LeakageType.OverlapLeakage,
-        ).length;
-        const multiTestCount = adapters.filter(
-          (adapter) => adapter.type === LeakageType.MultiTestLeakage,
-        ).length;
-
-        this.changeCount(preprocessingCount, overlapCount, multiTestCount);
+        const counts = await getCounts(
+          vscode.window.activeNotebookEditor.notebook.uri.fsPath,
+        );
+        this.changeCount(
+          counts.preprocessingCount,
+          counts.overlapCount,
+          counts.multiTestCount,
+        );
 
         // Call changeRows to update the Leakage Instances table
         // Transform adapters to Row[] format
         const rows: Row[] = adapters.map((adapter) => ({
+          id: adapter.id,
+          relationId: adapter.relationId,
           type: adapter.displayType,
+          cause: adapter.cause,
           cell: adapter.cell,
           line: adapter.line,
           model: adapter.model,

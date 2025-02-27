@@ -1,7 +1,10 @@
 import z from 'zod';
 
 export type Row = {
+  id: number;
+  relationId: number;
   type: string;
+  cause: string;
   cell: number;
   line: number;
   model: string;
@@ -11,7 +14,10 @@ export type Row = {
 
 export function isRow(unk: unknown): unk is Row {
   const rowSchema = z.object({
+    id: z.number(),
+    relationId: z.number(),
     type: z.string(),
+    cause: z.string(),
     cell: z.number(),
     line: z.number(),
     model: z.string(),
