@@ -68,7 +68,7 @@ body {
 .dropdown-content {
   display: none;
   position: relative;
-  background-color: #f1f1f1;
+  background-color: #7f7f7f;
   box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
   z-index: 1;
   margin: 0 auto;
@@ -121,7 +121,7 @@ body {
 .dropdown-content2 {
   display: none;
   position: relative;
-  background-color: #f1f1f1;
+  background-color: #7f7f7f;
   box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
   z-index: 1;
   margin: 0 auto;

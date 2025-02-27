@@ -193,7 +193,7 @@ export class ButtonViewProvider {
         -->
         <div class="help">
           <span>Need help? </span>
-          <a class="" id="website-link" href="https://leakage-detector.vercel.app/">Click here to learn more data leakage</a>
+          <a class="" id="website-link" href="https://leakage-detector.vercel.app/">Click here to learn more about data leakage</a>
         </div>
 
         <script nonce="${nonce}" src="${scriptUri}"></script>
