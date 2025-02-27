@@ -157,15 +157,18 @@ export class ButtonViewProvider {
 			</head>
 			<body>
         <div class="dropdown"> 
-            <button class="dropbtn">Run Data Leakage Analysis</button>
+            <button class="dropbtn">Run Data Leakage Analysis
+            </button>
             <div class="dropdown-content"> 
               <button class="button" id="run-leakage-docker">Docker</button>
               <!-- <button class="button" id="run-leakage-native">Native Binary</button> -->
               <div class="dropdown2"> 
-                  <button class="dropbtn2">Native Binary</button>
-                  <div class="dropdown-content2"> 
-                    <button class="button secondary" id="run-leakage-native">Run</button>
-                    <button class="button secondary" id="install-leakage">Install Leakage Analysis Program</button>
+                  <button class="button dropbtn2" id="run-leakage-native">Native Binary
+                   
+                  </button>
+                  <div class="dropdown-content2">
+                    <button class="button secondary" id="install-leakage">Install Leakage Analysis Program
+                    </button>
                     <div class="dropdown3"> 
                       <button class="dropbtn3">Download Native Binary </button>
                       <div class="dropdown-content3"> 
@@ -191,10 +194,15 @@ export class ButtonViewProvider {
           </div>
         </div>
         -->
+        <br></br>
         <div class="help">
           <span>Need help? </span>
           <a class="" id="website-link" href="https://leakage-detector.vercel.app/">Click here to learn more about data leakage</a>
         </div>
+        <div class="tooltip">Hover over me for more info!
+          <span class="tooltiptext">Use the provided options to run the extension using your preferred method and, if necessary, download any prerequisite files. See the link above for more detailed instructions.</span>
+        </div>
+        
 
         <script nonce="${nonce}" src="${scriptUri}"></script>
 			</body>
