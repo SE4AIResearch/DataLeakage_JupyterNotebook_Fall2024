@@ -13,8 +13,8 @@ import { LeakageAdapterCell } from '../helpers/Leakages/createLeakageAdapters';
 /**
  * Manages Button Webview
  */
-export class ButtonViewProvider {
-  public static readonly viewType = 'data-leakage.buttonView';
+export class SettingsViewProvider {
+  public static readonly viewType = 'data-leakage.buttonView2';
 
   private _view?: vscode.WebviewView;
 
@@ -156,35 +156,6 @@ export class ButtonViewProvider {
 				<title>Data Leakage</title>
 			</head>
 			<body>
-        <div class="dropdown"> 
-            <button class="dropbtn">Run Data Leakage Analysis
-            </button>
-            <div class="dropdown-content"> 
-              <button class="button" id="run-leakage-docker">Docker</button>
-              <button class="button" id="run-leakage-native">Native Binary</button> 
-              <!-- 
-              <div class="dropdown2"> 
-                  <button class="button dropbtn2" id="run-leakage-native">Native Binary
-                   
-                  </button>
-                  <div class="dropdown-content2">
-                    <button class="button secondary" id="install-leakage">Install Leakage Analysis Program
-                    </button>
-                    <div class="dropdown3"> 
-                      <button class="dropbtn3">Download Native Binary </button>
-                      <div class="dropdown-content3"> 
-                        <a class="" id="website-link" href="https://leakage-detector.vercel.app/binaries/windows-x64.zip">Windows-x64</a>
-                        <a class="" id="website-link" href="https://leakage-detector.vercel.app/binaries/macos14-arm64.zip">MacOS14-ARM64</a>
-                        <a class="" id="website-link" href="https://leakage-detector.vercel.app/binaries/linux-amd64.zip">Linux-x64</a>
-                      </div>
-                    </div>
-                  </div>
-              </div>
-              -->
-            </div>
-        </div>
-        <!--
-        <br></br>
 				<button class="button secondary" id="install-leakage">Install Leakage Analysis Program</button>
         <br></br>
         <div class="dropdown"> 
@@ -195,16 +166,15 @@ export class ButtonViewProvider {
             <a class="" id="website-link" href="https://leakage-detector.vercel.app/binaries/linux-amd64.zip">Linux-x64</a>
           </div>
         </div>
-        
+  
         <br></br>
         <div class="help">
-          <span>Need help? </span>
+          <span>Need help?</span>
           <a class="" id="website-link" href="https://leakage-detector.vercel.app/">Click here to learn more about data leakage</a>
         </div>
         <div class="tooltip">Hover over me for more info!
-          <span class="tooltiptext">Use the provided options to run the extension using your preferred method and, if necessary, download any prerequisite files. See the link above for more detailed instructions.</span>
+          <span class="tooltiptext">Use the provided options to run the extension download and install the native binaries for your OS. See the link above for more detailed instructions.</span>
         </div>
-        -->
         
 
         <script nonce="${nonce}" src="${scriptUri}"></script>

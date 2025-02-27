@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import Leakages from './data/Leakages/Leakages';
 import { ButtonViewProvider } from './view/ButtonViewProvider';
+import { SettingsViewProvider } from './view/SettingsViewProvider';
 import { LeakageOverviewViewProvider } from './view/LeakageOverviewViewProvider';
 
 import {
@@ -91,6 +92,18 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.window.registerWebviewViewProvider(
       ButtonViewProvider.viewType,
       buttonProvider,
+    ),
+  );
+
+  const settingsProvider = new SettingsViewProvider(
+    context.extensionUri,
+    context,
+    changeView,
+  );
+  context.subscriptions.push(
+    vscode.window.registerWebviewViewProvider(
+      SettingsViewProvider.viewType,
+      settingsProvider,
     ),
   );
 }

@@ -61,7 +61,12 @@
         {
           "type": "webview",
           "id": "data-leakage.buttonView",
-          "name": "Button View"
+          "name": "Data Leakage"
+        },
+        {
+          "type": "webview",
+          "id": "data-leakage.buttonView2",
+          "name": "Settings"
         }
       ],
       "leakage-overview": [
