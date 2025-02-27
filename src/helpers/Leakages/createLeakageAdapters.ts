@@ -10,9 +10,10 @@ import Leakages from '../../data/Leakages/Leakages';
 import {
   LeakageOutput,
   LeakageInstances,
-  Metadata,
   LeakageType,
   LeakageLines,
+  LineTag,
+  Metadata,
 } from '../../data/Leakages/types';
 
 // Import /src/helpers
@@ -20,11 +21,7 @@ import { TempDir } from '../TempDir';
 import {
   ConversionToJupyter,
   ConversionToPython,
-  JupyCell,
 } from '../conversion/LineConversion';
-
-import fs from 'fs';
-import path from 'path';
 
 /**
  * Types
@@ -32,15 +29,27 @@ import path from 'path';
 
 export type LeakageAdapter = {
   type: LeakageType;
+  displayType:
+    | 'Overlap Leakage'
+    | 'Pre-Processing Leakage'
+    | 'Multi-Test Leakage';
   line: number;
+  model: string;
   variable: string;
+  method: string;
 };
 
 export type LeakageAdapterCell = {
   type: LeakageType;
+  displayType:
+    | 'Overlap Leakage'
+    | 'Pre-Processing Leakage'
+    | 'Multi-Test Leakage';
   line: number;
   cell: number;
+  model: string;
   variable: string;
+  method: string;
 };
 
 export type LeakageAdapterExtra = {
@@ -59,12 +68,6 @@ export class NotAnalyzedError extends Error {
 }
 
 /**
- * Constants
- */
-
-export const INTERNAL_VARIABLE_NAME = 'Internal Variable';
-
-/**
  * Helper Functions
  */
 
@@ -73,15 +76,69 @@ const leakageAdapterHelper = (
   lines: LeakageLines,
 ): LeakageAdapter[] => {
   const leakageAdapters: LeakageAdapter[] = Object.entries(lines).map(
-    (leakageLine) => ({
-      type: type,
-      line: Number(leakageLine[0]),
-      // variable:
-      //   typeof metadata.variable === 'string'
-      //     ? metadata.variable.replace(/_0$/, '')
-      //     : '',
-      variable: leakageLine[1].metadata?.variable || 'Unknown Variable',
-    }),
+    (leakageLine) => {
+      const convertTypeToReadableString = (type: LeakageType) =>
+        type === LeakageType.PreProcessingLeakage
+          ? 'Pre-Processing Leakage'
+          : type === LeakageType.OverlapLeakage
+            ? 'Overlap Leakage'
+            : 'Multi-Test Leakage';
+
+      const renameDuplicates = (model: string) => {
+        const regex = /_(\d+)$/;
+        if (!regex.test(model)) {
+          return model;
+        }
+        const modelTrimmed = model.replace(regex, '');
+        const matched = model.match(regex);
+        if (matched === null || matched[0] === undefined) {
+          console.error(
+            'Unknown error occurred while trying to match model ending digits.',
+            matched,
+            model,
+            modelTrimmed,
+          );
+          return model;
+        }
+
+        const lineArr = Object.values(lines);
+        const models = lineArr
+          .map((line) => line.metadata?.model ?? null)
+          .filter((model) => model !== null);
+
+        if (models.includes(modelTrimmed)) {
+          return `${modelTrimmed} (${matched[1]})`;
+        } else {
+          return model;
+        }
+      };
+
+      const renamePrivateVar = (model: string) =>
+        /^_var\d+$/.test(model) ? 'Name Not Found' : model;
+
+      const changeUnknown = (method: string) => {
+        const sep = method.split('.');
+        return sep.length === 2 && sep[0] === 'Unknown'
+          ? 'AnonymousModel.' + sep[1]
+          : method;
+      };
+
+      return {
+        type: type,
+        displayType: convertTypeToReadableString(type),
+        line: Number(leakageLine[0]),
+        model: renamePrivateVar(
+          renameDuplicates(leakageLine[1].metadata?.model || 'Unknown Model'),
+        ),
+        variable: renamePrivateVar(
+          leakageLine[1].metadata?.variable.replace(/_\d$/, '') ||
+            'Unknown Variable',
+        ),
+        method:
+          changeUnknown(leakageLine[1].metadata?.method || 'Unknown Method') +
+          '()',
+      };
+    },
   );
 
   return leakageAdapters;
@@ -121,6 +178,7 @@ const adaptLeakages = (
 export function createLeakageAdapters(
   leakages: LeakageOutput,
 ): LeakageAdapter[] {
+  const internalVariableRegex = /^_var/;
   const leakageAdapters: LeakageAdapter[] = [];
 
   for (const type of Object.values(LeakageType)) {
@@ -134,6 +192,11 @@ export function createLeakageAdapters(
       );
     }
   }
+
+  // Filter internal variables
+  // return leakageAdapters.filter(
+  //   (adapter) => !internalVariableRegex.test(adapter.variable),
+  // );
 
   return leakageAdapters;
 }
@@ -166,7 +229,7 @@ export async function getAdaptersFromFile(
 
   const leakages = await new Leakages(
     tempDir.getAlgoOutputDirPath(),
-    path.basename(fsPath),
+    'input',
     pythonFileTotalLines, // Assuming fileLines is not needed here
   ).getLeakages();
 
