@@ -176,6 +176,14 @@ export class SettingsViewProvider {
           </label>
         </div>
       </div>
+
+
+      <label for="method-select" hidden>Choose your Run method:</label>
+        <select name="method-select" id="method-select" hidden>
+          <option value="empty">--Please choose an option--</option>
+          <option value="Docker">Docker</option>
+          <option value="Native">Native Binary</option>
+        </select>
       
       <div id="nativeButtons" style="display:none" hidden="true">
         <!--
@@ -228,6 +236,8 @@ export class SettingsViewProvider {
             </div>
           </div>
         </div>
+      
+   
       </div>
   
       <div class="help">

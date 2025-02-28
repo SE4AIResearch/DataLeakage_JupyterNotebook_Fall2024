@@ -11,6 +11,8 @@
     var win = document.getElementById("windows-dl");
     var mac = document.getElementById("mac-dl");
     var linux = document.getElementById("linux-dl");
+
+    const methodCheck = document.getElementById("method-select");
   
     
     installLeakageBtn.addEventListener('click', (e) => {
@@ -64,6 +66,22 @@
             win.style.display = "none";
             mac.style.display = "none";
             linux.style.display = "none";
+            break;
+        }
+      });
+    });
+
+    methodCheck.addEventListener('click', (e) => {
+      methodCheck.addEventListener('change', (e) => {
+        switch (methodCheck.value) {
+          case "Docker":
+            nativeButtons.style.display = "none";
+            break;
+          case "Native":
+            nativeButtons.style.display = "block";
+            break;
+          case "empty":
+            nativeButtons.style.display = "none";
             break;
         }
       });
