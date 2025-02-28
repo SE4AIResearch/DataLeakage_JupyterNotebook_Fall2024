@@ -3,13 +3,24 @@
 
 (function () {
   const vscode = acquireVsCodeApi();
-  const installLeakageBtn = document.getElementById('install-leakage');
   const native_button = document.getElementById('run-leakage-native');
   const docker_button = document.getElementById('run-leakage-docker');
+  const run_button = document.getElementById('run-leakage-all');
+  const nativeCheck = document.getElementById("nativeCheck");
+  var nativeButtons = document.getElementById("nativeButtons");
+  const dockerCheck = document.getElementById("dockerCheck");
 
-  installLeakageBtn.addEventListener('click', (e) => {
-    vscode.postMessage({ type: 'openFilePicker' });
-    installLeakageBtn.disabled = true;
+  run_button.addEventListener('click', (e) => {
+    if (nativeCheck.checked == true){
+      vscode.postMessage({ type: 'analyzeNotebookNative' });
+      native_button.disabled = true;
+      docker_button.disabled = true;
+    }
+    else {
+      vscode.postMessage({ type: 'analyzeNotebookDocker' });
+      native_button.disabled = true;
+      docker_button.disabled = true;
+    }
   });
 
   native_button.addEventListener('click', (e) => {

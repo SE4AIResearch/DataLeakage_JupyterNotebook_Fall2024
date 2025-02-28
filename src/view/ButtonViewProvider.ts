@@ -156,6 +156,7 @@ export class ButtonViewProvider {
 				<title>Data Leakage</title>
 			</head>
 			<body>
+        <button class="button" id="run-leakage-all">Run Data Leakage Analysis</button>
         <div class="dropdown"> 
             <button class="dropbtn">Run Data Leakage Analysis
             </button>

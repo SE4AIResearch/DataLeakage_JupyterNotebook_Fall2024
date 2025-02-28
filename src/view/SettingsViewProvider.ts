@@ -113,7 +113,7 @@ export class SettingsViewProvider {
   private _getHtmlForWebview(webview: vscode.Webview) {
     // Get the local path to main script run in the webview, then convert it to a uri we can use in the webview.
     const scriptUri = webview.asWebviewUri(
-      vscode.Uri.joinPath(this._extensionUri, 'media', 'button', 'main.js'),
+      vscode.Uri.joinPath(this._extensionUri, 'media', 'button', 'settings.js'),
     );
 
     // Do the same for the stylesheet.
@@ -152,12 +152,29 @@ export class SettingsViewProvider {
 				<link href="${styleVSCodeUri}" rel="stylesheet">
 				<link href="${styleMainUri}" rel="stylesheet">
         <link href="${stylePriorityUri}" rel="stylesheet">
+        
 
 				<title>Data Leakage</title>
 			</head>
 			<body>
+      <div class="sliderWrapper">
+        <span>Docker </span>
+        <label for="dockerCheck" class="switch"> 
+          <input type="checkbox" id="dockerCheck" checked>
+          <span class="slider round"></span>
+        </label>
+      </div>
+
+      <div class="sliderWrapper">
+        <span>Native Binary: </span>
+        <label for="nativeCheck" class="switch"> 
+          <input type="checkbox" id="nativeCheck">
+          <span class="slider round"></span>
+        </label>
+      </div>
+      
+      <div id="nativeButtons" style="display:none" hidden="true">
 				<button class="button secondary" id="install-leakage">Install Leakage Analysis Program</button>
-        <br></br>
         <div class="dropdown"> 
           <button class="dropbtn">Download Native Binary </button>
           <div class="dropdown-content"> 
@@ -166,8 +183,8 @@ export class SettingsViewProvider {
             <a class="" id="website-link" href="https://leakage-detector.vercel.app/binaries/linux-amd64.zip">Linux-x64</a>
           </div>
         </div>
+      </div>
   
-        <br></br>
         <div class="help">
           <span>Need help?</span>
           <a class="" id="website-link" href="https://leakage-detector.vercel.app/">Click here to learn more about data leakage</a>
