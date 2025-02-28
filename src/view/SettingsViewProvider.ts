@@ -157,26 +157,30 @@ export class SettingsViewProvider {
 				<title>Data Leakage</title>
 			</head>
 			<body>
-      <div class="sliderWrapper">
-        <span>Docker </span>
-        <label for="dockerCheck" class="switch"> 
-          <input type="checkbox" id="dockerCheck" checked>
-          <span class="slider round"></span>
-        </label>
+      <div class="row">
+        <div class="column">Docker</div>
+        <div class="column">
+          <label for="dockerCheck" class="switch"> 
+            <input type="checkbox" id="dockerCheck" checked>
+            <span class="slider round"></span>
+          </label>
+        </div>
       </div>
 
-      <div class="sliderWrapper">
-        <span>Native Binary: </span>
-        <label for="nativeCheck" class="switch"> 
-          <input type="checkbox" id="nativeCheck">
-          <span class="slider round"></span>
-        </label>
+      <div class="row">
+        <div class="column">Native Binary</div>
+        <div class="column">
+          <label for="nativeCheck" class="switch"> 
+            <input type="checkbox" id="nativeCheck">
+            <span class="slider round"></span>
+          </label>
+        </div>
       </div>
       
       <div id="nativeButtons" style="display:none" hidden="true">
-				<button class="button secondary" id="install-leakage">Install Leakage Analysis Program</button>
+				<button class="button secondary" id="install-leakage">Install</button>
         <div class="dropdown"> 
-          <button class="dropbtn">Download Native Binary </button>
+          <button class="dropbtn">Download</button>
           <div class="dropdown-content"> 
             <a class="" id="website-link" href="https://leakage-detector.vercel.app/binaries/windows-x64.zip">Windows-x64</a>
             <a class="" id="website-link" href="https://leakage-detector.vercel.app/binaries/macos14-arm64.zip">MacOS14-ARM64</a>
@@ -188,9 +192,6 @@ export class SettingsViewProvider {
         <div class="help">
           <span>Need help?</span>
           <a class="" id="website-link" href="https://leakage-detector.vercel.app/">Click here to learn more about data leakage</a>
-        </div>
-        <div class="tooltip">Hover over me for more info!
-          <span class="tooltiptext">Use the provided options to run the extension download and install the native binaries for your OS. See the link above for more detailed instructions.</span>
         </div>
         
 

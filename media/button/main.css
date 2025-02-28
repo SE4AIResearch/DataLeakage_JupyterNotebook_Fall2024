@@ -232,14 +232,11 @@ body {
   visibility: visible;
 }
 
-.sliderWrapper{display: inline-block;margin:24px 24px 24px 24px; position: relative;}
-.sliderWrapper div{display: inline-block;}
 .switch {
   position: relative;
   display: inline-block;
   width: 60px;
   height: 34px;
-  vertical-align: middle;
 }
 
 .switch input { 
@@ -298,4 +295,16 @@ input:checked + .slider:before {
 
 .nativeButtons{
   display: none
+}
+
+.column {
+  float: left;
+  width: 50%;
+}
+
+/* Clear floats after the columns */
+.row:after {
+  content: "";
+  display: table;
+  clear: both;
 }

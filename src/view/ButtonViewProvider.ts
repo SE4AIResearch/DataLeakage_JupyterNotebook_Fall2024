@@ -163,25 +163,6 @@ export class ButtonViewProvider {
             <div class="dropdown-content"> 
               <button class="button" id="run-leakage-docker">Docker</button>
               <button class="button" id="run-leakage-native">Native Binary</button> 
-              <!-- 
-              <div class="dropdown2"> 
-                  <button class="button dropbtn2" id="run-leakage-native">Native Binary
-                   
-                  </button>
-                  <div class="dropdown-content2">
-                    <button class="button secondary" id="install-leakage">Install Leakage Analysis Program
-                    </button>
-                    <div class="dropdown3"> 
-                      <button class="dropbtn3">Download Native Binary </button>
-                      <div class="dropdown-content3"> 
-                        <a class="" id="website-link" href="https://leakage-detector.vercel.app/binaries/windows-x64.zip">Windows-x64</a>
-                        <a class="" id="website-link" href="https://leakage-detector.vercel.app/binaries/macos14-arm64.zip">MacOS14-ARM64</a>
-                        <a class="" id="website-link" href="https://leakage-detector.vercel.app/binaries/linux-amd64.zip">Linux-x64</a>
-                      </div>
-                    </div>
-                  </div>
-              </div>
-              -->
             </div>
         </div>
         <!--
