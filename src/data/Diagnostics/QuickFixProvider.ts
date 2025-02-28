@@ -1,15 +1,23 @@
 import * as vscode from 'vscode';
+import { LeakageType } from '../Leakages/types';
 import { LEAKAGE_ERROR } from './notebookDiagnostics';
+import { LeakageAdapterCell } from '../../helpers/Leakages/createLeakageAdapters';
 
 export const COMMAND = 'data-leakage.quickfix';
 
 /**
  * Provides code actions corresponding to diagnostic problems.
  */
-export class LeakageInfo implements vscode.CodeActionProvider {
-  public static readonly providedCodeActionKinds = [
+export class QuickFixProvider implements vscode.CodeActionProvider {
+  public static readonly ProvidedCodeActionKinds = [
     vscode.CodeActionKind.QuickFix,
   ];
+
+  private adapters: LeakageAdapterCell[];
+
+  constructor(adapters: LeakageAdapterCell[]) {
+    this.adapters = adapters;
+  }
 
   provideCodeActions(
     _document: vscode.TextDocument,
@@ -17,13 +25,14 @@ export class LeakageInfo implements vscode.CodeActionProvider {
     context: vscode.CodeActionContext,
     _token: vscode.CancellationToken,
   ): vscode.CodeAction[] {
-    // for each diagnostic entry that has the matching `code`, create a code action command
+    console.log(this.adapters);
     return context.diagnostics
       .filter((diagnostic) => diagnostic.code === LEAKAGE_ERROR)
-      .map((diagnostic) => this.createFix(diagnostic));
+      .map((diagnostic) => this.createFix(diagnostic))
+      .filter((fix) => !!fix);
   }
 
-  private createFix(diagnostic: vscode.Diagnostic): vscode.CodeAction {
+  private createFix(diagnostic: vscode.Diagnostic): vscode.CodeAction | null {
     const action = new vscode.CodeAction(
       'Leakage Quickfix Suggestion',
       vscode.CodeActionKind.QuickFix,
@@ -35,6 +44,16 @@ export class LeakageInfo implements vscode.CodeActionProvider {
     };
     action.diagnostics = [diagnostic];
     action.isPreferred = true;
+    action.edit = new vscode.WorkspaceEdit();
+    switch (diagnostic.source) {
+      case LeakageType.OverlapLeakage:
+        break;
+      case LeakageType.PreProcessingLeakage:
+        break;
+      case LeakageType.MultiTestLeakage:
+        break;
+    }
+
     return action;
   }
 }

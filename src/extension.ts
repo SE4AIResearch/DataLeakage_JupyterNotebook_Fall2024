@@ -15,22 +15,6 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(notebookDiagnostics);
   subscribeToDocumentChanges(context, notebookDiagnostics);
 
-  /* Code Actions (Quickfix) */
-
-  // context.subscriptions.push(
-  //   vscode.languages.registerCodeActionsProvider('python', new LeakageInfo(), {
-  //     providedCodeActionKinds: LeakageInfo.providedCodeActionKinds,
-  //   }),
-  // );
-
-  // context.subscriptions.push(
-  //   vscode.commands.registerCommand(COMMAND, () =>
-  //     vscode.env.openExternal(
-  //       vscode.Uri.parse('https://www.youtube.com/watch?v=dQw4w9WgXcQ'),
-  //     ),
-  //   ),
-  // );
-
   /* Leakage Overview View */
 
   const leakageOverviewViewProvider = new LeakageOverviewViewProvider(

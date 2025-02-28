@@ -34,16 +34,6 @@
       {
         "command": "dataleakage-jupyternotebook-fall2024.runLeakageDetector",
         "title": "Run Leakage Detector"
-      },
-      {
-        "command": "data-leakage.test",
-        "category": "Test",
-        "title": "Testing Notification"
-      },
-      {
-        "command": "data-leakage.quickfix",
-        "category": "Code Action",
-        "title": "Quickfix for Leakage Error"
       }
     ],
     "views": {

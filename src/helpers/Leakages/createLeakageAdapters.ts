@@ -13,6 +13,7 @@ import {
   Metadata,
   LeakageType,
   LeakageLines,
+  LineInfo,
 } from '../../data/Leakages/types';
 
 // Import /src/helpers
@@ -34,6 +35,7 @@ export type LeakageAdapter = {
   type: LeakageType;
   line: number;
   variable: string;
+  info: LineInfo;
 };
 
 export type LeakageAdapterCell = {
@@ -41,6 +43,7 @@ export type LeakageAdapterCell = {
   line: number;
   cell: number;
   variable: string;
+  info: LineInfo;
 };
 
 export type LeakageAdapterExtra = {
@@ -81,6 +84,7 @@ const leakageAdapterHelper = (
       //     ? metadata.variable.replace(/_0$/, '')
       //     : '',
       variable: leakageLine[1].metadata?.variable || 'Unknown Variable',
+      info: leakageLine[1],
     }),
   );
 
