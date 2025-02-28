@@ -3,6 +3,7 @@ import * as vscode from 'vscode';
 import { getNonce, getWebviewOptions } from '../helpers/utils';
 import {
   getAdaptersFromFile,
+  getCounts,
   LeakageAdapterCell,
 } from '../helpers/Leakages/createLeakageAdapters';
 import { goToLeakageLine } from '../data/Table/table';
@@ -42,6 +43,7 @@ export class LeakageOverviewViewProvider {
         case 'webviewLoaded':
           this.updateTables();
         case 'moveCursor':
+          console.log('Clicked', isRow(data.row), data.row);
           isRow(data.row) && goToLeakageLine(data.row);
         default:
           throw 'Error: unrecognized data type';
@@ -58,32 +60,35 @@ export class LeakageOverviewViewProvider {
           this._context,
           vscode.window.activeNotebookEditor.notebook.uri.fsPath,
         );
-        const preprocessingCount = adapters.filter(
-          (adapter) => adapter.type === LeakageType.PreProcessingLeakage,
-        ).length;
-        const overlapCount = adapters.filter(
-          (adapter) => adapter.type === LeakageType.OverlapLeakage,
-        ).length;
-        const multiTestCount = adapters.filter(
-          (adapter) => adapter.type === LeakageType.MultiTestLeakage,
-        ).length;
-        this.changeCount(preprocessingCount, overlapCount, multiTestCount);
+        const counts = await getCounts(
+          vscode.window.activeNotebookEditor.notebook.uri.fsPath,
+        );
+        this.changeCount(
+          counts.preprocessingCount,
+          counts.overlapCount,
+          counts.multiTestCount,
+        );
 
         // Call changeRows to update the Leakage Instances table
         // Transform adapters to Row[] format
         const rows: Row[] = adapters.map((adapter) => ({
-          type: adapter.type,
+          id: adapter.id,
+          relationId: adapter.relationId,
+          type: adapter.displayType,
+          cause: adapter.cause,
           cell: adapter.cell,
           line: adapter.line,
+          model: adapter.model,
           variable: adapter.variable,
+          method: adapter.method,
         }));
         this.changeRows(rows);
       } else {
-        this.changeCount(0, 0, 0);
+        this.changeCount();
         this.changeRows([]); // Clear the table when there are no adapters
       }
     } catch (err) {
-      this.changeCount(0, 0, 0);
+      this.changeCount();
       this.changeRows([]); // Clear the table when there are no adapters
       console.log('Notebook has potentially never been analyzed before.');
       console.error(err);
@@ -91,16 +96,16 @@ export class LeakageOverviewViewProvider {
   }
 
   private changeCount(
-    preprocessing: number,
-    overlap: number,
-    multiTest: number,
+    preprocessingCount: number = 0,
+    overlapCount: number = 0,
+    multiTestCount: number = 0,
   ) {
     if (this._view) {
       this._view.webview.postMessage({
         type: 'changeCount',
-        preprocessing: preprocessing,
-        overlap: overlap,
-        multiTest: multiTest,
+        preprocessingCount,
+        overlapCount,
+        multiTestCount,
       });
     } else {
       throw new Error("View wasn't created.");
@@ -215,7 +220,9 @@ export class LeakageOverviewViewProvider {
           <th>Type</th>
           <th>Cell</th>
           <th>Line</th>
-          <th>Variable</th>
+          <th>Model Variable Name</th>
+          <th>Data Variable Name</th>
+          <th>Method</th>
         </tr>
         <!-- Rows will be added here dynamically -->
       </table>

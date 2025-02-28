@@ -25,3 +25,7 @@ td {
 .clickable {
   cursor: pointer;
 }
+
+.no-bullet {
+  list-style-type: none; /* Remove bullet points from list items */
+}
