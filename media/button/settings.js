@@ -7,6 +7,10 @@
     const nativeCheck = document.getElementById("nativeCheck");
     var nativeButtons = document.getElementById("nativeButtons");
     const dockerCheck = document.getElementById("dockerCheck");
+    const selectCheck = document.getElementById("os-select");
+    var win = document.getElementById("windows-dl");
+    var mac = document.getElementById("mac-dl");
+    var linux = document.getElementById("linux-dl");
   
     
     installLeakageBtn.addEventListener('click', (e) => {
@@ -15,7 +19,7 @@
     });
   
     nativeCheck.addEventListener('click', (e) => {
-      if (nativeCheck.checked == true){
+      if (nativeCheck.checked === true){
         dockerCheck.checked = false;
         nativeButtons.style.display = "block";
       }
@@ -24,11 +28,10 @@
         nativeButtons.style.display = "none";
       }
       installLeakageBtn.disabled = false;
-      run_button.disabled = false;
     });
   
     dockerCheck.addEventListener('click', (e) => {
-      if (dockerCheck.checked == true){
+      if (dockerCheck.checked === true){
         nativeCheck.checked = false;
         nativeButtons.style.display = "none";
       }
@@ -37,7 +40,33 @@
         nativeButtons.style.display = "block";
       }
       installLeakageBtn.disabled = false;
-      run_button.disabled = false;
+    });
+    
+    selectCheck.addEventListener('click', (e) => {
+      selectCheck.addEventListener('change', (e) => {
+        switch (selectCheck.value) {
+          case "Windows":
+            win.style.display = "block";
+            mac.style.display = "none";
+            linux.style.display = "none";
+            break;
+          case "Mac":
+            win.style.display = "none";
+            mac.style.display = "block";
+            linux.style.display = "none";
+            break;
+          case "Linux":
+            win.style.display = "none";
+            mac.style.display = "none";
+            linux.style.display = "block";
+            break;
+          case "empty":
+            win.style.display = "none";
+            mac.style.display = "none";
+            linux.style.display = "none";
+            break;
+        }
+      });
     });
   
   

@@ -178,6 +178,7 @@ export class SettingsViewProvider {
       </div>
       
       <div id="nativeButtons" style="display:none" hidden="true">
+        <!--
 				<button class="button secondary" id="install-leakage">Install</button>
         <div class="dropdown"> 
           <button class="dropbtn">Download</button>
@@ -187,12 +188,52 @@ export class SettingsViewProvider {
             <a class="" id="website-link" href="https://leakage-detector.vercel.app/binaries/linux-amd64.zip">Linux-x64</a>
           </div>
         </div>
+        -->
+
+        <label for="os-select">Choose your OS:</label>
+        <select name="binary_select" id="os-select">
+          <option value="empty">--Please choose an option--</option>
+          <option value="Windows">Windows</option>
+          <option value="Mac">Mac</option>
+          <option value="Linux">Linux</option>
+        </select>
+        <br></br>
+        <div id="windows-dl" style="display:none" hidden="true">
+          <div class="row">
+            <div class="column">
+              <button class="button" id="website-link" href="https://leakage-detector.vercel.app/binaries/windows-x64.zip">Download</button>
+            </div>
+            <div class="column">
+              <button class="button secondary" id="install-leakage">Install</button>
+            </div>
+          </div>
+        </div>
+        <div id="mac-dl" style="display:none" hidden="true">
+          <div class="row">
+            <div class="column">
+              <button class="button" id="website-link" href="https://leakage-detector.vercel.app/binaries/macos14-arm64.zip">Download</button>
+            </div>
+            <div class="column">
+              <button class="button secondary" id="install-leakage">Install</button>
+            </div>
+          </div>
+        </div>
+        <div id="linux-dl" style="display:none" hidden="true">
+          <div class="row">
+            <div class="column">
+              <button class="button" id="website-link" href="https://leakage-detector.vercel.app/binaries/linux-amd64.zip">Download</button>
+            </div>
+            <div class="column">
+              <button class="button secondary" id="install-leakage">Install</button>
+            </div>
+          </div>
+        </div>
       </div>
   
-        <div class="help">
-          <span>Need help?</span>
-          <a class="" id="website-link" href="https://leakage-detector.vercel.app/">Click here to learn more about data leakage</a>
-        </div>
+      <div class="help">
+        <span>Need help?</span>
+        <a class="" id="website-link" href="https://leakage-detector.vercel.app/">Click here to learn more about data leakage</a>
+      </div>
         
 
         <script nonce="${nonce}" src="${scriptUri}"></script>

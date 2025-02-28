@@ -1,3 +1,5 @@
 .help {
   margin-bottom: 10px;
+  position: absolute; 
+  bottom: 5px;
 }
