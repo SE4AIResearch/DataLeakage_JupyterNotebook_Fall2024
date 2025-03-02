@@ -54,6 +54,22 @@
         "command": "data-leakage.quickfix",
         "category": "Code Action",
         "title": "Quickfix for Leakage Error"
+      },
+      {
+        "command": "data-leakage.showButton",
+        "title": "Data Leakage",
+        "icon": {
+          "dark": "media/images/play_dark.png",
+          "light": "media/images/play_light.png"
+        }
+      },
+      {
+        "command": "data-leakage.showSettings",
+        "title": "Settings",
+        "icon": {
+          "dark": "media/images/cog_dark.png",
+          "light": "media/images/cog_light.png"
+        }
       }
     ],
     "views": {
@@ -75,6 +91,18 @@
           "type": "webview",
           "id": "data-leakage.overviewViewProvider",
           "name": "Leakage Overview"
+        }
+      ]
+    },
+    "menus": {
+      "view/title": [
+        {
+          "command": "data-leakage.showButton",
+          "group": "navigation"
+        },
+        {
+          "command": "data-leakage.showSettings",
+          "group": "navigation"
         }
       ]
     }
