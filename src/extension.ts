@@ -88,22 +88,45 @@ export function activate(context: vscode.ExtensionContext) {
     context,
     changeView,
   );
-  context.subscriptions.push(
+  /*context.subscriptions.push(
     vscode.window.registerWebviewViewProvider(
       ButtonViewProvider.viewType,
       buttonProvider,
     ),
-  );
+  );*/
 
   const settingsProvider = new SettingsViewProvider(
     context.extensionUri,
     context,
     changeView,
   );
-  context.subscriptions.push(
+  /*context.subscriptions.push(
     vscode.window.registerWebviewViewProvider(
       SettingsViewProvider.viewType,
       settingsProvider,
     ),
-  );
+  );*/
+
+  const buttonHandler = () =>
+  {
+    context.subscriptions.push(
+      vscode.window.registerWebviewViewProvider(
+        ButtonViewProvider.viewType,
+        buttonProvider,
+      ),
+    );
+  }
+
+  const settingsHandler = () =>
+  {
+    context.subscriptions.push(
+      vscode.window.registerWebviewViewProvider(
+        SettingsViewProvider.viewType,
+        settingsProvider,
+      ),
+    );
+  }
+
+  context.subscriptions.push(vscode.commands.registerCommand("data-leakage.showButton", buttonHandler));
+  context.subscriptions.push(vscode.commands.registerCommand("data-leakage.showSettings", settingsHandler));
 }
