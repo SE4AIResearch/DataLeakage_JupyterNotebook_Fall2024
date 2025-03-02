@@ -4,6 +4,8 @@
 (function () {
     const vscode = acquireVsCodeApi();
     const installLeakageBtn = document.getElementById('install-leakage');
+    const installLeakageBtn2 = document.getElementById('install-leakage2');
+    const installLeakageBtn3 = document.getElementById('install-leakage3');
     const nativeCheck = document.getElementById("nativeCheck");
     var nativeButtons = document.getElementById("nativeButtons");
     const dockerCheck = document.getElementById("dockerCheck");
@@ -18,6 +20,16 @@
     installLeakageBtn.addEventListener('click', (e) => {
       vscode.postMessage({ type: 'openFilePicker' });
       installLeakageBtn.disabled = true;
+    });
+
+    installLeakageBtn2.addEventListener('click', (e) => {
+      vscode.postMessage({ type: 'openFilePicker' });
+      installLeakageBtn2.disabled = true;
+    });
+
+    installLeakageBtn3.addEventListener('click', (e) => {
+      vscode.postMessage({ type: 'openFilePicker' });
+      installLeakageBtn3.disabled = true;
     });
   
     nativeCheck.addEventListener('click', (e) => {
@@ -51,21 +63,33 @@
             win.style.display = "block";
             mac.style.display = "none";
             linux.style.display = "none";
+            installLeakageBtn.disabled = false;
+            installLeakageBtn2.disabled = false;
+            installLeakageBtn3.disabled = false;
             break;
           case "Mac":
             win.style.display = "none";
             mac.style.display = "block";
             linux.style.display = "none";
+            installLeakageBtn.disabled = false;
+            installLeakageBtn2.disabled = false;
+            installLeakageBtn3.disabled = false;
             break;
           case "Linux":
             win.style.display = "none";
             mac.style.display = "none";
             linux.style.display = "block";
+            installLeakageBtn.disabled = false;
+            installLeakageBtn2.disabled = false;
+            installLeakageBtn3.disabled = false;
             break;
           case "empty":
             win.style.display = "none";
             mac.style.display = "none";
             linux.style.display = "none";
+            installLeakageBtn.disabled = false;
+            installLeakageBtn2.disabled = false;
+            installLeakageBtn3.disabled = false;
             break;
         }
       });
@@ -108,6 +132,8 @@
         }
         case 'filePickerDone': {
           installLeakageBtn.disabled = false;
+          installLeakageBtn2.disabled = false;
+          installLeakageBtn3.disabled = false;
           break;
         }
       }
