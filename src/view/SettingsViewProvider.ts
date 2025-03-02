@@ -222,7 +222,7 @@ export class SettingsViewProvider {
               <button class="button" id="website-link" href="https://leakage-detector.vercel.app/binaries/macos14-arm64.zip">Download</button>
             </div>
             <div class="column">
-              <button class="button secondary" id="install-leakage">Install</button>
+              <button class="button secondary" id="install-leakage2">Install</button>
             </div>
           </div>
         </div>
@@ -232,7 +232,7 @@ export class SettingsViewProvider {
               <button class="button" id="website-link" href="https://leakage-detector.vercel.app/binaries/linux-amd64.zip">Download</button>
             </div>
             <div class="column">
-              <button class="button secondary" id="install-leakage">Install</button>
+              <button class="button secondary" id="install-leakage3">Install</button>
             </div>
           </div>
         </div>
