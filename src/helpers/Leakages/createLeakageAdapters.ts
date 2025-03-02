@@ -12,9 +12,6 @@ import {
   LeakageInstances,
   LeakageType,
   LeakageLines,
-  LineInfo,
-  LineTag,
-  Metadata,
 } from '../../data/Leakages/types';
 
 // Import /src/helpers
@@ -40,7 +37,6 @@ export type LeakageAdapter = {
   line: number;
   model: string;
   variable: string;
-  info: LineInfo;
   method: string;
 };
 
@@ -57,7 +53,6 @@ export type LeakageAdapterCell = {
   cell: number;
   model: string;
   variable: string;
-  info: LineInfo;
   method: string;
 };
 

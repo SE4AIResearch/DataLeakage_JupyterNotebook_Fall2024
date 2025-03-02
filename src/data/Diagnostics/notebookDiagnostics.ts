@@ -42,12 +42,20 @@ function createNotebookDiagnostic(
   );
   diagnostic.code = LEAKAGE_ERROR;
   diagnostic.source = adapterCell.type;
-  // diagnostic.relatedInformation = [
-  //   new vscode.DiagnosticRelatedInformation(
-  //     new vscode.Location(doc.uri, range),
-  //     JSON.stringify(adapterCell.info),
-  //   ),
-  // ];
+  diagnostic.relatedInformation = [
+    new vscode.DiagnosticRelatedInformation(
+      new vscode.Location(doc.uri, range),
+      `Variable: ${adapterCell.variable}`,
+    ),
+    new vscode.DiagnosticRelatedInformation(
+      new vscode.Location(doc.uri, range),
+      `Model: ${adapterCell.model}`,
+    ),
+    new vscode.DiagnosticRelatedInformation(
+      new vscode.Location(doc.uri, range),
+      `Method: ${adapterCell.method}`,
+    ),
+  ];
 
   return diagnostic;
 }
@@ -100,7 +108,7 @@ const configureNotebookDiagnostics = async (
     context.subscriptions.push(
       vscode.languages.registerCodeActionsProvider(
         'python',
-        new QuickFixProvider(adapters),
+        await QuickFixProvider.create(context),
         {
           providedCodeActionKinds: QuickFixProvider.ProvidedCodeActionKinds,
         },
