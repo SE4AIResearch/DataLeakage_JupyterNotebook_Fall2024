@@ -14,7 +14,13 @@
     var mac = document.getElementById("mac-dl");
     var linux = document.getElementById("linux-dl");
 
+    const win_link = document.getElementById("windows-link");
+
     const methodCheck = document.getElementById("method-select");
+
+/*     win_link.addEventListener('click', (e)=> {
+      location.href = "https://leakage-detector.vercel.app/binaries/windows-x64.zip";
+    }); */
   
     
     installLeakageBtn.addEventListener('click', (e) => {

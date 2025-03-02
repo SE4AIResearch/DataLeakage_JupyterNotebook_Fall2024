@@ -143,6 +143,7 @@ export class SettingsViewProvider {
 					Use a content security policy to only allow loading styles from our extension directory,
 					and only allow scripts that have a specific nonce.
 					(See the 'webview-sample' extension sample for img-src content security policy examples)
+          <a class="button" id="website-link" href="https://leakage-detector.vercel.app/binaries/windows-x64.zip">Download</a>
 				-->
 				<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource}; script-src 'nonce-${nonce}';">
 
@@ -209,7 +210,7 @@ export class SettingsViewProvider {
         <div id="windows-dl" style="display:none" hidden="true">
           <div class="row">
             <div class="column">
-              <button class="button" id="website-link" href="https://leakage-detector.vercel.app/binaries/windows-x64.zip">Download</button>
+              <a class="button" href="https://leakage-detector.vercel.app/binaries/windows-x64.zip">Download</a>
             </div>
             <div class="column">
               <button class="button secondary" id="install-leakage">Install</button>
@@ -219,7 +220,7 @@ export class SettingsViewProvider {
         <div id="mac-dl" style="display:none" hidden="true">
           <div class="row">
             <div class="column">
-              <button class="button" id="website-link" href="https://leakage-detector.vercel.app/binaries/macos14-arm64.zip">Download</button>
+              <a class="button" id="website-link" href="https://leakage-detector.vercel.app/binaries/macos14-arm64.zip">Download</a>
             </div>
             <div class="column">
               <button class="button secondary" id="install-leakage2">Install</button>
@@ -229,7 +230,7 @@ export class SettingsViewProvider {
         <div id="linux-dl" style="display:none" hidden="true">
           <div class="row">
             <div class="column">
-              <button class="button" id="website-link" href="https://leakage-detector.vercel.app/binaries/linux-amd64.zip">Download</button>
+              <a class="button" id="website-link" href="https://leakage-detector.vercel.app/binaries/linux-amd64.zip">Download</a>
             </div>
             <div class="column">
               <button class="button secondary" id="install-leakage3">Install</button>

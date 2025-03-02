@@ -39,6 +39,39 @@ a:active {
   color: var(--vscode-textLink-activeForeground);
 }
 
+a.button {
+  font-size: var(--vscode-font-size);
+  font-weight: var(--vscode-font-weight);
+  font-family: var(--vscode-font-family);
+  display: block;
+  margin: 0 auto;
+  border: none;
+  padding: var(--input-padding-vertical) var(--input-padding-horizontal);
+  width: 100%;
+  text-align: center;
+  outline: 1px solid transparent;
+  outline-offset: 2px !important;
+  color: var(--vscode-button-foreground);
+  background: var(--vscode-button-background);
+  text-decoration: none;
+  box-shadow: none;
+  height: 27px;
+}
+
+a.button:hover {
+  cursor: pointer;
+  background: var(--vscode-button-hoverBackground);
+}
+
+a.button:focus {
+  outline-color: var(--vscode-focusBorder);
+}
+
+a.button:disabled {
+  cursor: progress;
+  background: color-mix(in srgb, var(--vscode-button-background), grey 50%);
+}
+
 code {
   font-size: var(--vscode-editor-font-size);
   font-family: var(--vscode-editor-font-family);

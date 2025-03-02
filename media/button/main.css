@@ -39,6 +39,12 @@ body {
   margin: 0 auto;
 }
 
+a.button{
+  display: block;
+  border: none;
+  margin: 0 auto;
+}
+
 .select{
   display: block;
   border: none;
