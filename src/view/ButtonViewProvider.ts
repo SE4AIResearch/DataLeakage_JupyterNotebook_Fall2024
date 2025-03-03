@@ -201,7 +201,7 @@ export class ButtonViewProvider {
 
       <label for="method-select" hidden>Choose your Run method:</label>
         <select name="method-select" id="method-select" hidden>
-          <option value="empty">--Please choose an option--</option>
+          <option value="empty"></option>
           <option value="Docker">Docker</option>
           <option value="Native">Native Binary</option>
         </select>
