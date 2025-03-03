@@ -87,13 +87,26 @@ export function activate(context: vscode.ExtensionContext) {
     context.extensionUri,
     context,
     changeView,
+    "button"
   );
-  /*context.subscriptions.push(
+  const refreshViewButtons = async() =>
+    await buttonProvider.refresh("buttons");
+
+  const refreshViewSettings = async() =>
+    await buttonProvider.refresh("settings");
+
+  const buttonProvider2 = new ButtonViewProvider(
+    context.extensionUri,
+    context,
+    changeView,
+    "settings"
+  );
+  context.subscriptions.push(
     vscode.window.registerWebviewViewProvider(
       ButtonViewProvider.viewType,
       buttonProvider,
     ),
-  );*/
+  );
 
   const settingsProvider = new SettingsViewProvider(
     context.extensionUri,
@@ -107,15 +120,28 @@ export function activate(context: vscode.ExtensionContext) {
     ),
   );*/
 
-  const buttonHandler = () =>
-  {
-    context.subscriptions.push(
-      vscode.window.registerWebviewViewProvider(
-        ButtonViewProvider.viewType,
-        buttonProvider,
-      ),
-    );
-  }
+  const buttonHandler = async () =>
+    {
+/*       context.subscriptions.push(
+        vscode.window.registerWebviewViewProvider(
+          ButtonViewProvider.viewType,
+          buttonProvider,
+        ),
+      ); */
+      await refreshViewButtons();
+    }
+
+  const buttonHandler2 = async () =>
+    {
+      /* console.log(context.subscriptions);
+      context.subscriptions.push(
+        vscode.window.registerWebviewViewProvider(
+          ButtonViewProvider.viewType,
+          buttonProvider2,
+        ),
+      ); */
+      await refreshViewSettings();
+    }
 
   const settingsHandler = () =>
   {
@@ -128,5 +154,5 @@ export function activate(context: vscode.ExtensionContext) {
   }
 
   context.subscriptions.push(vscode.commands.registerCommand("data-leakage.showButton", buttonHandler));
-  context.subscriptions.push(vscode.commands.registerCommand("data-leakage.showSettings", settingsHandler));
+  context.subscriptions.push(vscode.commands.registerCommand("data-leakage.showSettings", buttonHandler2));
 }
