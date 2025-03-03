@@ -221,7 +221,7 @@ export class ButtonViewProvider {
 
         <label for="os-select">Choose your OS:</label>
         <select name="binary_select" id="os-select">
-          <option value="empty">--Please choose an option--</option>
+          <option value="empty"></option>
           <option value="Windows">Windows</option>
           <option value="Mac">Mac</option>
           <option value="Linux">Linux</option>
