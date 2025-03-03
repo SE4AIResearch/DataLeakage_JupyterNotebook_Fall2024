@@ -92,10 +92,12 @@
       "view/title": [
         {
           "command": "data-leakage.showButton",
+          "when": "view == data-leakage.buttonView",
           "group": "navigation"
         },
         {
           "command": "data-leakage.showSettings",
+          "when": "view == data-leakage.buttonView",
           "group": "navigation"
         }
       ]

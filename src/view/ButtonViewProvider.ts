@@ -205,6 +205,7 @@ export class ButtonViewProvider {
           <option value="Docker">Docker</option>
           <option value="Native">Native Binary</option>
         </select>
+      <br>
       
       <div id="nativeButtons" style="display:none" hidden="true">
         <!--
