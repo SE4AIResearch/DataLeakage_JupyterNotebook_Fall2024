@@ -6,43 +6,56 @@
 import * as vscode from 'vscode';
 
 // Import /src/data
-import LeakageInstance from '../../data/Leakages/LeakageInstance/LeakageInstance';
-import MultitestLeakageInstance from '../../data/Leakages/LeakageInstance/MultitestLeakageInstance';
-import OverlapLeakageInstance from '../../data/Leakages/LeakageInstance/OverlapLeakageInstance';
-import PreprocessingLeakageInstance from '../../data/Leakages/LeakageInstance/PreprocessingLeakageInstance';
 import Leakages from '../../data/Leakages/Leakages';
-import { Metadata } from '../../data/Leakages/types';
+import {
+  LeakageOutput,
+  LeakageInstances,
+  LeakageType,
+  LeakageLines,
+  LineTag,
+  Metadata,
+} from '../../data/Leakages/types';
 
 // Import /src/helpers
 import { TempDir } from '../TempDir';
 import {
   ConversionToJupyter,
   ConversionToPython,
-  JupyCell,
 } from '../conversion/LineConversion';
-
-import fs from 'fs';
-import path from 'path';
 
 /**
  * Types
  */
 
 export type LeakageAdapter = {
-  type: 'Overlap' | 'Preprocessing' | 'Multi-Test';
-  line: number;
-  variable: string;
+  id: number;
+  relationId: number;
+  type: LeakageType;
+  displayType:
+    | 'Overlap Leakage'
+    | 'Pre-Processing Leakage'
+    | 'Multi-Test Leakage';
   cause: string;
-  parent: null | Array<LeakageAdapter>; // not sure what to do with this but it is an array of testingData that are related to each other (array includes the object itself)
+  line: number;
+  model: string;
+  variable: string;
+  method: string;
 };
 
 export type LeakageAdapterCell = {
-  type: 'Overlap' | 'Preprocessing' | 'Multi-Test';
+  id: number;
+  relationId: number;
+  type: LeakageType;
+  displayType:
+    | 'Overlap Leakage'
+    | 'Pre-Processing Leakage'
+    | 'Multi-Test Leakage';
+  cause: string;
   line: number;
   cell: number;
+  model: string;
   variable: string;
-  cause: string;
-  parent: null | Array<LeakageAdapter>; // not sure what to do with this but it is an array of testingData that are related to each other (array includes the object itself)
+  method: string;
 };
 
 export type LeakageAdapterExtra = {
@@ -52,6 +65,7 @@ export type LeakageAdapterExtra = {
 /**
  * Custom Error
  */
+
 export class NotAnalyzedError extends Error {
   constructor(message: string) {
     super(message);
@@ -60,98 +74,119 @@ export class NotAnalyzedError extends Error {
 }
 
 /**
- * Constants
+ * Variable
  */
 
-export const INTERNAL_VARIABLE_NAME = 'Internal Variable';
+let _relationIdIndex = 1;
+
+export const INTERNAL_VARIABLE_NAME = 'Name Not Found';
 
 /**
  * Helper Functions
  */
 
 const leakageAdapterHelper = (
-  type: 'Overlap' | 'Preprocessing' | 'Multi-Test',
-  metadataArrays: Metadata[][],
-  cause: string,
-  line: number | number[],
-) => {
-  const leakageAdapters = metadataArrays
-    .map((metadataArray) =>
-      metadataArray
-        .filter((metadata) =>
-          Array.isArray(line)
-            ? line.includes(metadata.line as number)
-            : metadata.line === line,
-        )
-        .map(
-          (metadata): LeakageAdapter => ({
-            type: type,
-            line: metadata.line as number,
-            variable:
-              typeof metadata.variable === 'string'
-                ? metadata.variable.replace(/_0$/, '')
-                : '',
-            cause,
-            parent: null,
-          }),
+  type: LeakageType,
+  lines: LeakageLines,
+): LeakageAdapter[] => {
+  const leakageAdapters: LeakageAdapter[] = Object.entries(lines).map(
+    (leakageLine) => {
+      const convertTypeToReadableString = (type: LeakageType) =>
+        type === LeakageType.PreProcessingLeakage
+          ? 'Pre-Processing Leakage'
+          : type === LeakageType.OverlapLeakage
+            ? 'Overlap Leakage'
+            : 'Multi-Test Leakage';
+
+      const createCause = (type: LeakageType) =>
+        type === LeakageType.PreProcessingLeakage
+          ? 'Vectorizer fit on train and test data together'
+          : type === LeakageType.OverlapLeakage
+            ? 'Same/Similar data in both train and test'
+            : 'Repeat data evaluation';
+
+      const renameDuplicates = (model: string) => {
+        const regex = /_(\d+)$/;
+        if (!regex.test(model)) {
+          return model;
+        }
+        const modelTrimmed = model.replace(regex, '');
+        const matched = model.match(regex);
+        if (matched === null || matched[0] === undefined) {
+          console.error(
+            'Unknown error occurred while trying to match model ending digits.',
+            matched,
+            model,
+            modelTrimmed,
+          );
+          return model;
+        }
+
+        const lineArr = Object.values(lines);
+        const models = lineArr
+          .map((line) => line.metadata?.model ?? null)
+          .filter((model) => model !== null);
+
+        if (models.includes(modelTrimmed)) {
+          return `${modelTrimmed} (${matched[1]})`;
+        } else {
+          return model;
+        }
+      };
+
+      const renamePrivateVar = (model: string) =>
+        /^_var\d+$/.test(model) ? 'Name Not Found' : model;
+
+      const changeUnknown = (method: string) => {
+        const sep = method.split('.');
+        return sep.length === 2 && sep[0] === 'Unknown'
+          ? 'AnonymousModel.' + sep[1]
+          : method;
+      };
+
+      return {
+        id: -1,
+        relationId: -1,
+        type: type,
+        displayType: convertTypeToReadableString(type),
+        cause: createCause(type),
+        line: Number(leakageLine[0]),
+        model: renamePrivateVar(
+          renameDuplicates(leakageLine[1].metadata?.model || 'Unknown Model'),
         ),
-    )
-    .flat();
-
-  return leakageAdapters;
-};
-
-// FIXME: Find out how to choose taints to display for each leakage
-
-const adaptOverlapLeakageInstance = (
-  leakage: OverlapLeakageInstance,
-): LeakageAdapter[] => {
-  const source = leakage.getSource();
-  const cause = source.getCause().toString();
-  const line = leakage.getLine();
-  const metadataArrays = leakage.getOccurrences().map((o) => o.testingData);
-  const leakageAdapters = leakageAdapterHelper(
-    'Overlap',
-    metadataArrays,
-    cause,
-    line,
+        variable: renamePrivateVar(
+          leakageLine[1].metadata?.variable.replace(/_\d$/, '') ||
+            'Unknown Variable',
+        ),
+        method:
+          changeUnknown(leakageLine[1].metadata?.method || 'Unknown Method') +
+          '()',
+      };
+    },
   );
 
   return leakageAdapters;
 };
 
-const adaptPreprocessingLeakageInstance = (
-  leakage: PreprocessingLeakageInstance,
+const getLines = (
+  leakageInstance: LeakageInstances[LeakageType],
+  leakageLines: LeakageLines,
+) =>
+  Object.entries(leakageLines)
+    .filter((line) => leakageInstance.lines.includes(Number(line[0])))
+    .reduce(
+      (acc: LeakageLines, [key, value]): LeakageLines =>
+        Object.assign(acc, { [Number(key)]: value }),
+      {},
+    );
+
+const adaptLeakages = (
+  leakageType: LeakageType,
+  leakageInstance: LeakageInstances[LeakageType],
+  leakageLines: LeakageLines,
 ): LeakageAdapter[] => {
-  const source = leakage.getSource();
-  const cause = source.getCause().toString();
-  const line = leakage.getLine();
-  const metadataArrays = leakage.getOccurrences().map((o) => o.testingData);
-  const leakageAdapters = leakageAdapterHelper(
-    'Preprocessing',
-    metadataArrays,
-    cause,
-    line,
-  );
-
-  return leakageAdapters;
-};
-
-const adaptMultitestLeakageInstances = (
-  leakage: MultitestLeakageInstance,
-): LeakageAdapter[] => {
-  const cause = 'repeatDataEvaluation';
-  const lines = leakage.getLines();
-  const metadataArrays = leakage
-    .getOccurrences()
-    .map((o) => o.trainTest.testingData);
-  const leakageAdapters = leakageAdapterHelper(
-    'Multi-Test',
-    metadataArrays,
-    cause,
-    lines,
-  );
-
+  const lines = getLines(leakageInstance, leakageLines);
+  const leakageAdapters = leakageAdapterHelper(leakageType, lines);
   return leakageAdapters;
 };
 
@@ -165,21 +200,31 @@ const adaptMultitestLeakageInstances = (
  * @returns
  */
 export function createLeakageAdapters(
-  leakages: LeakageInstance[],
+  leakages: LeakageOutput,
 ): LeakageAdapter[] {
   const leakageAdapters: LeakageAdapter[] = [];
 
-  leakages.forEach((leakage) => {
-    if (leakage instanceof OverlapLeakageInstance) {
-      leakageAdapters.push(...adaptOverlapLeakageInstance(leakage));
-    } else if (leakage instanceof PreprocessingLeakageInstance) {
-      leakageAdapters.push(...adaptPreprocessingLeakageInstance(leakage));
-    } else if (leakage instanceof MultitestLeakageInstance) {
-      leakageAdapters.push(...adaptMultitestLeakageInstances(leakage));
-    } else {
-      console.error('Error: Unknown Leakage Instance Type.');
+  let idIndex = 1;
+
+  for (const type of Object.values(LeakageType)) {
+    if (leakages.leakageInstances[type]) {
+      leakageAdapters.push(
+        ...adaptLeakages(
+          type,
+          leakages.leakageInstances[type],
+          leakages.leakageLines,
+        ).map((adapter) => ({
+          ...adapter,
+          id: idIndex++,
+        })),
+      );
     }
-  });
+  }
+
+  // Filter internal variables
+  // return leakageAdapters.filter(
+  //   (adapter) => !internalVariableRegex.test(adapter.variable),
+  // );
 
   return leakageAdapters;
 }
@@ -203,13 +248,17 @@ export async function getAdaptersFromFile(
     );
   } catch (err) {
     console.error('Notebook has not been analyzed before.', err);
-    // diagnosticCollection.delete(editor.document.uri);
     throw new NotAnalyzedError('Notebook has not been analyzed before.');
   }
 
+  const pythonFileTotalLines = ConversionToPython.convertJupyCellsToPythonCode(
+    manager.getJupyCells(),
+  ).split('\n').length;
+
   const leakages = await new Leakages(
     tempDir.getAlgoOutputDirPath(),
-    context,
+    'input',
+    pythonFileTotalLines, // Assuming fileLines is not needed here
   ).getLeakages();
 
   const leakageAdapters = createLeakageAdapters(leakages);
@@ -228,14 +277,48 @@ export async function getAdaptersFromFile(
       console.warn('Warning: Cell not found.');
       throw new Error('Cell not found.');
     }
-    if (!cell.data.includes(row.variable)) {
-      console.warn('Warning: Internal variable found in cell.');
-      row.variable = INTERNAL_VARIABLE_NAME;
-    }
+    // if (!cell.data.includes(row.variable)) {
+    //   console.warn('Warning: Internal variable found in cell.');
+    //   row.variable = INTERNAL_VARIABLE_NAME;
+    // }
     return row;
   });
 
   console.log('RESULT: ', res);
 
   return res;
+}
+
+export async function getCounts(fsPath: string) {
+  const notebook = await vscode.workspace.openNotebookDocument(
+    vscode.Uri.file(fsPath),
+  );
+
+  const tempDir = await TempDir.getTempDir(fsPath);
+  let manager = null;
+
+  try {
+    manager = await ConversionToJupyter.convertJSONFile(
+      tempDir.getAlgoJupyLineMappingPath(),
+    );
+  } catch (err) {
+    console.error('Notebook has not been analyzed before.', err);
+    throw new NotAnalyzedError('Notebook has not been analyzed before.');
+  }
+
+  const pythonFileTotalLines = ConversionToPython.convertJupyCellsToPythonCode(
+    manager.getJupyCells(),
+  ).split('\n').length;
+
+  const leakages = await new Leakages(
+    tempDir.getAlgoOutputDirPath(),
+    'input',
+    pythonFileTotalLines, // Assuming fileLines is not needed here
+  ).getLeakages();
+
+  return {
+    preprocessingCount: leakages.leakageInstances.PreProcessingLeakage.count,
+    overlapCount: leakages.leakageInstances.OverlapLeakage.count,
+    multiTestCount: leakages.leakageInstances.MultiTestLeakage.count,
+  };
 }
