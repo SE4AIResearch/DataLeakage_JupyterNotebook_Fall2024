@@ -47,7 +47,7 @@ a.button {
   margin: 0 auto;
   border: none;
   padding: var(--input-padding-vertical) var(--input-padding-horizontal);
-  width: 100%;
+  width: 80px;
   text-align: center;
   outline: 1px solid transparent;
   outline-offset: 2px !important;
@@ -56,6 +56,7 @@ a.button {
   text-decoration: none;
   box-shadow: none;
   height: 27px;
+  float: left;
 }
 
 a.button:hover {
@@ -81,6 +82,17 @@ button {
   border: none;
   padding: var(--input-padding-vertical) var(--input-padding-horizontal);
   width: 100%;
+  text-align: center;
+  outline: 1px solid transparent;
+  outline-offset: 2px !important;
+  color: var(--vscode-button-foreground);
+  background: var(--vscode-button-background);
+}
+
+button.test {
+  border: none;
+  padding: var(--input-padding-vertical) var(--input-padding-horizontal);
+  width: 80px;
   text-align: center;
   outline: 1px solid transparent;
   outline-offset: 2px !important;

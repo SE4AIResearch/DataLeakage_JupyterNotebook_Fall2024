@@ -90,7 +90,7 @@ export class ButtonViewProvider {
       } else {
         throw new Error("View wasn't created.");
       }
-      
+
     } catch(err){
       console.log(err);
     }
@@ -152,6 +152,19 @@ export class ButtonViewProvider {
     );
 
     StateManager.saveIsRunning(this._context, false);
+    
+    const user_os = process.platform;
+    var os_link = "";
+
+    if (user_os === 'win32'){
+      os_link = "https://leakage-detector.vercel.app/binaries/windows-x64.zip"; 
+    }
+    else if (user_os === 'linux'){
+      os_link = "https://leakage-detector.vercel.app/binaries/linux-amd64.zip";
+    }
+    else if (user_os === 'darwin'){
+      os_link = "https://leakage-detector.vercel.app/binaries/macos14-arm64.zip";
+    }
 
     const nonce = getNonce();
     if(output == "settings"){
@@ -178,7 +191,7 @@ export class ButtonViewProvider {
 				<title>Data Leakage</title>
 			</head>
 			<body>
-      <div class="row">
+      <div class="row" hidden>
         <div class="column">Docker</div>
         <div class="column">
           <label for="dockerCheck" class="switch"> 
@@ -188,7 +201,7 @@ export class ButtonViewProvider {
         </div>
       </div>
 
-      <div class="row">
+      <div class="row" hidden>
         <div class="column">Native Binary</div>
         <div class="column">
           <label for="nativeCheck" class="switch"> 
@@ -198,14 +211,29 @@ export class ButtonViewProvider {
         </div>
       </div>
 
-
-      <label for="method-select" hidden>Choose your Run method:</label>
-        <select name="method-select" id="method-select" hidden>
+      <!--
+      <label for="method-select" >Run Mode</label>
+        <select class="select" name="method-select" id="method-select" >
           <option value="empty"></option>
           <option value="Docker">Docker</option>
           <option value="Native">Native Binary</option>
         </select>
       <br>
+      -->
+      <div class="row">
+          <div class="column">
+            <span>Run Mode</span>
+          </div>
+          <div class="column">
+            <select class="select" name="method-select" id="method-select" >
+              <option value="empty"></option>
+              <option value="Docker">Docker</option>
+              <option value="Native">Native</option>
+            </select>
+          </div>
+        </div>
+        
+      <br></br>
       
       <div id="nativeButtons" style="display:none" hidden="true">
         <!--
@@ -219,15 +247,25 @@ export class ButtonViewProvider {
           </div>
         </div>
         -->
+        <div class="row">
+          <div class="column">
+            <a class="button test" id="website-link" href=${os_link}>Download</a>
+          </div>
+          <div class="column-right">
+            <button class="button secondary test" id="install-leakage">Install</button>
+          </div>
+        </div>
+        <br></br>
 
-        <label for="os-select">Choose your OS:</label>
-        <select name="binary_select" id="os-select">
+        <label for="os-select" hidden>Choose your OS:</label>
+        <select name="binary_select" id="os-select" hidden>
           <option value="empty"></option>
           <option value="Windows">Windows</option>
           <option value="Mac">Mac</option>
           <option value="Linux">Linux</option>
         </select>
         <br></br>
+        
         <div id="windows-dl" style="display:none" hidden="true">
           <div class="row">
             <div class="column">
