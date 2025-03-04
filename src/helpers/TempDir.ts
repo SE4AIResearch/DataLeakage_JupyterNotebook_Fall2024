@@ -73,7 +73,7 @@ export class TempDir {
 // FIXME: Temporary location until we replace docker
 
 export class DockerTemp {
-  static IMAGE_NAME = 'owentruong/leakage-analysis:latest';
+  static IMAGE_NAME = 'owentruong/leakage-analysis:2.0';
   static CONTAINER_DIR_PATH = '/input';
   static PYTHON_FILE_PATH = path.posix.join(
     this.CONTAINER_DIR_PATH,
