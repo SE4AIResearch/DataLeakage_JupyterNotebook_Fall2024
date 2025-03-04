@@ -198,7 +198,7 @@ export class LeakageOverviewViewProvider {
       <table>
         <tr>
           <th>Type</th>
-          <th>Leakage Count</th>
+          <th>Unique Leakage Count</th>
         </tr>
         <tr>
           <td>Pre-Processing</td>
