@@ -32,25 +32,30 @@ async function runCommandWithPythonInterpreter(command: string) {
     vscode.window.showErrorMessage('Python extension is not installed.');
     return;
   }
+  // Create a new terminal
+  const terminal = vscode.window.createTerminal('Python Command Terminal');
+  // Show the terminal
+  terminal.show();
 
+  // Activate the .venv virtual environment for Windows
+  if (process.platform === 'win32') {
+    // Want to manually activate venv
+    // Get ${pathToPythonFolder}/Scripts/Activate.ps1
+    const pythonPath = pythonExtension.exports.settings.getExecutionDetails().execCommand[0];
+    const pythonFolder = path.dirname(pythonPath);
+    const activatePath = path.join(pythonFolder, 'Activate.ps1');
+    console.log(`python folder path is ${pythonFolder}`);
+    console.log(`activate path is ${activatePath}`);
+    // Activate the virtual environment
+    terminal.sendText(`& ${activatePath}`);
+  }
   // Activate the Python extension
   await pythonExtension.activate();
 
-  // Get the Python interpreter path
-  const pythonPath =
-    pythonExtension.exports.settings.getExecutionDetails().execCommand[0];
-
   // Create the full command
   const fullCommand = `${command}`;
-
-  // Create a new terminal
-  const terminal = vscode.window.createTerminal('Python Command Terminal');
-
   // Send the command to the terminal
   terminal.sendText(fullCommand);
-
-  // Show the terminal
-  terminal.show();
 
   try {
     await new Promise((resolve, reject) => {

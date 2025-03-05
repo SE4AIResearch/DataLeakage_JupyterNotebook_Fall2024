@@ -7,6 +7,7 @@ export function checkTerminalEnded(
 ) {
   // Listen to terminal output
   const disposable = vscode.window.onDidEndTerminalShellExecution((e) => {
+    console.log('Terminal exited with code:', e.exitCode);
     if (e.terminal === targetTerminal) {
       disposable.dispose(); // Clean up the event listener
 
