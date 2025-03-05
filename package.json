@@ -34,6 +34,10 @@
       {
         "command": "dataleakage-jupyternotebook-fall2024.runLeakageDetector",
         "title": "Run Leakage Detector"
+      },
+      {
+        "command": "dataleakage-jupyternotebook-fall2024.quickFixLLM",
+        "title": "Quick Fix using Copilot"
       }
     ],
     "views": {

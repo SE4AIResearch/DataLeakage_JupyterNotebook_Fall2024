@@ -6,6 +6,7 @@ import {
   COLLECTION_NAME,
   subscribeToDocumentChanges,
 } from './data/Diagnostics/notebookDiagnostics';
+import { quickFixLLM } from './data/Diagnostics/quickFixLLM';
 
 export function activate(context: vscode.ExtensionContext) {
   /* Diagnostics */
@@ -14,6 +15,10 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.languages.createDiagnosticCollection(COLLECTION_NAME);
   context.subscriptions.push(notebookDiagnostics);
   subscribeToDocumentChanges(context, notebookDiagnostics);
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand('dataleakage-jupyternotebook-fall2024.quickFixLLM', quickFixLLM),
+  );
 
   /* Leakage Overview View */
 
