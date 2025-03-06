@@ -2,6 +2,10 @@ body {
   background-color: transparent;
 }
 
+h2 {
+  font-weight: bold;
+}
+
 .list {
   list-style: none;
   padding: 0;
@@ -46,15 +50,10 @@ a.button{
 }
 
 .select{
-  display: block;
-  border: none;
-  margin: 0;
-  height: 100%;
-  width: 80px;
-  padding: var(--input-padding-vertical) var(--input-padding-horizontal);
   background-color: var(--vscode-input-background);
   color: var(--vscode-input-foreground);
-  position: relative;
+  float: right;
+  width: 110px;
 }
 
 .check {
@@ -187,6 +186,11 @@ input:checked + .slider:before {
   width: 50%;
 }
 .column-right{
+  float: right;
+  width: 50%;
+}
+
+.right{
   float: right;
   width: 50%;
 }

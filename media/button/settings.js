@@ -106,9 +106,11 @@
         switch (methodCheck.value) {
           case "Docker":
             nativeButtons.style.display = "none";
+            vscode.postMessage({ type: 'dockerChosen' });
             break;
           case "Native":
             nativeButtons.style.display = "block";
+            vscode.postMessage({ type: 'nativeChosen' });
             break;
           case "empty":
             nativeButtons.style.display = "none";
