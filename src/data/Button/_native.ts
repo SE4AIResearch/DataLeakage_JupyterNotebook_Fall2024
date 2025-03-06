@@ -24,44 +24,6 @@ function getOutputByOS(input: [any, any, any]) {
   }
 }
 
-// async function runCommandWithPythonInterpreter(command: string) {
-//   // Get the Python extension
-//   const pythonExtension = vscode.extensions.getExtension('ms-python.python');
-//   if (!pythonExtension) {
-//     vscode.window.showErrorMessage('Python extension is not installed.');
-//     return;
-//   }
-
-//   // Activate the Python extension
-//   await pythonExtension.activate();
-
-//   // Get the Python interpreter path
-//   const pythonPath =
-//     pythonExtension.exports.settings.getExecutionDetails().execCommand[0];
-
-//   // Create the full command
-//   const fullCommand = `${command}`;
-
-//   // Create a new terminal
-//   const terminal = vscode.window.createTerminal('Python Command Terminal');
-
-//   // Send the command to the terminal
-//   terminal.sendText(fullCommand);
-
-//   // Show the terminal
-//   terminal.show();
-
-//   try {
-//     await new Promise((resolve, reject) => {
-//       checkTerminalEnded(terminal, resolve, reject);
-//     });
-//   } catch (err) {
-//     terminal.dispose();
-//     throw err;
-//   }
-//   terminal.dispose();
-// }
-
 async function runPythonCommandAsTask(command: string): Promise<void> {
   // Get the Python extension
   const pythonExtension = vscode.extensions.getExtension('ms-python.python');
@@ -91,30 +53,40 @@ async function runPythonCommandAsTask(command: string): Promise<void> {
     );
 
     task.presentationOptions = {
+      reveal: vscode.TaskRevealKind.Always,
+      panel: vscode.TaskPanelKind.Shared,
       close: true,
     };
 
     // Execute the task
-    vscode.tasks.executeTask(task).then(
-      (taskExecution) => {
-        // Set up a listener for when the task process ends
-        const disposable = vscode.tasks.onDidEndTaskProcess((e) => {
-          if (e.execution === taskExecution) {
-            disposable.dispose();
-            if (e.exitCode === 0) {
-              resolve();
+    vscode.tasks.executeTask(task).then((taskExecution) => {
+      // Set up a listener for when the task process ends
+      const disposable = vscode.tasks.onDidEndTaskProcess((e) => {
+        if (e.execution === taskExecution) {
+          disposable.dispose();
+
+          if (e.exitCode === 0) {
+            console.log('Successfully ran native binary.');
+            resolve();
+          } else {
+            reject(
+              new Error(`Python command failed with exit code ${e.exitCode}`),
+            );
+            const idx = vscode.window.terminals
+              .map((terminal) => {
+                return terminal.creationOptions.name;
+              })
+              .findIndex((val) => val === e.execution.task.name);
+
+            if (idx === -1) {
+              console.error('Created terminal not found');
             } else {
-              reject(
-                new Error(`Python command failed with exit code ${e.exitCode}`),
-              );
+              vscode.window.terminals[idx].dispose();
             }
           }
-        });
-      },
-      (error) => {
-        reject(error);
-      },
-    );
+        }
+      });
+    });
   });
 }
 
