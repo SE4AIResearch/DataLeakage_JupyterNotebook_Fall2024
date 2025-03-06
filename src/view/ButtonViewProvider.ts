@@ -175,17 +175,27 @@ export class ButtonViewProvider {
     }
     StateManager.saveData(this._context, "test", "hello");
     const method = StateManager.loadData(this._context, "method");
+    if (method == undefined){
+      StateManager.saveData(this._context, "method", "docker");
+    }
     const nonce = getNonce();
     if(output == "settings"){
       
       var hide_buttons = true;
-      var method_select = ` <div class="row">
-        <label for="method-select" >Run Mode</label>
-        <select class="select" name="method-select" id="method-select" >
-          <option value="empty"></option>
-          <option value="Docker">Docker</option>
-          <option value="Native">Native Binary</option>
-        </select>
+      var method_select;
+      if (method == "docker" || method == undefined){
+        method_select = `
+          <div class="row">
+          <div class="column">
+            <label for="method-select" >Run Mode</label>
+          </div>
+          <div class="column">
+            <select class="select" name="method-select" id="method-select" >
+              <option value="Docker">Docker</option>
+              <option value="Native">Native</option>
+            </select>
+          </div>
+        </div>
         <br></br>
       
       <div id="nativeButtons" style="display:none" hidden=${hide_buttons}>
@@ -210,104 +220,21 @@ export class ButtonViewProvider {
         </div>
         <br></br>
          -->
-
-        <label for="os-select">OS Selection</label>
-        <select class="select" name="binary_select" id="os-select">
-          <option value="empty"></option>
-          <option value="Windows">Windows</option>
-          <option value="Mac">Mac</option>
-          <option value="Linux">Linux</option>
-        </select>
-        <br></br>
-        
-        <div id="windows-dl" style="display:none" hidden="true">
-          <div class="row">
-            <div class="column">
-              <span>Windows-x64</span>
-            </div>
-            <div class="column-right">
-              <div >
-                <a ref="https://leakage-detector.vercel.app/binaries/windows-x64.zip">
-                  <img src="https://cdn-icons-png.flaticon.com/512/0/532.png" alt="Download" width="20" height="20">
-                </a>
-                <button class="img" id="install-leakage">
-                  <img src="https://www.svgrepo.com/show/4795/installation-symbol.svg" alt="Install" width="20" height="20">
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div id="mac-dl" style="display:none" hidden="true">
-          <div class="row">
-            <div class="column">
-              <span>MacOS</span>
-            </div>
-            <div class="column">
-              <a href="https://leakage-detector.vercel.app/binaries/macos14-arm64.zip">
-                <img src="https://cdn-icons-png.flaticon.com/512/0/532.png" alt="Download" width="20" height="20">
-              </a>
-              <button class="img" id="install-leakage2">
-                <img src="https://www.svgrepo.com/show/4795/installation-symbol.svg" alt="Install" width="20" height="20">
-              </button>
-            </div>
-          </div>
-        </div>
-        <div id="linux-dl" style="display:none" hidden="true">
-          <div class="row">
-            <div class="column">
-               <span>Linux-amd64</span>
-            </div>
-            <div class="column">
-              <a href="https://leakage-detector.vercel.app/binaries/linux-amd64.zip">
-                <img src="https://cdn-icons-png.flaticon.com/512/0/532.png" alt="Download" width="20" height="20">
-              </a>
-              <button class="img" id="install-leakage3">
-                <img src="https://www.svgrepo.com/show/4795/installation-symbol.svg" alt="Install" width="20" height="20">
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>`;
-      if (method == "docker"){
-        method_select = ` <div class="row">
-          <label for="method-select" >Run Mode</label>
-        <select class="select" name="method-select" id="method-select" >
-          <option value="empty"></option>
-          <option value="Docker" selected="selected">Docker</option>
-          <option value="Native">Native Binary</option>
-        </select>
-        <br></br>
-      
-      <div id="nativeButtons" style="display:none" hidden=${hide_buttons}>
-        <!--
-				<button class="button secondary" id="install-leakage">Install</button>
-        <div class="dropdown"> 
-          <button class="dropbtn">Download</button>
-          <div class="dropdown-content"> 
-            <a class="" id="website-link" href="https://leakage-detector.vercel.app/binaries/windows-x64.zip">Windows-x64</a>
-            <a class="" id="website-link" href="https://leakage-detector.vercel.app/binaries/macos14-arm64.zip">MacOS14-ARM64</a>
-            <a class="" id="website-link" href="https://leakage-detector.vercel.app/binaries/linux-amd64.zip">Linux-x64</a>
-          </div>
-        </div>
-       
-        <div class="row" hidden>
+        <div class="row">
           <div class="column">
-            <a class="button test" id="website-link" href=${os_link}>Download</a>
+            <label for="os-select">OS Selection</label>
           </div>
-          <div class="column-right">
-            <button class="button secondary test" id="install-leakage">Install</button>
+          <div class="column">
+            <select class="select" name="binary_select" id="os-select">
+              <option value="empty"></option>
+              <option value="Windows">Windows</option>
+              <option value="Mac">Mac</option>
+              <option value="Linux">Linux</option>
+            </select>
           </div>
         </div>
-        <br></br>
-         -->
-
-        <label for="os-select">OS Selection</label>
-        <select class="select" name="binary_select" id="os-select">
-          <option value="empty"></option>
-          <option value="Windows">Windows</option>
-          <option value="Mac">Mac</option>
-          <option value="Linux">Linux</option>
-        </select>
+        
+        
         <br></br>
         
         <div id="windows-dl" style="display:none" hidden="true">
@@ -315,8 +242,8 @@ export class ButtonViewProvider {
             <div class="column">
               <span>Windows-x64</span>
             </div>
-            <div class="column-right">
-              <div >
+            <div class="column">
+              <div class="right">
                 <a href="https://leakage-detector.vercel.app/binaries/windows-x64.zip">
                   <img src="https://cdn-icons-png.flaticon.com/512/0/532.png" alt="Download" width="20" height="20">
                 </a>
@@ -333,12 +260,14 @@ export class ButtonViewProvider {
               <span>MacOS</span>
             </div>
             <div class="column">
-              <a href="https://leakage-detector.vercel.app/binaries/macos14-arm64.zip">
-                <img src="https://cdn-icons-png.flaticon.com/512/0/532.png" alt="Download" width="20" height="20">
-              </a>
-              <button class="img" id="install-leakage2">
-                <img src="https://www.svgrepo.com/show/4795/installation-symbol.svg" alt="Install" width="20" height="20">
-              </button>
+              <div class="right">
+                <a href="https://leakage-detector.vercel.app/binaries/macos14-arm64.zip">
+                  <img src="https://cdn-icons-png.flaticon.com/512/0/532.png" alt="Download" width="20" height="20">
+                </a>
+                <button class="img" id="install-leakage2">
+                  <img src="https://www.svgrepo.com/show/4795/installation-symbol.svg" alt="Install" width="20" height="20">
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -348,25 +277,34 @@ export class ButtonViewProvider {
                <span>Linux-amd64</span>
             </div>
             <div class="column">
-              <a href="https://leakage-detector.vercel.app/binaries/linux-amd64.zip">
-                <img src="https://cdn-icons-png.flaticon.com/512/0/532.png" alt="Download" width="20" height="20">
-              </a>
-              <button class="img" id="install-leakage3">
-                <img src="https://www.svgrepo.com/show/4795/installation-symbol.svg" alt="Install" width="20" height="20">
-              </button>
+              <div class="right">
+                <a href="https://leakage-detector.vercel.app/binaries/linux-amd64.zip">
+                  <img src="https://cdn-icons-png.flaticon.com/512/0/532.png" alt="Download" width="20" height="20">
+                </a>
+                <button class="img" id="install-leakage3">
+                  <img src="https://www.svgrepo.com/show/4795/installation-symbol.svg" alt="Install" width="20" height="20">
+                </button>
+              </div>
             </div>
           </div>
         </div>
       </div>`;
       }
       else if (method == "native"){
-        method_select = ` <div class="row">
-          <label for="method-select" >Run Mode</label>
-        <select class="select" name="method-select" id="method-select" >
-          <option value="empty"></option>
-          <option value="Docker">Docker</option>
-          <option value="Native" selected="selected">Native Binary</option>
-        </select>
+        method_select = `
+          <div class="row">
+          <div class="column">
+            <label for="method-select" >Run Mode</label>
+          </div>
+          <div class="column">
+            <div class="right">
+              <select class="select" name="method-select" id="method-select" >
+                <option value="Docker">Docker</option>
+                <option value="Native" selected="selected">Native</option>
+              </select>
+            </div>
+          </div>
+        </div>
         <br></br>
       
       <div id="nativeButtons">
@@ -392,13 +330,21 @@ export class ButtonViewProvider {
         <br></br>
          -->
 
-        <label for="os-select">OS Selection</label>
-        <select class="select" name="binary_select" id="os-select">
-          <option value="empty"></option>
-          <option value="Windows">Windows</option>
-          <option value="Mac">Mac</option>
-          <option value="Linux">Linux</option>
-        </select>
+        <div class="row">
+          <div class="column">
+            <label for="os-select">OS Selection</label>
+          </div>
+          <div class="column">
+            <div class="right">
+              <select class="select" name="binary_select" id="os-select">
+                <option value="empty"></option>
+                <option value="Windows">Windows</option>
+                <option value="Mac">Mac</option>
+                <option value="Linux">Linux</option>
+              </select>
+            </div>
+          </div>
+        </div>
         <br></br>
         
         <div id="windows-dl" style="display:none" hidden="true">
@@ -406,8 +352,8 @@ export class ButtonViewProvider {
             <div class="column">
               <span>Windows-x64</span>
             </div>
-            <div class="column-right">
-              <div >
+            <div class="column">
+              <div class="right">
                 <a href="https://leakage-detector.vercel.app/binaries/windows-x64.zip">
                   <img src="https://cdn-icons-png.flaticon.com/512/0/532.png" alt="Download" width="20" height="20">
                 </a>
@@ -424,12 +370,14 @@ export class ButtonViewProvider {
               <span>MacOS</span>
             </div>
             <div class="column">
-              <a href="https://leakage-detector.vercel.app/binaries/macos14-arm64.zip">
-                <img src="https://cdn-icons-png.flaticon.com/512/0/532.png" alt="Download" width="20" height="20">
-              </a>
-              <button class="img" id="install-leakage2">
-                <img src="https://www.svgrepo.com/show/4795/installation-symbol.svg" alt="Install" width="20" height="20">
-              </button>
+              <div class="right">
+                <a href="https://leakage-detector.vercel.app/binaries/macos14-arm64.zip">
+                  <img src="https://cdn-icons-png.flaticon.com/512/0/532.png" alt="Download" width="20" height="20">
+                </a>
+                <button class="img" id="install-leakage2">
+                  <img src="https://www.svgrepo.com/show/4795/installation-symbol.svg" alt="Install" width="20" height="20">
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -439,12 +387,14 @@ export class ButtonViewProvider {
                <span>Linux-amd64</span>
             </div>
             <div class="column">
-              <a href="https://leakage-detector.vercel.app/binaries/linux-amd64.zip">
-                <img src="https://cdn-icons-png.flaticon.com/512/0/532.png" alt="Download" width="20" height="20">
-              </a>
-              <button class="img" id="install-leakage3">
-                <img src="https://www.svgrepo.com/show/4795/installation-symbol.svg" alt="Install" width="20" height="20">
-              </button>
+              <div class="right">
+                <a href="https://leakage-detector.vercel.app/binaries/linux-amd64.zip">
+                  <img src="https://cdn-icons-png.flaticon.com/512/0/532.png" alt="Download" width="20" height="20">
+                </a>
+                <button class="img" id="install-leakage3">
+                  <img src="https://www.svgrepo.com/show/4795/installation-symbol.svg" alt="Install" width="20" height="20">
+                </button>
+              </div>
             </div>
           </div>
         </div>
