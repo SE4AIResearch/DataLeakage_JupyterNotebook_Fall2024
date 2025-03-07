@@ -181,6 +181,9 @@ export class ButtonViewProvider {
 
     console.log(vscode.window.activeColorTheme.kind);
 
+
+    console.log(vscode.window.activeColorTheme.kind);
+
     var icon_link = "https://i.imgur.com/TKs7dc2.png";
     if (vscode.window.activeColorTheme.kind != 2){
       icon_link = "https://cdn-icons-png.flaticon.com/512/0/532.png";
@@ -417,6 +420,7 @@ export class ButtonViewProvider {
 					and only allow scripts that have a specific nonce.
 					(See the 'webview-sample' extension sample for img-src content security policy examples)
 				-->
+				<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource}; img-src ${webview.cspSource} media/images/dl_icon_light.png https:; script-src 'nonce-${nonce}';">
 				<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource}; img-src ${webview.cspSource} media/images/dl_icon_light.png https:; script-src 'nonce-${nonce}';">
 
 				<meta name="viewport" content="width=device-width, initial-scale=1.0">
