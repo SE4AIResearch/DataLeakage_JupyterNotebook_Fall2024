@@ -76,9 +76,12 @@ a.button{
 }
 
 .select{
-  background-color: var(--vscode-input-background);
+  background-color: rgb(35, 35, 35);
   color: var(--vscode-input-foreground);
-  width: 80px;
+  width: 85px;
+  border-radius: 5px;
+  padding: var(--input-padding-vertical) var(--input-padding-horizontal);
+
 }
 
 a {
@@ -158,6 +161,7 @@ input:checked + .slider:before {
 .column {
   float: left;
   width: 50%;
+  justify-content: center;
 }
 .column-right{
   float: right;
@@ -167,9 +171,19 @@ input:checked + .slider:before {
 .right{
   float: right;
   width: 50%;
+  margin: 0px 0px;
+  position: fixed;
+}
+
+.right2{
+  float: right;
+  width: 50%;
   margin: 0px 30px;
 }
 
+.row {
+  justify-content: center;
+}
 /* Clear floats after the columns */
 .row:after {
   content: "";

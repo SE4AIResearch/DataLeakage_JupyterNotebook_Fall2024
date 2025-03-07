@@ -178,6 +178,14 @@ export class ButtonViewProvider {
     if (method == undefined){
       StateManager.saveData(this._context, "method", "docker");
     }
+
+    console.log(vscode.window.activeColorTheme.kind);
+
+    var icon_link = "https://i.imgur.com/TKs7dc2.png";
+    if (vscode.window.activeColorTheme.kind != 2){
+      icon_link = "https://cdn-icons-png.flaticon.com/512/0/532.png";
+    }
+
     const nonce = getNonce();
     if(output == "settings"){
       
@@ -185,46 +193,55 @@ export class ButtonViewProvider {
       var method_select;
       if (method == "docker" || method == undefined){
         method_select = `
-          <div class="row">
-          <div class="column">
-            <label for="method-select" >Run Mode</label>
+        <div class="row">
+        <div class="column">
+          <div class="middle">
+            <label class="center" for="method-select" >Run Mode</label>
           </div>
-          <div class="column">
+        </div>
+        <div class="column">
+          <div class="right">
             <select class="select" name="method-select" id="method-select" >
-              <option value="Docker">Docker</option>
+              <option value="Docker"selected="selected">Docker</option>
               <option value="Native">Native</option>
             </select>
           </div>
         </div>
-        <br></br>
-      
-      <div id="nativeButtons" style="display:none" hidden=${hide_buttons}>
-        <!--
-				<button class="button secondary" id="install-leakage">Install</button>
-        <div class="dropdown"> 
-          <button class="dropbtn">Download</button>
-          <div class="dropdown-content"> 
-            <a class="" id="website-link" href="https://leakage-detector.vercel.app/binaries/windows-x64.zip">Windows-x64</a>
-            <a class="" id="website-link" href="https://leakage-detector.vercel.app/binaries/macos14-arm64.zip">MacOS14-ARM64</a>
-            <a class="" id="website-link" href="https://leakage-detector.vercel.app/binaries/linux-amd64.zip">Linux-x64</a>
-          </div>
+      </div>
+      <br></br>
+    
+    <div id="nativeButtons">
+      <!--
+      https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQfWbB640lxeD4tVh_FpmeWaHO094naSHz0bw&s
+      <button class="button secondary" id="install-leakage">Install</button>
+      <div class="dropdown"> 
+        <button class="dropbtn">Download</button>
+        <div class="dropdown-content"> 
+          <a class="" id="website-link" href="https://leakage-detector.vercel.app/binaries/windows-x64.zip">Windows-x64</a>
+          <a class="" id="website-link" href="https://leakage-detector.vercel.app/binaries/macos14-arm64.zip">MacOS14-ARM64</a>
+          <a class="" id="website-link" href="https://leakage-detector.vercel.app/binaries/linux-amd64.zip">Linux-x64</a>
         </div>
-       
-        <div class="row" hidden>
-          <div class="column">
-            <a class="button test" id="website-link" href=${os_link}>Download</a>
-          </div>
-          <div class="column-right">
-            <button class="button secondary test" id="install-leakage">Install</button>
-          </div>
+      </div>
+     
+      <div class="row" hidden>
+        <div class="column">
+          <a class="button test" id="website-link" href=${os_link}>Download</a>
         </div>
-        <br></br>
-         -->
-        <div class="row">
-          <div class="column">
+        <div class="column-right">
+          <button class="button secondary test" id="install-leakage">Install</button>
+        </div>
+      </div>
+      <br></br>
+       -->
+
+      <div class="row">
+        <div class="column">
+          <div class="middle">
             <label for="os-select">OS Selection</label>
           </div>
-          <div class="column">
+        </div>
+        <div class="column">
+          <div class="right">
             <select class="select" name="binary_select" id="os-select">
               <option value="empty"></option>
               <option value="Windows">Windows</option>
@@ -233,173 +250,162 @@ export class ButtonViewProvider {
             </select>
           </div>
         </div>
-        
-        
-        <br></br>
-        
-        <div id="windows-dl" style="display:none" hidden="true">
-          <div class="row">
-            <div class="column">
-              <span>Windows-x64</span>
-            </div>
-            <div class="column">
-              <div class="right">
-                <a href="https://leakage-detector.vercel.app/binaries/windows-x64.zip">
-                  <img src="https://cdn-icons-png.flaticon.com/512/0/532.png" alt="Download" width="20" height="20">
-                </a>
-                <button class="img" id="install-leakage">
-                  <img src="https://www.svgrepo.com/show/4795/installation-symbol.svg" alt="Install" width="20" height="20">
-                </button>
-              </div>
+      </div>
+      <br></br>
+      
+      <div id="windows-dl" style="display:none" hidden="true">
+        <div class="row">
+          <div class="column">
+            <span>Windows-x64</span>
+          </div>
+          <div class="column">
+            <div class="right">
+              <a href="https://leakage-detector.vercel.app/binaries/windows-x64.zip">
+                <img src="${icon_link}" alt="Download" width="20" height="20">
+              </a>
             </div>
           </div>
         </div>
-        <div id="mac-dl" style="display:none" hidden="true">
-          <div class="row">
-            <div class="column">
-              <span>MacOS</span>
-            </div>
-            <div class="column">
-              <div class="right">
-                <a href="https://leakage-detector.vercel.app/binaries/macos14-arm64.zip">
-                  <img src="https://cdn-icons-png.flaticon.com/512/0/532.png" alt="Download" width="20" height="20">
-                </a>
-                <button class="img" id="install-leakage2">
-                  <img src="https://www.svgrepo.com/show/4795/installation-symbol.svg" alt="Install" width="20" height="20">
-                </button>
-              </div>
+      </div>
+      <div id="mac-dl" style="display:none" hidden="true">
+        <div class="row">
+          <div class="column">
+            <span>MacOS</span>
+          </div>
+          <div class="column">
+            <div class="right">
+              <a href="https://leakage-detector.vercel.app/binaries/macos14-arm64.zip">
+                <img src="${icon_link}" alt="Download" width="20" height="20">
+              </a>
             </div>
           </div>
         </div>
-        <div id="linux-dl" style="display:none" hidden="true">
-          <div class="row">
-            <div class="column">
-               <span>Linux-amd64</span>
-            </div>
-            <div class="column">
-              <div class="right">
-                <a href="https://leakage-detector.vercel.app/binaries/linux-amd64.zip">
-                  <img src="https://cdn-icons-png.flaticon.com/512/0/532.png" alt="Download" width="20" height="20">
-                </a>
-                <button class="img" id="install-leakage3">
-                  <img src="https://www.svgrepo.com/show/4795/installation-symbol.svg" alt="Install" width="20" height="20">
-                </button>
-              </div>
+      </div>
+      <div id="linux-dl" style="display:none" hidden="true">
+        <div class="row">
+          <div class="column">
+             <span>Linux-amd64</span>
+          </div>
+          <div class="column">
+            <div class="right">
+              <a href="https://leakage-detector.vercel.app/binaries/linux-amd64.zip">
+                <img src="${icon_link}" alt="Download" width="20" height="20">
+              </a>
             </div>
           </div>
         </div>
-      </div>`;
+      </div>
+      <br></br>
+      <button class="button" id="install-leakage">Install</button>
+    </div>`;
       }
       else if (method == "native"){
         method_select = `
-          <div class="row">
-          <div class="column">
-            <label for="method-select" >Run Mode</label>
-          </div>
-          <div class="column">
-            <div class="right">
-              <select class="select" name="method-select" id="method-select" >
-                <option value="Docker">Docker</option>
-                <option value="Native" selected="selected">Native</option>
-              </select>
-            </div>
-          </div>
-        </div>
-        <br></br>
-      
-      <div id="nativeButtons">
-        <!--
-				<button class="button secondary" id="install-leakage">Install</button>
-        <div class="dropdown"> 
-          <button class="dropbtn">Download</button>
-          <div class="dropdown-content"> 
-            <a class="" id="website-link" href="https://leakage-detector.vercel.app/binaries/windows-x64.zip">Windows-x64</a>
-            <a class="" id="website-link" href="https://leakage-detector.vercel.app/binaries/macos14-arm64.zip">MacOS14-ARM64</a>
-            <a class="" id="website-link" href="https://leakage-detector.vercel.app/binaries/linux-amd64.zip">Linux-x64</a>
-          </div>
-        </div>
-       
-        <div class="row" hidden>
-          <div class="column">
-            <a class="button test" id="website-link" href=${os_link}>Download</a>
-          </div>
-          <div class="column-right">
-            <button class="button secondary test" id="install-leakage">Install</button>
-          </div>
-        </div>
-        <br></br>
-         -->
-
         <div class="row">
-          <div class="column">
+        <div class="column">
+          <div class="middle">
+            <label class="center" for="method-select" >Run Mode</label>
+          </div>
+        </div>
+        <div class="column">
+          <div class="right">
+            <select class="select" name="method-select" id="method-select" >
+              <option value="Docker">Docker</option>
+              <option value="Native" selected="selected">Native</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <br></br>
+    
+    <div id="nativeButtons">
+      <!--
+      https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQfWbB640lxeD4tVh_FpmeWaHO094naSHz0bw&s
+      <button class="button secondary" id="install-leakage">Install</button>
+      <div class="dropdown"> 
+        <button class="dropbtn">Download</button>
+        <div class="dropdown-content"> 
+          <a class="" id="website-link" href="https://leakage-detector.vercel.app/binaries/windows-x64.zip">Windows-x64</a>
+          <a class="" id="website-link" href="https://leakage-detector.vercel.app/binaries/macos14-arm64.zip">MacOS14-ARM64</a>
+          <a class="" id="website-link" href="https://leakage-detector.vercel.app/binaries/linux-amd64.zip">Linux-x64</a>
+        </div>
+      </div>
+     
+      <div class="row" hidden>
+        <div class="column">
+          <a class="button test" id="website-link" href=${os_link}>Download</a>
+        </div>
+        <div class="column-right">
+          <button class="button secondary test" id="install-leakage">Install</button>
+        </div>
+      </div>
+      <br></br>
+       -->
+
+      <div class="row">
+        <div class="column">
+          <div class="middle">
             <label for="os-select">OS Selection</label>
           </div>
+        </div>
+        <div class="column">
+          <div class="right">
+            <select class="select" name="binary_select" id="os-select">
+              <option value="empty"></option>
+              <option value="Windows">Windows</option>
+              <option value="Mac">Mac</option>
+              <option value="Linux">Linux</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <br></br>
+      
+      <div id="windows-dl" style="display:none" hidden="true">
+        <div class="row">
+          <div class="column">
+            <span>Windows-x64</span>
+          </div>
           <div class="column">
             <div class="right">
-              <select class="select" name="binary_select" id="os-select">
-                <option value="empty"></option>
-                <option value="Windows">Windows</option>
-                <option value="Mac">Mac</option>
-                <option value="Linux">Linux</option>
-              </select>
+              <a href="https://leakage-detector.vercel.app/binaries/windows-x64.zip">
+                <img src="${icon_link}" alt="Download" width="20" height="20">
+              </a>
             </div>
           </div>
         </div>
-        <br></br>
-        
-        <div id="windows-dl" style="display:none" hidden="true">
-          <div class="row">
-            <div class="column">
-              <span>Windows-x64</span>
-            </div>
-            <div class="column">
-              <div class="right">
-                <a href="https://leakage-detector.vercel.app/binaries/windows-x64.zip">
-                  <img src="https://cdn-icons-png.flaticon.com/512/0/532.png" alt="Download" width="20" height="20">
-                </a>
-                <button class="img" id="install-leakage">
-                  <img src="https://www.svgrepo.com/show/4795/installation-symbol.svg" alt="Install" width="20" height="20">
-                </button>
-              </div>
+      </div>
+      <div id="mac-dl" style="display:none" hidden="true">
+        <div class="row">
+          <div class="column">
+            <span>MacOS</span>
+          </div>
+          <div class="column">
+            <div class="right">
+              <a href="https://leakage-detector.vercel.app/binaries/macos14-arm64.zip">
+                <img src="${icon_link}" alt="Download" width="20" height="20">
+              </a>
             </div>
           </div>
         </div>
-        <div id="mac-dl" style="display:none" hidden="true">
-          <div class="row">
-            <div class="column">
-              <span>MacOS</span>
-            </div>
-            <div class="column">
-              <div class="right">
-                <a href="https://leakage-detector.vercel.app/binaries/macos14-arm64.zip">
-                  <img src="https://cdn-icons-png.flaticon.com/512/0/532.png" alt="Download" width="20" height="20">
-                </a>
-                <button class="img" id="install-leakage2">
-                  <img src="https://www.svgrepo.com/show/4795/installation-symbol.svg" alt="Install" width="20" height="20">
-                </button>
-              </div>
+      </div>
+      <div id="linux-dl" style="display:none" hidden="true">
+        <div class="row">
+          <div class="column">
+             <span>Linux-amd64</span>
+          </div>
+          <div class="column">
+            <div class="right">
+              <a href="https://leakage-detector.vercel.app/binaries/linux-amd64.zip">
+                <img src="${icon_link}" alt="Download" width="20" height="20">
+              </a>
             </div>
           </div>
         </div>
-        <div id="linux-dl" style="display:none" hidden="true">
-          <div class="row">
-            <div class="column">
-               <span>Linux-amd64</span>
-            </div>
-            <div class="column">
-              <div class="right">
-                <a href="https://leakage-detector.vercel.app/binaries/linux-amd64.zip">
-                  <img src="https://cdn-icons-png.flaticon.com/512/0/532.png" alt="Download" width="20" height="20">
-                </a>
-                <button class="img" id="install-leakage3">
-                  <img src="https://www.svgrepo.com/show/4795/installation-symbol.svg" alt="Install" width="20" height="20">
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>`;
-        hide_buttons = false;
+      </div>
+      <br></br>
+      <button class="button" id="install-leakage">Install</button>
+    </div>`;
       }
       return `<!DOCTYPE html>
 			<html lang="en">
@@ -411,7 +417,7 @@ export class ButtonViewProvider {
 					and only allow scripts that have a specific nonce.
 					(See the 'webview-sample' extension sample for img-src content security policy examples)
 				-->
-				<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource}; img-src ${webview.cspSource} https:; script-src 'nonce-${nonce}';">
+				<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource}; img-src ${webview.cspSource} media/images/dl_icon_light.png https:; script-src 'nonce-${nonce}';">
 
 				<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
