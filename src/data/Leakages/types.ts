@@ -25,6 +25,7 @@ export type LineInfo = {
 };
 
 export type Metadata = {
+  isTest: boolean;
   model: string;
   variable: string;
   method: string;

@@ -24,6 +24,8 @@ export class QuickFixProvider implements vscode.CodeActionProvider {
     private readonly _internalLineMappings: Record<number, number>,
     private readonly _invocationLineMappings: Record<string, number>,
     private readonly _lineMetadataMappings: Record<number, Metadata>,
+    private readonly _trainTestMappings: Record<number, Set<number>>,
+    private readonly _variableEquivMappings: Record<string, string>,
   ) {}
 
   public static async create(
@@ -59,12 +61,21 @@ export class QuickFixProvider implements vscode.CodeActionProvider {
         internalLineMappings,
         invocationLineMappings,
       );
+      const trainTestMappings = await leakages.getTrainTestMappings(
+        internalLineMappings,
+        invocationLineMappings,
+      );
+      const variableEquivMappings = await leakages.getVariableEquivMappings();
+      const dataFlowMappings = await leakages.getDataFlowMappings();
+      console.log(dataFlowMappings);
 
       return new QuickFixProvider(
         context,
         internalLineMappings,
         invocationLineMappings,
         lineMetadataMappings,
+        trainTestMappings,
+        variableEquivMappings,
       );
     } else {
       throw new Error('No active notebook editor found.');
@@ -91,15 +102,18 @@ export class QuickFixProvider implements vscode.CodeActionProvider {
       'Leakage Quickfix Suggestion',
       vscode.CodeActionKind.QuickFix,
     );
+
     action.diagnostics = [diagnostic];
     action.isPreferred = true;
     action.edit = new vscode.WorkspaceEdit();
     switch (diagnostic.source) {
       case LeakageType.OverlapLeakage:
         action.title = 'Move feature selection later.';
+        this.tryResolvePreprocessing(action.edit, document);
         break;
       case LeakageType.PreProcessingLeakage:
         action.title = 'Move feature selection later.';
+        this.tryResolvePreprocessing(action.edit, document);
         break;
       case LeakageType.MultiTestLeakage:
         action.title = 'Use independent test data for evaluation.';
@@ -114,14 +128,55 @@ export class QuickFixProvider implements vscode.CodeActionProvider {
     return action;
   }
 
+  private async tryResolvePreprocessing(
+    edit: vscode.WorkspaceEdit,
+    document: vscode.TextDocument,
+  ) {
+    const documentLines = document.getText().split('\n');
+    let initLoad = -1;
+    let featureSelection = -1;
+
+    for (let i = 0; i < document.lineCount; i++) {
+      if (documentLines[i].match(/load_data/g)) {
+        initLoad = i;
+      }
+      if (documentLines[i].match(/train_test_split/g)) {
+        featureSelection = i;
+      }
+    }
+    if (initLoad === -1) {
+      throw new Error('Load method not found.');
+    }
+    if (featureSelection === -1) {
+      throw new Error('Feature selection method not found.');
+    }
+
+    const selectionCode = documentLines[featureSelection];
+    edit.delete(document.uri, document.lineAt(featureSelection).range);
+    edit.insert(
+      document.uri,
+      new vscode.Position(initLoad + 1, 0),
+      `\n${selectionCode}\n`,
+    );
+  }
+
   private async tryResolveMultiTest(
     edit: vscode.WorkspaceEdit,
     document: vscode.TextDocument,
     line: number,
   ) {
-    console.log(line, this._lineMetadataMappings);
+    const testingVariable = this._lineMetadataMappings[line].variable;
+    const testingModel = this._lineMetadataMappings[line].model;
 
-    const insert = `\n`;
+    const newX = `X_${testingVariable}_new`;
+    const newY = `y_${testingVariable}_new`;
+    const scoringModel = `${this._variableEquivMappings[testingModel]}`;
+
+    const newLoad = `${newX}, ${newY} = load_test_data()\n`;
+    const newTransform = `${newX}_0 = select.transform(${newX})\n`;
+    const newScore = `${scoringModel}.score(${newX}_0, ${newY})`;
+
+    const insert = `\n${newLoad}${newTransform}${newScore}`;
 
     edit.insert(
       document.uri,

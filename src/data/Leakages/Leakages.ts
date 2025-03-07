@@ -255,6 +255,7 @@ export default class Leakages {
         lineMetadataMappings[
           internalLineMappings[invocationLineMappings[trainingInvocation]]
         ] = {
+          isTest: false,
           model: trainingModel,
           variable: trainingVariable,
           method: trainingMethod,
@@ -262,6 +263,7 @@ export default class Leakages {
         lineMetadataMappings[
           internalLineMappings[invocationLineMappings[testingInvocation]]
         ] = {
+          isTest: true,
           model: testingModel,
           variable: testingVariable,
           method: testingMethod,
@@ -270,4 +272,100 @@ export default class Leakages {
 
     return lineMetadataMappings;
   }
+
+  /**
+   * @param internalLineMappings All the mappings from internal program line numbers to external user line numbers.
+   * @param invocationLineMappings All the mappings from internal invocations to internal program line numbers.
+   * @returns All the mappings from training lines to testing lines.
+   */
+  public async getTrainTestMappings(
+    internalLineMappings: Record<number, number>,
+    invocationLineMappings: Record<string, number>,
+  ): Promise<Record<number, Set<number>>> {
+    const trainTestMappings: Record<number, Set<number>> = {};
+
+    const file = await this.readFile(
+      path.join(`${this.filename}-fact`, 'Telemetry_ModelPair.csv'),
+    );
+    file
+      .split('\n')
+      .filter((line) => !!line)
+      .forEach((line) => {
+        const [
+          trainingModel,
+          trainingVariable,
+          trainingInvocation,
+          trainingMethod,
+          trainingContext,
+          testingModel,
+          testingVariable,
+          testingInvocation,
+          testingMethod,
+          testingContext,
+        ] = line.split('\t');
+
+        const trainingLine =
+          internalLineMappings[invocationLineMappings[trainingInvocation]];
+        if (!(line in trainTestMappings)) {
+          trainTestMappings[trainingLine] = new Set([
+            internalLineMappings[invocationLineMappings[testingInvocation]],
+          ]);
+        } else {
+          trainTestMappings[trainingLine].add(
+            internalLineMappings[invocationLineMappings[testingInvocation]],
+          );
+        }
+      });
+
+    return trainTestMappings;
+  }
+
+  /**
+   * @returns All the variable equiv mappings.
+   */
+  public async getVariableEquivMappings(): Promise<Record<string, string>> {
+    const variableEquivMappings: Record<string, string> = {};
+
+    const file = await this.readFile(
+      path.join(`${this.filename}-fact`, 'VarEquals.csv'),
+    );
+    file
+      .split('\n')
+      .filter((line) => !!line)
+      .forEach((line) => {
+        const [lhs, rhs] = line.split('\t');
+
+        variableEquivMappings[lhs] = rhs;
+      });
+
+    return variableEquivMappings;
+  }
+
+  /**
+   * @returns All the data flow mappings.
+   */
+  public async getDataFlowMappings(): Promise<Record<string, Set<string>>> {
+    const dataFlowMappings: Record<string, Set<string>> = {};
+
+    const file = await this.readFile(
+      path.join(`${this.filename}-fact`, 'FlowFromExtended.csv'),
+    );
+    file
+      .split('\n')
+      .filter((line) => !!line)
+      .forEach((line) => {
+        const [dest, destCtxt, source, sourceCtxt, tag] = line.split('\t');
+
+        if (!(dest in dataFlowMappings)) {
+          dataFlowMappings[dest] = new Set([source]);
+        } else {
+          dataFlowMappings[dest].add(source);
+        }
+      });
+
+    return dataFlowMappings;
+  }
+
+  // InvokeEdge.csv?
+  // FlowFromExtended.csv?
 }
