@@ -23,20 +23,7 @@
     }); */
   
     
-    installLeakageBtn.addEventListener('click', (e) => {
-      vscode.postMessage({ type: 'openFilePicker' });
-      installLeakageBtn.disabled = true;
-    });
-
-    installLeakageBtn2.addEventListener('click', (e) => {
-      vscode.postMessage({ type: 'openFilePicker' });
-      installLeakageBtn2.disabled = true;
-    });
-
-    installLeakageBtn3.addEventListener('click', (e) => {
-      vscode.postMessage({ type: 'openFilePicker' });
-      installLeakageBtn3.disabled = true;
-    });
+    
   
     nativeCheck.addEventListener('click', (e) => {
       if (nativeCheck.checked === true){
@@ -120,7 +107,10 @@
     });
   
   
-  
+    installLeakageBtn.addEventListener('click', (e) => {
+      vscode.postMessage({ type: 'openFilePicker' });
+      installLeakageBtn.disabled = true;
+    });
   
     vscode.postMessage({ type: 'webviewLoaded' });
   

@@ -178,6 +178,9 @@ export class ButtonViewProvider {
     if (method == undefined){
       StateManager.saveData(this._context, "method", "docker");
     }
+
+    console.log(vscode.window.activeColorTheme.kind);
+
     const nonce = getNonce();
     if(output == "settings"){
       
@@ -245,10 +248,10 @@ export class ButtonViewProvider {
             <div class="column">
               <div class="right">
                 <a href="https://leakage-detector.vercel.app/binaries/windows-x64.zip">
-                  <img src="https://cdn-icons-png.flaticon.com/512/0/532.png" alt="Download" width="20" height="20">
+                  <img src="https://i.imgur.com/TKs7dc2.png" alt="Download" width="20" height="20">
                 </a>
                 <button class="img" id="install-leakage">
-                  <img src="https://www.svgrepo.com/show/4795/installation-symbol.svg" alt="Install" width="20" height="20">
+                  <img src="https://cdn-icons-png.flaticon.com/512/1/1383.png" alt="Install" width="20" height="20">
                 </button>
               </div>
             </div>
@@ -265,7 +268,7 @@ export class ButtonViewProvider {
                   <img src="https://cdn-icons-png.flaticon.com/512/0/532.png" alt="Download" width="20" height="20">
                 </a>
                 <button class="img" id="install-leakage2">
-                  <img src="https://www.svgrepo.com/show/4795/installation-symbol.svg" alt="Install" width="20" height="20">
+                  <img src="https://cdn-icons-png.flaticon.com/512/1/1383.png" alt="Install" width="20" height="20">
                 </button>
               </div>
             </div>
@@ -282,7 +285,7 @@ export class ButtonViewProvider {
                   <img src="https://cdn-icons-png.flaticon.com/512/0/532.png" alt="Download" width="20" height="20">
                 </a>
                 <button class="img" id="install-leakage3">
-                  <img src="https://www.svgrepo.com/show/4795/installation-symbol.svg" alt="Install" width="20" height="20">
+                  <img src="https://cdn-icons-png.flaticon.com/512/1/1383.png" alt="Install" width="20" height="20">
                 </button>
               </div>
             </div>
@@ -294,7 +297,7 @@ export class ButtonViewProvider {
         method_select = `
           <div class="row">
           <div class="column">
-            <label for="method-select" >Run Mode</label>
+            <label class="center" for="method-select" >Run Mode</label>
           </div>
           <div class="column">
             <div class="right">
@@ -309,6 +312,7 @@ export class ButtonViewProvider {
       
       <div id="nativeButtons">
         <!--
+        https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQfWbB640lxeD4tVh_FpmeWaHO094naSHz0bw&s
 				<button class="button secondary" id="install-leakage">Install</button>
         <div class="dropdown"> 
           <button class="dropbtn">Download</button>
@@ -355,11 +359,8 @@ export class ButtonViewProvider {
             <div class="column">
               <div class="right">
                 <a href="https://leakage-detector.vercel.app/binaries/windows-x64.zip">
-                  <img src="https://cdn-icons-png.flaticon.com/512/0/532.png" alt="Download" width="20" height="20">
+                  <img src="https://i.imgur.com/VE3gcr9.png" alt="Download" width="20" height="20">
                 </a>
-                <button class="img" id="install-leakage">
-                  <img src="https://www.svgrepo.com/show/4795/installation-symbol.svg" alt="Install" width="20" height="20">
-                </button>
               </div>
             </div>
           </div>
@@ -372,11 +373,8 @@ export class ButtonViewProvider {
             <div class="column">
               <div class="right">
                 <a href="https://leakage-detector.vercel.app/binaries/macos14-arm64.zip">
-                  <img src="https://cdn-icons-png.flaticon.com/512/0/532.png" alt="Download" width="20" height="20">
+                  <img src="https://i.imgur.com/Ezj8rhq.png" alt="Download" width="20" height="20">
                 </a>
-                <button class="img" id="install-leakage2">
-                  <img src="https://www.svgrepo.com/show/4795/installation-symbol.svg" alt="Install" width="20" height="20">
-                </button>
               </div>
             </div>
           </div>
@@ -391,13 +389,12 @@ export class ButtonViewProvider {
                 <a href="https://leakage-detector.vercel.app/binaries/linux-amd64.zip">
                   <img src="https://cdn-icons-png.flaticon.com/512/0/532.png" alt="Download" width="20" height="20">
                 </a>
-                <button class="img" id="install-leakage3">
-                  <img src="https://www.svgrepo.com/show/4795/installation-symbol.svg" alt="Install" width="20" height="20">
-                </button>
               </div>
             </div>
           </div>
         </div>
+        <br></br>
+        <button class="button" id="install-leakage">Install</button>
       </div>`;
         hide_buttons = false;
       }
@@ -411,7 +408,7 @@ export class ButtonViewProvider {
 					and only allow scripts that have a specific nonce.
 					(See the 'webview-sample' extension sample for img-src content security policy examples)
 				-->
-				<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource}; img-src ${webview.cspSource} https:; script-src 'nonce-${nonce}';">
+				<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource}; img-src ${webview.cspSource} media/images/dl_icon_light.png https:; script-src 'nonce-${nonce}';">
 
 				<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
