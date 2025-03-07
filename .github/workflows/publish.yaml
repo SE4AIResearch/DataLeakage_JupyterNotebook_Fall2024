@@ -1,0 +1,63 @@
+# https://code.visualstudio.com/api/working-with-extensions/continuous-integration#automated-publishing
+name: Publish Extension
+
+on:
+  push:
+    branches:
+      - prod # Trigger the workflow on pushes to the 'prod' branch
+    # tags:
+      # Trigger the workflow on pushes of tags matching the version pattern 'v*.*.*'
+      # - 'v*.*.*'
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18.x'
+
+      - name: Install dependencies
+        run: npm install
+
+      # GitHub Actions use headless Linux CI machines, so xvfb is required to run VS Code
+      # Run the tests in an Xvfb enabled environment on Linux
+      - name: Run tests on Linux
+        run: xvfb-run -a npm test
+        if: runner.os == 'Linux'
+
+      - name: Run tests on other OS
+        run: npm test
+        if: runner.os != 'Linux'
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18.x'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Publish Extension
+        run: npm run deploy
+        env:
+          # This is the Personal Access Token (PAT) created in Michael Soca's Azure DevOps account
+          # And saved in the extension's repository as a secret named VSCE_PAT
+          # Will expire 07/01/2025
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
