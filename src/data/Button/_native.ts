@@ -62,7 +62,7 @@ async function runCommandWithPythonInterpreter(command: string) {
       checkTerminalEnded(terminal, resolve, reject);
     });
   } catch (err) {
-    terminal.dispose();
+    // terminal.dispose();
     throw err;
   }
   terminal.dispose();
