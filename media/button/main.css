@@ -81,12 +81,22 @@ a.button{
   width: 85px;
   border-radius: 5px;
   padding: var(--input-padding-vertical) var(--input-padding-horizontal);
-
 }
 
 a {
   text-decoration: none;
   outline: none;
+}
+
+a.img {
+  text-align: right;
+  justify-content: right;
+  position: relative;
+  left: 65px;
+}
+
+.middle {
+  padding: 5px 0px 0px 0px;
 }
 
 .check {

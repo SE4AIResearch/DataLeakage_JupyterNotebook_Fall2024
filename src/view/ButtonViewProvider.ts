@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import os from 'os';
 
 import * as vscode from 'vscode';
 
@@ -161,7 +162,10 @@ export class ButtonViewProvider {
 
     StateManager.saveIsRunning(this._context, false);
     
-    const user_os = process.platform;
+    const user_os = os.platform();
+    const user_version = os.release();
+    console.log(user_os);
+    console.log(user_version);
     var os_link = "";
 
     if (user_os === 'win32'){
@@ -311,7 +315,7 @@ export class ButtonViewProvider {
           </div>
         </div>
         <div class="column">
-          <div class="right">
+          <div class="right select_box">
             <select class="select" name="method-select" id="method-select" >
               <option value="Docker">Docker</option>
               <option value="Native" selected="selected">Native</option>
@@ -371,8 +375,8 @@ export class ButtonViewProvider {
           </div>
           <div class="column">
             <div class="right">
-              <a href="https://leakage-detector.vercel.app/binaries/windows-x64.zip">
-                <img src="${icon_link}" alt="Download" width="20" height="20">
+              <a class="img" href="https://leakage-detector.vercel.app/binaries/windows-x64.zip">
+                <img src="${icon_link}" alt="Download" justify-content="right" width="20" height="20">
               </a>
             </div>
           </div>
@@ -385,7 +389,7 @@ export class ButtonViewProvider {
           </div>
           <div class="column">
             <div class="right">
-              <a href="https://leakage-detector.vercel.app/binaries/macos14-arm64.zip">
+              <a class="img" href="https://leakage-detector.vercel.app/binaries/macos14-arm64.zip">
                 <img src="${icon_link}" alt="Download" width="20" height="20">
               </a>
             </div>
@@ -399,7 +403,7 @@ export class ButtonViewProvider {
           </div>
           <div class="column">
             <div class="right">
-              <a href="https://leakage-detector.vercel.app/binaries/linux-amd64.zip">
+              <a class="img" href="https://leakage-detector.vercel.app/binaries/linux-amd64.zip">
                 <img src="${icon_link}" alt="Download" width="20" height="20">
               </a>
             </div>
