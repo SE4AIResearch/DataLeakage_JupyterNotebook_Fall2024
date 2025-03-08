@@ -165,7 +165,7 @@ export class ButtonViewProvider {
     
     const user_os = os.platform();
     const user_version = os.release();
-    const os_label = user_os.charAt(0).toUpperCase() + user_os.slice(1);
+    var os_label = user_os.charAt(0).toUpperCase() + user_os.slice(1);
     console.log(user_version);
     var os_link = "";
 
@@ -177,10 +177,11 @@ export class ButtonViewProvider {
     }
     else if (user_os === 'darwin'){
       os_link = "https://leakage-detector.vercel.app/binaries/macos14-arm64.zip";
+      os_label = "MacOS";
     }
     StateManager.saveData(this._context, "test", "hello");
     const method = StateManager.loadData(this._context, "method");
-    if (method == undefined){
+    if (method === undefined){
       StateManager.saveData(this._context, "method", "docker");
     }
 
