@@ -10,6 +10,7 @@
   var nativeButtons = document.getElementById("nativeButtons");
   const dockerCheck = document.getElementById("dockerCheck");
   const selectCheck = document.getElementById("os-select");
+  const dl_check = document.getElementById("dl");
   var win = document.getElementById("windows-dl");
   var mac = document.getElementById("mac-dl");
   var linux = document.getElementById("linux-dl");
@@ -29,10 +30,12 @@
     if (nativeCheck.checked === true){
       dockerCheck.checked = false;
       nativeButtons.style.display = "block";
+      dl_check.style.display = "block";
     }
     else{
       dockerCheck.checked = true;
       nativeButtons.style.display = "none";
+      dl_check.style.display = "none";
     }
     installLeakageBtn.disabled = false;
   });
@@ -41,15 +44,17 @@
     if (dockerCheck.checked === true){
       nativeCheck.checked = false;
       nativeButtons.style.display = "none";
+      dl_check.style.display = "none";
     }
     else{
       nativeCheck.checked = true;
       nativeButtons.style.display = "block";
+      dl_check.style.display = "block";
     }
     installLeakageBtn.disabled = false;
   });
   
-  selectCheck.addEventListener('click', (e) => {
+/*   selectCheck.addEventListener('click', (e) => {
     selectCheck.addEventListener('change', (e) => {
       switch (selectCheck.value) {
         case "Windows":
@@ -86,7 +91,7 @@
           break;
       }
     });
-  });
+  }); */
 
   methodCheck.addEventListener('click', (e) => {
     methodCheck.addEventListener('change', (e) => {
