@@ -58,18 +58,12 @@
       {
         "command": "data-leakage.showButton",
         "title": "Data Leakage",
-        "icon": {
-          "dark": "media/images/play_dark.png",
-          "light": "media/images/play_light.png"
-        }
+        "icon": "$(play)"
       },
       {
         "command": "data-leakage.showSettings",
         "title": "Settings",
-        "icon": {
-          "dark": "media/images/cog_dark.png",
-          "light": "media/images/cog_light.png"
-        }
+        "icon": "$(gear)"
       }
     ],
     "views": {
