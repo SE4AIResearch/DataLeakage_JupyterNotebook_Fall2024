@@ -4,6 +4,7 @@ import { TextDecoder } from 'util';
 import path from 'path';
 import {
   LeakageType,
+  Taint,
   type LeakageInstances,
   type LeakageLines,
   type LeakageOutput,
@@ -182,7 +183,7 @@ export default class Leakages {
   }
 
   /**
-   * @returns All the mappings from internal program line numbers to external user line numbers.
+   * @returns All the mappings from internal program line number to external user line number.
    */
   public async getInternalLineMappings(): Promise<Record<number, number>> {
     const internalLineMappings: Record<number, number> = {};
@@ -202,7 +203,7 @@ export default class Leakages {
   }
 
   /**
-   * @returns All the mappings from internal invocations to internal program line numbers.
+   * @returns All the mappings from internal invocation to internal program line number.
    */
   public async getInvocationLineMappings(): Promise<Record<string, number>> {
     const invocationLineMappings: Record<string, number> = {};
@@ -222,9 +223,9 @@ export default class Leakages {
   }
 
   /**
-   * @param internalLineMappings All the mappings from internal program line numbers to external user line numbers.
-   * @param invocationLineMappings All the mappings from internal invocations to internal program line numbers.
-   * @returns All the mappings from external user line numbers to metadata info.
+   * @param internalLineMappings All the mappings from internal program line number to external user line number.
+   * @param invocationLineMappings All the mappings from internal invocation to internal program line number.
+   * @returns All the mappings from external user line number to metadata info.
    */
   public async getLineMetadataMappings(
     internalLineMappings: Record<number, number>,
@@ -240,16 +241,16 @@ export default class Leakages {
       .filter((line) => !!line)
       .forEach((line) => {
         const [
-          trainingModel,
-          trainingVariable,
-          trainingInvocation,
-          trainingMethod,
-          trainingContext,
           testingModel,
           testingVariable,
           testingInvocation,
           testingMethod,
           testingContext,
+          trainingModel,
+          trainingVariable,
+          trainingInvocation,
+          trainingMethod,
+          trainingContext,
         ] = line.split('\t');
 
         lineMetadataMappings[
@@ -274,9 +275,9 @@ export default class Leakages {
   }
 
   /**
-   * @param internalLineMappings All the mappings from internal program line numbers to external user line numbers.
-   * @param invocationLineMappings All the mappings from internal invocations to internal program line numbers.
-   * @returns All the mappings from training lines to testing lines.
+   * @param internalLineMappings All the mappings from internal program line number to external user line number.
+   * @param invocationLineMappings All the mappings from internal invocation to internal program line number.
+   * @returns All the mappings from training line (external user line number) to testing lines (external user line number).
    */
   public async getTrainTestMappings(
     internalLineMappings: Record<number, number>,
@@ -321,10 +322,53 @@ export default class Leakages {
   }
 
   /**
-   * @returns All the variable equiv mappings.
+   * @param internalLineMappings All the mappings from internal program line number to external user line number.
+   * @param invocationLineMappings All the mappings from internal invocation to internal program line number.
+   * @returns All the mappings from taint (external user line number) to their info.w
    */
-  public async getVariableEquivMappings(): Promise<Record<string, string>> {
-    const variableEquivMappings: Record<string, string> = {};
+  public async getTaintMappings(
+    internalLineMappings: Record<number, number>,
+    invocationLineMappings: Record<string, number>,
+  ) {
+    const taintMappings: Record<number, Taint> = {};
+
+    const file = await this.readFile(
+      path.join(`${this.filename}-fact`, 'TaintStartsTarget.csv'),
+    );
+    file
+      .split('\n')
+      .filter((line) => !!line)
+      .forEach((line) => {
+        const [
+          destVariable,
+          destContext,
+          sourceVariable,
+          sourceContext,
+          invocation,
+          method,
+          label,
+        ] = line.split('\t');
+
+        const taintLine =
+          internalLineMappings[invocationLineMappings[invocation]];
+        taintMappings[taintLine] = {
+          sourceVariable,
+          destVariable,
+          method,
+          label,
+        };
+      });
+
+    return taintMappings;
+  }
+
+  /**
+   * @returns Variable equivalence mappings.
+   */
+  public async getVariableEquivalenceMappings(): Promise<
+    Record<string, string>
+  > {
+    const variableEquivalenceMappings: Record<string, string> = {};
 
     const file = await this.readFile(
       path.join(`${this.filename}-fact`, 'VarEquals.csv'),
@@ -335,14 +379,14 @@ export default class Leakages {
       .forEach((line) => {
         const [lhs, rhs] = line.split('\t');
 
-        variableEquivMappings[lhs] = rhs;
+        variableEquivalenceMappings[lhs] = rhs;
       });
 
-    return variableEquivMappings;
+    return variableEquivalenceMappings;
   }
 
   /**
-   * @returns All the data flow mappings.
+   * @returns Data flow mappings.
    */
   public async getDataFlowMappings(): Promise<Record<string, Set<string>>> {
     const dataFlowMappings: Record<string, Set<string>> = {};

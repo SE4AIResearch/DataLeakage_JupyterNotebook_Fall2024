@@ -31,6 +31,13 @@ export type Metadata = {
   method: string;
 };
 
+export type Taint = {
+  sourceVariable: string;
+  destVariable: string;
+  method: string;
+  label: string;
+};
+
 export type LineTag = {
   name: string;
   isButton: boolean;

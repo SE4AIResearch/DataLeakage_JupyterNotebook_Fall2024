@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { LeakageType, Metadata } from '../Leakages/types';
+import { LeakageType, Metadata, Taint } from '../Leakages/types';
 import { LEAKAGE_ERROR } from './notebookDiagnostics';
 import { NotAnalyzedError } from '../../helpers/Leakages/createLeakageAdapters';
 import Leakages from '../Leakages/Leakages';
@@ -25,7 +25,8 @@ export class QuickFixProvider implements vscode.CodeActionProvider {
     private readonly _invocationLineMappings: Record<string, number>,
     private readonly _lineMetadataMappings: Record<number, Metadata>,
     private readonly _trainTestMappings: Record<number, Set<number>>,
-    private readonly _variableEquivMappings: Record<string, string>,
+    private readonly _taintMappings: Record<number, Taint>,
+    private readonly _variableEquivalenceMappings: Record<string, string>,
   ) {}
 
   public static async create(
@@ -65,9 +66,13 @@ export class QuickFixProvider implements vscode.CodeActionProvider {
         internalLineMappings,
         invocationLineMappings,
       );
-      const variableEquivMappings = await leakages.getVariableEquivMappings();
-      const dataFlowMappings = await leakages.getDataFlowMappings();
-      console.log(dataFlowMappings);
+      const taintMappings = await leakages.getTaintMappings(
+        internalLineMappings,
+        invocationLineMappings,
+      );
+      const variableEquivalenceMappings =
+        await leakages.getVariableEquivalenceMappings();
+      // const dataFlowMappings = await leakages.getDataFlowMappings();
 
       return new QuickFixProvider(
         context,
@@ -75,7 +80,8 @@ export class QuickFixProvider implements vscode.CodeActionProvider {
         invocationLineMappings,
         lineMetadataMappings,
         trainTestMappings,
-        variableEquivMappings,
+        taintMappings,
+        variableEquivalenceMappings,
       );
     } else {
       throw new Error('No active notebook editor found.');
@@ -108,12 +114,16 @@ export class QuickFixProvider implements vscode.CodeActionProvider {
     action.edit = new vscode.WorkspaceEdit();
     switch (diagnostic.source) {
       case LeakageType.OverlapLeakage:
-        action.title = 'Move feature selection later.';
-        this.tryResolvePreprocessing(action.edit, document);
+        // action.title = 'Move feature selection later.';
+        // this.tryResolvePreprocessing(action.edit, document);
         break;
       case LeakageType.PreProcessingLeakage:
         action.title = 'Move feature selection later.';
-        this.tryResolvePreprocessing(action.edit, document);
+        this.tryResolvePreprocessing(
+          action.edit,
+          document,
+          diagnostic.range.start.line + 1,
+        );
         break;
       case LeakageType.MultiTestLeakage:
         action.title = 'Use independent test data for evaluation.';
@@ -131,31 +141,30 @@ export class QuickFixProvider implements vscode.CodeActionProvider {
   private async tryResolvePreprocessing(
     edit: vscode.WorkspaceEdit,
     document: vscode.TextDocument,
+    line: number,
   ) {
     const documentLines = document.getText().split('\n');
-    let initLoad = -1;
     let featureSelection = -1;
 
     for (let i = 0; i < document.lineCount; i++) {
-      if (documentLines[i].match(/load_data/g)) {
-        initLoad = i;
-      }
       if (documentLines[i].match(/train_test_split/g)) {
         featureSelection = i;
       }
-    }
-    if (initLoad === -1) {
-      throw new Error('Load method not found.');
     }
     if (featureSelection === -1) {
       throw new Error('Feature selection method not found.');
     }
 
+    const earliestTaintLine = Math.min(
+      ...Object.keys(this._taintMappings).map((e) => parseInt(e)),
+    );
+
     const selectionCode = documentLines[featureSelection];
+
     edit.delete(document.uri, document.lineAt(featureSelection).range);
     edit.insert(
       document.uri,
-      new vscode.Position(initLoad + 1, 0),
+      new vscode.Position(earliestTaintLine - 2, 0),
       `\n${selectionCode}\n`,
     );
   }
@@ -170,10 +179,10 @@ export class QuickFixProvider implements vscode.CodeActionProvider {
 
     const newX = `X_${testingVariable}_new`;
     const newY = `y_${testingVariable}_new`;
-    const scoringModel = `${this._variableEquivMappings[testingModel]}`;
+    const scoringModel = `${this._variableEquivalenceMappings[testingModel]}`;
 
     const newLoad = `${newX}, ${newY} = load_test_data()\n`;
-    const newTransform = `${newX}_0 = select.transform(${newX})\n`;
+    const newTransform = `${newX}_0 = transform_model.transform(${newX})\n`;
     const newScore = `${scoringModel}.score(${newX}_0, ${newY})`;
 
     const insert = `\n${newLoad}${newTransform}${newScore}`;
