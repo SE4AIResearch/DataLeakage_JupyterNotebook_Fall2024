@@ -19,7 +19,7 @@
         {
           "id": "data-leakage",
           "title": "Data Leakage",
-          "icon": "media/images/hand.png"
+          "icon": "media/images/Logo64.png"
         }
       ],
       "panel": [
@@ -107,9 +107,7 @@
     "zod": "^3.23.8"
   },
   "publisher": "leakage-detector",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/SE4AIResearch/DataLeakage_JupyterNotebook_Fall2024.git"
-  },
+  "repository": "https://github.com/SE4AIResearch/DataLeakage_JupyterNotebook_Fall2024",
+  "icon": "/media/images/Logo64",
   "license": "ISC"
 }

@@ -1,5 +1,7 @@
 # Leakage Detector
 
+<img src="/media/images/LeakDetectorLogo2.3.png" alt="Leakage Detector Poster Logo" width="400"/>
+
 Visual Studio Code extension that detects instances of data leakage in Jupyter Notebooks.
 
 ## Features
