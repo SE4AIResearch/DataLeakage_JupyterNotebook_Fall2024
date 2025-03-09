@@ -114,8 +114,12 @@ export class QuickFixProvider implements vscode.CodeActionProvider {
     action.edit = new vscode.WorkspaceEdit();
     switch (diagnostic.source) {
       case LeakageType.OverlapLeakage:
-        // action.title = 'Move feature selection later.';
-        // this.tryResolvePreprocessing(action.edit, document);
+        action.title = 'Use independent test data for evaluation.';
+        this.tryResolveOverlap(
+          action.edit,
+          document,
+          diagnostic.range.start.line + 1,
+        );
         break;
       case LeakageType.PreProcessingLeakage:
         action.title = 'Move feature selection later.';
@@ -136,6 +140,31 @@ export class QuickFixProvider implements vscode.CodeActionProvider {
     }
 
     return action;
+  }
+
+  private async tryResolveOverlap(
+    edit: vscode.WorkspaceEdit,
+    document: vscode.TextDocument,
+    line: number,
+  ) {
+    const testingVariable = this._lineMetadataMappings[line].variable;
+    const testingModel = this._lineMetadataMappings[line].model;
+
+    const newX = `X_${testingVariable}_new`;
+    const newY = `y_${testingVariable}_new`;
+    const scoringModel = `${this._variableEquivalenceMappings[testingModel]}`;
+
+    const newLoad = `${newX}, ${newY} = load_test_data()\n`;
+    const newTransform = `${newX}_0 = transform_model.transform(${newX})\n`;
+    const newScore = `${scoringModel}.score(${newX}_0, ${newY})`;
+
+    const insert = `\n${newLoad}${newTransform}${newScore}`;
+
+    edit.insert(
+      document.uri,
+      new vscode.Position(document.lineCount, 0),
+      insert,
+    );
   }
 
   private async tryResolvePreprocessing(
