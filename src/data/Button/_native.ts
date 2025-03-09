@@ -2,6 +2,29 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import { TempDir } from '../../helpers/TempDir';
 
+function checkTerminalEnded(
+  targetTerminal: vscode.Terminal,
+  resolve: (value: unknown) => void,
+  reject: (reason?: any) => void,
+) {
+  // Listen to terminal output
+  const disposable = vscode.window.onDidEndTerminalShellExecution((e) => {
+    if (e.terminal === targetTerminal) {
+      disposable.dispose(); // Clean up the event listener
+
+      console.log(e.exitCode, targetTerminal.exitStatus);
+
+      if (e.exitCode === 0) {
+        resolve(null);
+      } else {
+        reject(`Terminal exited with code ${e.exitCode}`);
+      }
+    } else {
+      console.log('Listening to the wrong terminal. Proceeding to skip.');
+    }
+  });
+}
+
 async function getPathToAlgoProgramDir(
   context: vscode.ExtensionContext,
 ): Promise<string> {
@@ -24,70 +47,38 @@ function getOutputByOS(input: [any, any, any]) {
   }
 }
 
-async function runPythonCommandAsTask(command: string): Promise<void> {
+async function runCommandWithPythonInterpreter(command: string) {
   // Get the Python extension
   const pythonExtension = vscode.extensions.getExtension('ms-python.python');
   if (!pythonExtension) {
-    throw new Error('Python extension is not installed.');
+    vscode.window.showErrorMessage('Python extension is not installed.');
+    return;
   }
-
-  // Activate the Python extension
   await pythonExtension.activate();
 
-  // Get the Python interpreter path
   const pythonPath =
     pythonExtension.exports.settings.getExecutionDetails().execCommand[0];
 
-  // Create the full command with Python interpreter
+  // Create a new terminal
+  const terminal = vscode.window.createTerminal('Python Command Terminal');
+  // Show the terminal
+  terminal.show();
+
+  // Create the full command
   const fullCommand = `${command}`;
 
-  return new Promise<void>((resolve, reject) => {
-    // Create the task
-    const task = new vscode.Task(
-      { type: 'native' },
-      vscode.TaskScope.Workspace,
-      'Run native binary',
-      'Leakage Detector',
-      new vscode.ShellExecution(fullCommand),
-      ['$python'], // Use Python problem matcher
-    );
+  // Send the command to the terminal
+  terminal.sendText(fullCommand);
 
-    task.presentationOptions = {
-      reveal: vscode.TaskRevealKind.Always,
-      panel: vscode.TaskPanelKind.Shared,
-      close: true,
-    };
-
-    // Execute the task
-    vscode.tasks.executeTask(task).then((taskExecution) => {
-      // Set up a listener for when the task process ends
-      const disposable = vscode.tasks.onDidEndTaskProcess((e) => {
-        if (e.execution === taskExecution) {
-          disposable.dispose();
-
-          if (e.exitCode === 0) {
-            console.log('Successfully ran native binary.');
-            resolve();
-          } else {
-            reject(
-              new Error(`Python command failed with exit code ${e.exitCode}`),
-            );
-            const idx = vscode.window.terminals
-              .map((terminal) => {
-                return terminal.creationOptions.name;
-              })
-              .findIndex((val) => val === e.execution.task.name);
-
-            if (idx === -1) {
-              console.error('Created terminal not found');
-            } else {
-              vscode.window.terminals[idx].dispose();
-            }
-          }
-        }
-      });
+  try {
+    await new Promise((resolve, reject) => {
+      checkTerminalEnded(terminal, resolve, reject);
     });
-  });
+  } catch (err) {
+    // terminal.dispose();
+    throw err;
+  }
+  // terminal.dispose();
 }
 
 export async function runNative(
@@ -111,5 +102,5 @@ export async function runNative(
 
   const command = `${programBinaryPath} ${pythonPath} -o`;
 
-  await runPythonCommandAsTask(command);
+  await runCommandWithPythonInterpreter(command);
 }
