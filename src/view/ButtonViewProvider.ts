@@ -191,14 +191,14 @@ export class ButtonViewProvider {
     console.log(vscode.window.activeColorTheme.kind);
 
     var icon_link = "https://i.imgur.com/TKs7dc2.png";
-    if (vscode.window.activeColorTheme.kind != 2){
+    var color_mode = "dark";
+    if (vscode.window.activeColorTheme.kind != 2 && vscode.window.activeColorTheme.kind != 3){
       icon_link = "https://cdn-icons-png.flaticon.com/512/0/532.png";
+      color_mode = "light";
     }
 
     const nonce = getNonce();
     if(output == "settings"){
-      
-      var hide_buttons = true;
       var method_select;
       if (method == "docker" || method == undefined){
         method_select = `
@@ -210,7 +210,7 @@ export class ButtonViewProvider {
         </div>
         <div class="column">
           <div class="right">
-            <select class="select" name="method-select" id="method-select" >
+            <select class="select ${color_mode}" name="method-select" id="method-select" >
               <option value="Docker"selected="selected">Docker</option>
               <option value="Native">Native</option>
             </select>
@@ -331,8 +331,8 @@ export class ButtonViewProvider {
           </div>
         </div>
         <div class="column">
-          <div class="right select_box">
-            <select class="select" name="method-select" id="method-select" >
+          <div class="right">
+            <select class="select ${color_mode}" name="method-select" id="method-select" >
               <option value="Docker">Docker</option>
               <option value="Native" selected="selected">Native</option>
             </select>

@@ -28,6 +28,8 @@ body {
     sans-serif;
 }
 
+
+
 h2 {
   font-weight: bold;
 }
@@ -76,11 +78,20 @@ a.button{
 }
 
 .select{
-  background-color: rgb(35, 35, 35);
   color: var(--vscode-input-foreground);
+  background-color: var(--vscode-input-background);
   width: 85px;
   border-radius: 5px;
   padding: var(--input-padding-vertical) var(--input-padding-horizontal);
+}
+
+.dark {
+  color: var(--vscode-input-foreground);
+  
+}
+
+.light {
+  color: black;
 }
 
 a {
