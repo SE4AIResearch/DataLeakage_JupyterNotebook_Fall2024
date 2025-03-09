@@ -179,7 +179,7 @@ export class ButtonViewProvider {
       os_link = "https://leakage-detector.vercel.app/binaries/macos14-arm64.zip";
       os_label = "MacOS";
     }
-    StateManager.saveData(this._context, "test", "hello");
+    
     const method = StateManager.loadData(this._context, "method");
     if (method === undefined){
       StateManager.saveData(this._context, "method", "docker");
@@ -342,29 +342,7 @@ export class ButtonViewProvider {
       <br></br>
     
     <div id="nativeButtons" style="display:none">
-      <!--
-      https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQfWbB640lxeD4tVh_FpmeWaHO094naSHz0bw&s
-      <button class="button secondary" id="install-leakage">Install</button>
-      <div class="dropdown"> 
-        <button class="dropbtn">Download</button>
-        <div class="dropdown-content"> 
-          <a class="" id="website-link" href="https://leakage-detector.vercel.app/binaries/windows-x64.zip">Windows-x64</a>
-          <a class="" id="website-link" href="https://leakage-detector.vercel.app/binaries/macos14-arm64.zip">MacOS14-ARM64</a>
-          <a class="" id="website-link" href="https://leakage-detector.vercel.app/binaries/linux-amd64.zip">Linux-x64</a>
-        </div>
-      </div>
-     
-      <div class="row" hidden>
-        <div class="column">
-          <a class="button test" id="website-link" href=${os_link}>Download</a>
-        </div>
-        <div class="column-right">
-          <button class="button secondary test" id="install-leakage">Install</button>
-        </div>
-      </div>
-      <br></br>
-       
-
+      <!--  
       <div class="row">
         <div class="column">
           <div class="middle">
@@ -470,35 +448,6 @@ export class ButtonViewProvider {
 			<body>
       <h2>User Settings</h2>
       <br>
-      <div class="row" hidden>
-        <div class="column">Docker</div>
-        <div class="column">
-          <label for="dockerCheck" class="switch"> 
-            <input type="checkbox" id="dockerCheck" checked>
-            <span class="slider round"></span>
-          </label>
-        </div>
-      </div>
-
-      <div class="row" hidden>
-        <div class="column">Native Binary</div>
-        <div class="column">
-          <label for="nativeCheck" class="switch"> 
-            <input type="checkbox" id="nativeCheck">
-            <span class="slider round"></span>
-          </label>
-        </div>
-      </div>
-
-      <!--
-      <label for="method-select" >Run Mode</label>
-        <select class="select" name="method-select" id="method-select" >
-          <option value="empty"></option>
-          <option value="Docker">Docker</option>
-          <option value="Native">Native Binary</option>
-        </select>
-      <br>
-      -->
       ${method_select}
         
       <br></br>
