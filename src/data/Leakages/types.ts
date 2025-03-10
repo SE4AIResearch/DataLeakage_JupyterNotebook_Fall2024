@@ -17,18 +17,25 @@ export type LeakageInstances = Record<
   }
 >;
 
-export type LeakageLines = Record<
-  number,
-  {
-    metadata?: Metadata;
-    tags: LineTag[];
-  }
->;
+export type LeakageLines = Record<number, LineInfo>;
+
+export type LineInfo = {
+  metadata?: Metadata;
+  tags: LineTag[];
+};
 
 export type Metadata = {
+  isTest: boolean;
   model: string;
   variable: string;
   method: string;
+};
+
+export type Taint = {
+  sourceVariable: string;
+  destVariable: string;
+  method: string;
+  label: string;
 };
 
 export type LineTag = {

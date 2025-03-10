@@ -12,8 +12,6 @@ import {
   LeakageInstances,
   LeakageType,
   LeakageLines,
-  LineTag,
-  Metadata,
 } from '../../data/Leakages/types';
 
 // Import /src/helpers

@@ -7,6 +7,7 @@ import {
   COLLECTION_NAME,
   subscribeToDocumentChanges,
 } from './data/Diagnostics/notebookDiagnostics';
+import { quickFixLLM } from './data/Diagnostics/quickFixLLM';
 
 export function activate(context: vscode.ExtensionContext) {
   /* Diagnostics */
@@ -16,21 +17,9 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(notebookDiagnostics);
   subscribeToDocumentChanges(context, notebookDiagnostics);
 
-  /* Code Actions (Quickfix) */
-
-  // context.subscriptions.push(
-  //   vscode.languages.registerCodeActionsProvider('python', new LeakageInfo(), {
-  //     providedCodeActionKinds: LeakageInfo.providedCodeActionKinds,
-  //   }),
-  // );
-
-  // context.subscriptions.push(
-  //   vscode.commands.registerCommand(COMMAND, () =>
-  //     vscode.env.openExternal(
-  //       vscode.Uri.parse('https://www.youtube.com/watch?v=dQw4w9WgXcQ'),
-  //     ),
-  //   ),
-  // );
+  context.subscriptions.push(
+    vscode.commands.registerCommand('dataleakage-jupyternotebook-fall2024.quickFixLLM', quickFixLLM),
+  );
 
   /* Leakage Overview View */
 
