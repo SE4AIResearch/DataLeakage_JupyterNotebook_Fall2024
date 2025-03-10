@@ -2,7 +2,7 @@
   "name": "data-leakage",
   "displayName": "Leakage Detector",
   "description": "",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "engines": {
     "vscode": "^1.93.0"
   },
@@ -29,7 +29,7 @@
         {
           "id": "data-leakage",
           "title": "Data Leakage",
-          "icon": "media/images/hand.png"
+          "icon": "media/images/Logo64.png"
         }
       ],
       "panel": [
@@ -108,9 +108,11 @@
     "lint": "eslint src",
     "test": "vscode-test",
     "prettier:check": "prettier --list-different 'src/**/*.{js,jsx,ts,tsx}'",
-    "prettier:fix": "prettier --write 'src/**/*.{js,jsx,ts,tsx}'"
+    "prettier:fix": "prettier --write 'src/**/*.{js,jsx,ts,tsx}'",
+    "deploy": "vsce publish"
   },
   "devDependencies": {
+    "@types/cheerio": "^0.22.35",
     "@types/dockerode": "^3.3.31",
     "@types/fs-extra": "^11.0.4",
     "@types/mocha": "^10.0.7",
@@ -120,6 +122,7 @@
     "@typescript-eslint/parser": "^8.3.0",
     "@vscode/test-cli": "^0.0.10",
     "@vscode/test-electron": "^2.4.1",
+    "@vscode/vsce": "^3.2.2",
     "eslint": "^9.9.1",
     "node-loader": "^2.1.0",
     "ts-loader": "^9.5.1",
@@ -129,6 +132,7 @@
   },
   "dependencies": {
     "axios": "^1.7.7",
+    "cheerio": "^1.0.0",
     "dockerode": "^4.0.2",
     "fs-extra": "^11.2.0",
     "js-xxhash": "^4.0.0",
@@ -137,9 +141,7 @@
     "zod": "^3.23.8"
   },
   "publisher": "leakage-detector",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/SE4AIResearch/DataLeakage_JupyterNotebook_Fall2024.git"
-  },
+  "repository": "https://github.com/SE4AIResearch/DataLeakage_JupyterNotebook_Fall2024",
+  "icon": "/media/images/Logo64",
   "license": "ISC"
 }

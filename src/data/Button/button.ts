@@ -1,5 +1,4 @@
 import * as vscode from 'vscode';
-import Docker, { ImageInfo } from 'dockerode';
 
 import path from 'path';
 import fs from 'fs';
@@ -7,15 +6,9 @@ import fs from 'fs';
 import { TempDir } from '../../helpers/TempDir';
 import { StateManager } from '../../helpers/StateManager';
 import { ConversionToPython } from '../../helpers/conversion/LineConversion';
-import LeakageInstance from '../Leakages/LeakageInstance/LeakageInstance';
-import Leakages from '../Leakages/Leakages';
 import { LineMapRecord } from '../../validation/isLineMapRecord';
 import { runDocker } from './_docker';
 import { runNative } from './_native';
-import {
-  LeakageAdapterCell,
-  getAdaptersFromFile,
-} from '../../helpers/Leakages/createLeakageAdapters';
 
 // TODO: Refactor analyzeNotebook & analyzeNotebookWithNotification into one
 
@@ -26,15 +19,15 @@ async function runAlgorithm(
   tempDir: TempDir,
   method: string,
 ) {
-  if (method === "native"){
-    console.log("native method was chosen");
+  if (method === 'native') {
+    console.log('native method was chosen');
     try {
       await runNative(context, tempDir);
     } catch (err) {
       vscode.window.showErrorMessage(
         'Native Implementation Failed. Falling back to Docker.',
       );
-  
+
       try {
         await runDocker(tempDir);
       } catch (err) {
@@ -46,8 +39,8 @@ async function runAlgorithm(
     }
   }
 
-  if (method === "docker"){
-    console.log("docker method was chosen");
+  if (method === 'docker') {
+    console.log('docker method was chosen');
     try {
       await runDocker(tempDir);
     } catch (err) {
@@ -57,7 +50,6 @@ async function runAlgorithm(
       throw err;
     }
   }
-  
 }
 
 function transformInput(

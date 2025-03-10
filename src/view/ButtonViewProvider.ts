@@ -1,5 +1,3 @@
-import fs from 'fs';
-import path from 'path';
 import os from 'os';
 
 import * as vscode from 'vscode';
@@ -7,10 +5,7 @@ import * as vscode from 'vscode';
 import { getNonce, getWebviewOptions } from '../helpers/utils';
 import { analyzeNotebookWithProgress } from '../data/Button/button';
 import { StateManager } from '../helpers/StateManager';
-import LeakageInstance from '../data/Leakages/LeakageInstance/LeakageInstance';
 import { installLeakageFolder } from '../data/Button/LeakageProgramInstaller';
-import { LeakageAdapterCell } from '../helpers/Leakages/createLeakageAdapters';
-import { string } from 'zod';
 
 /**
  * Manages Button Webview
@@ -36,16 +31,19 @@ export class ButtonViewProvider {
 
     webviewView.webview.options = getWebviewOptions(this._extensionUri);
 
-    webviewView.webview.html = this._getHtmlForWebview(webviewView.webview, this._output);
+    webviewView.webview.html = this._getHtmlForWebview(
+      webviewView.webview,
+      this._output,
+    );
 
     webviewView.webview.onDidReceiveMessage(async (data) => {
       switch (data.type) {
         case 'analyzeNotebookNative':
           await this.analyzeNotebookNative();
           break;
-          case 'analyzeNotebookDocker':
-            await this.analyzeNotebookDocker();
-            break;
+        case 'analyzeNotebookDocker':
+          await this.analyzeNotebookDocker();
+          break;
         case 'webviewLoaded':
           try {
             const data = {
@@ -82,38 +80,40 @@ export class ButtonViewProvider {
           });
           break;
         case 'dockerChosen':
-          StateManager.saveData(this._context, "method", "docker");
+          StateManager.saveData(this._context, 'method', 'docker');
           break;
         case 'nativeChosen':
-          StateManager.saveData(this._context, "method", "native");
+          StateManager.saveData(this._context, 'method', 'native');
           break;
       }
     });
   }
 
-  public async refresh (output: String){
-    try{
+  public async refresh(output: String) {
+    try {
       if (this._view) {
-        this._view.webview.html = this._getHtmlForWebview(this._view?.webview, output);
+        this._view.webview.html = this._getHtmlForWebview(
+          this._view?.webview,
+          output,
+        );
       } else {
         throw new Error("View wasn't created.");
       }
-      const test2 = StateManager.loadData(this._context, "method");
+      const test2 = StateManager.loadData(this._context, 'method');
       console.log(test2);
-
-    } catch(err){
+    } catch (err) {
       console.log(err);
     }
   }
 
   public async analyzeNotebookNative() {
-    console.log("native method was chosen");
+    console.log('native method was chosen');
     if (this._view) {
       await analyzeNotebookWithProgress(
         this._view,
         this._context,
         this._changeView,
-        "native"
+        'native',
       );
     } else {
       throw new Error("View wasn't created.");
@@ -121,20 +121,18 @@ export class ButtonViewProvider {
   }
 
   public async analyzeNotebookDocker() {
-    console.log("docker method was chosen");
+    console.log('docker method was chosen');
     if (this._view) {
       await analyzeNotebookWithProgress(
         this._view,
         this._context,
         this._changeView,
-        "docker"
+        'docker',
       );
     } else {
       throw new Error("View wasn't created.");
     }
   }
-
-  
 
   private _getHtmlForWebview(webview: vscode.Webview, output: String) {
     // Get the local path to main script run in the webview, then convert it to a uri we can use in the webview.
@@ -162,45 +160,46 @@ export class ButtonViewProvider {
     );
 
     StateManager.saveIsRunning(this._context, false);
-    
+
     const user_os = os.platform();
     const user_version = os.release();
     var os_label = user_os.charAt(0).toUpperCase() + user_os.slice(1);
     console.log(user_version);
-    var os_link = "";
+    var os_link = '';
 
-    if (user_os === 'win32'){
-      os_link = "https://leakage-detector.vercel.app/binaries/windows-x64.zip"; 
+    if (user_os === 'win32') {
+      os_link = 'https://leakage-detector.vercel.app/binaries/windows-x64.zip';
+    } else if (user_os === 'linux') {
+      os_link = 'https://leakage-detector.vercel.app/binaries/linux-amd64.zip';
+    } else if (user_os === 'darwin') {
+      os_link =
+        'https://leakage-detector.vercel.app/binaries/macos14-arm64.zip';
+      os_label = 'MacOS';
     }
-    else if (user_os === 'linux'){
-      os_link = "https://leakage-detector.vercel.app/binaries/linux-amd64.zip";
-    }
-    else if (user_os === 'darwin'){
-      os_link = "https://leakage-detector.vercel.app/binaries/macos14-arm64.zip";
-      os_label = "MacOS";
-    }
-    
-    const method = StateManager.loadData(this._context, "method");
-    if (method === undefined){
-      StateManager.saveData(this._context, "method", "docker");
+
+    const method = StateManager.loadData(this._context, 'method');
+    if (method === undefined) {
+      StateManager.saveData(this._context, 'method', 'docker');
     }
 
     console.log(vscode.window.activeColorTheme.kind);
 
-
     console.log(vscode.window.activeColorTheme.kind);
 
-    var icon_link = "https://i.imgur.com/TKs7dc2.png";
-    var color_mode = "dark";
-    if (vscode.window.activeColorTheme.kind != 2 && vscode.window.activeColorTheme.kind != 3){
-      icon_link = "https://cdn-icons-png.flaticon.com/512/0/532.png";
-      color_mode = "light";
+    var icon_link = 'https://i.imgur.com/TKs7dc2.png';
+    var color_mode = 'dark';
+    if (
+      vscode.window.activeColorTheme.kind != 2 &&
+      vscode.window.activeColorTheme.kind != 3
+    ) {
+      icon_link = 'https://cdn-icons-png.flaticon.com/512/0/532.png';
+      color_mode = 'light';
     }
 
     const nonce = getNonce();
-    if(output == "settings"){
+    if (output == 'settings') {
       var method_select;
-      if (method == "docker" || method == undefined){
+      if (method == 'docker' || method == undefined) {
         method_select = `
         <div class="row">
         <div class="column">
@@ -321,8 +320,7 @@ export class ButtonViewProvider {
         <button class="button" id="install-leakage">Install</button>
       
     </div>`;
-      }
-      else if (method == "native"){
+      } else if (method == 'native') {
         method_select = `
         <div class="row">
         <div class="column">
@@ -461,13 +459,12 @@ export class ButtonViewProvider {
         <script nonce="${nonce}" src="${scriptUri2}"></script>
 			</body>
 			</html>`;
-    }
-    else{
+    } else {
       var run = `<button class="button" id="run-leakage-docker">Run Data Leakage Analysis</button>`;
-      if (method == "native"){
+      if (method == 'native') {
         run = `<button class="button" id="run-leakage-native">Run Data Leakage Analysis</button>`;
       }
-    return `<!DOCTYPE html>
+      return `<!DOCTYPE html>
 			<html lang="en">
 			<head>
 				<meta charset="UTF-8">
