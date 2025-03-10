@@ -181,7 +181,7 @@ export class ButtonViewProvider {
       os_label = "MacOS";
     }
     StateManager.saveData(this._context, "test", "hello");
-    const method = StateManager.loadData(this._context, "method");
+    var method = StateManager.loadData(this._context, "method");
     if (method === undefined){
       StateManager.saveData(this._context, "method", "docker");
     }
@@ -515,10 +515,24 @@ export class ButtonViewProvider {
 			</html>`;
     }
     else{
-      var run = `<button class="button" id="run-leakage-docker">Run Data Leakage Analysis</button>`;
-      if (method == "native"){
-        run = `<button class="button" id="run-leakage-native">Run Data Leakage Analysis</button>`;
+      method = StateManager.loadData(this._context, "method");
+      var run = `
+      <div>
+        <button class="button" id="run-leakage-docker">Run Data Leakage Analysis</button>
+      </div>
+      <div hidden>
+        <button class="button" id="run-leakage-native" hidden="true">Run Data Leakage Analysis</button>
+      </div>`;
+      if (method === "native"){
+        run = `
+        <div hidden>
+          <button class="button" id="run-leakage-docker" hidden>Run Data Leakage Analysis</button>
+        </div>
+      <div>
+        <button class="button" id="run-leakage-native" hidden="true">Run Data Leakage Analysis</button>
+      </div>`;
       }
+      console.log(method);
     return `<!DOCTYPE html>
 			<html lang="en">
 			<head>
