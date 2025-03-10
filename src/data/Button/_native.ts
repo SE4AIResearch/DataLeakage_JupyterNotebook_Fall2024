@@ -1,29 +1,9 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
+import fs from 'fs';
+import { exec, spawn } from 'child_process';
+
 import { TempDir } from '../../helpers/TempDir';
-
-function checkTerminalEnded(
-  targetTerminal: vscode.Terminal,
-  resolve: (value: unknown) => void,
-  reject: (reason?: any) => void,
-) {
-  // Listen to terminal output
-  const disposable = vscode.window.onDidEndTerminalShellExecution((e) => {
-    if (e.terminal === targetTerminal) {
-      disposable.dispose(); // Clean up the event listener
-
-      console.log(e.exitCode, targetTerminal.exitStatus);
-
-      if (e.exitCode === 0) {
-        resolve(null);
-      } else {
-        reject(`Terminal exited with code ${e.exitCode}`);
-      }
-    } else {
-      console.log('Listening to the wrong terminal. Proceeding to skip.');
-    }
-  });
-}
 
 async function getPathToAlgoProgramDir(
   context: vscode.ExtensionContext,
@@ -47,6 +27,34 @@ function getOutputByOS(input: [any, any, any]) {
   }
 }
 
+/**
+ * Check Conda or Venv
+ */
+function isConda(interpreterPath: string) {
+  const parentDir = path.dirname(interpreterPath);
+  const grandparentDir = path.dirname(parentDir);
+  // check if grandparentDir includes conda-meta folder
+  if (fs.existsSync(path.join(grandparentDir, 'conda-meta'))) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
+function getEnvPath(interpreterPath: string) {
+  const parentDir = path.dirname(interpreterPath);
+  const grandparentDir = path.dirname(parentDir);
+
+  if (isConda(interpreterPath)) {
+    return grandparentDir;
+  } else {
+    return path.join(
+      parentDir,
+      process.platform === 'win32' ? 'Activate.ps1' : 'activate',
+    );
+  }
+}
+
 async function runCommandWithPythonInterpreter(command: string) {
   // Get the Python extension
   const pythonExtension = vscode.extensions.getExtension('ms-python.python');
@@ -59,26 +67,68 @@ async function runCommandWithPythonInterpreter(command: string) {
   const pythonPath =
     pythonExtension.exports.settings.getExecutionDetails().execCommand[0];
 
-  // Create a new terminal
-  const terminal = vscode.window.createTerminal('Python Command Terminal');
-  // Show the terminal
-  terminal.show();
+  const envPath = getEnvPath(pythonPath);
+  const shell = process.platform === 'win32' ? 'cmd.exe' : 'bash';
+  const shellFlag = process.platform === 'win32' ? '/c' : '-c';
 
-  // Create the full command
-  const fullCommand = `${command}`;
+  console.log(pythonPath);
 
-  // Send the command to the terminal
-  terminal.sendText(fullCommand);
+  const shellCommand = `
+  ${
+    isConda(pythonPath)
+      ? `
+      conda init ${process.platform === 'win32' ? 'cmd' : process.platform === 'darwin' ? 'zsh' : 'bash'}
+      ${process.platform === 'win32' ? `call ${envPath}` : `source activate ${envPath}`}
+      `
+      : process.platform === 'win32'
+        ? `${envPath}`
+        : `source ${envPath}`
+  }
+  ${command}
+  `;
 
   try {
+    console.log(
+      'Going to try exec now with the following command: \n',
+      shellCommand,
+    );
     await new Promise((resolve, reject) => {
-      checkTerminalEnded(terminal, resolve, reject);
+      const child = spawn(shell, [shellFlag, shellCommand]);
+      let stdout = '';
+      let stderr = '';
+
+      // Collect stdout data
+      child.stdout.on('data', (data) => {
+        const output = data.toString();
+        stdout += output;
+        console.log(`stdout: ${output}`);
+      });
+
+      // Collect stderr data
+      child.stderr.on('data', (data) => {
+        const output = data.toString();
+        stderr += output;
+        console.error(`stderr: ${output}`);
+      });
+
+      // Handle process completion
+      child.on('close', (code) => {
+        console.log(`Child process exited with code ${code}`);
+        if (code === 0) {
+          resolve({ stdout, stderr });
+        } else {
+          reject(new Error(`Command failed with exit code ${code}\n${stderr}`));
+        }
+      });
+
+      // Handle process errors
+      child.on('error', (err) => {
+        reject(new Error(`Failed to start process: ${err.message}`));
+      });
     });
   } catch (err) {
-    // terminal.dispose();
     throw err;
   }
-  // terminal.dispose();
 }
 
 export async function runNative(
