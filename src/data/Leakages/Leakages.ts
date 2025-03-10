@@ -157,7 +157,7 @@ export default class Leakages {
    * @param filename The name of the file to be read.
    * @returns An array containing the lines inside the file.
    */
-  private async readFile(filename: string): Promise<string> {
+  public async readFile(filename: string): Promise<string> {
     const filepath = path.join(this.outputDirectory, filename);
     const bytes = await vscode.workspace.fs.readFile(vscode.Uri.file(filepath));
     return this.textDecoder.decode(bytes);
@@ -184,7 +184,7 @@ export default class Leakages {
   /**
    * @returns All the mappings from internal program line numbers to external user line numbers.
    */
-  private async getInternalLineMappings(): Promise<Record<number, number>> {
+  public async getInternalLineMappings(): Promise<Record<number, number>> {
     const internalLineMappings: Record<number, number> = {};
 
     const file = await this.readFile(
@@ -204,7 +204,7 @@ export default class Leakages {
   /**
    * @returns All the mappings from internal invocations to internal program line numbers.
    */
-  private async getInvocationLineMappings(): Promise<Record<string, number>> {
+  public async getInvocationLineMappings(): Promise<Record<string, number>> {
     const invocationLineMappings: Record<string, number> = {};
 
     const file = await this.readFile(
