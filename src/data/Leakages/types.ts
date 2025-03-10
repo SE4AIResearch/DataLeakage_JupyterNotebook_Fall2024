@@ -25,9 +25,17 @@ export type LineInfo = {
 };
 
 export type Metadata = {
+  isTest: boolean;
   model: string;
   variable: string;
   method: string;
+};
+
+export type Taint = {
+  sourceVariable: string;
+  destVariable: string;
+  method: string;
+  label: string;
 };
 
 export type LineTag = {
