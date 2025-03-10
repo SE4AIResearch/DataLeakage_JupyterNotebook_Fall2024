@@ -2,7 +2,30 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs-extra';
 
-import { checkTerminalEnded } from './_buttonUtils';
+// TODO: convert to Task API
+
+function checkTerminalEnded(
+  targetTerminal: vscode.Terminal,
+  resolve: (value: unknown) => void,
+  reject: (reason?: any) => void,
+) {
+  // Listen to terminal output
+  const disposable = vscode.window.onDidEndTerminalShellExecution((e) => {
+    if (e.terminal === targetTerminal) {
+      disposable.dispose(); // Clean up the event listener
+
+      console.log(e.exitCode, targetTerminal.exitStatus);
+
+      if (e.exitCode === 0) {
+        resolve(null);
+      } else {
+        reject(`Terminal exited with code ${e.exitCode}`);
+      }
+    } else {
+      console.log('Listening to the wrong terminal. Proceeding to skip.');
+    }
+  });
+}
 
 export async function installLeakageFolder(
   context: vscode.ExtensionContext,

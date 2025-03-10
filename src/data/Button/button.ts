@@ -18,6 +18,7 @@ async function runAlgorithm(
   context: vscode.ExtensionContext,
   tempDir: TempDir,
 ) {
+  console.log('Running algorithm...');
   try {
     await runNative(context, tempDir);
   } catch (err) {

@@ -83,19 +83,17 @@ async function createContainer(docker: Docker, tempDir: TempDir) {
         Binds: [`${tempDir.getAlgoDirPath()}:${DockerTemp.CONTAINER_DIR_PATH}`],
       },
       platform: 'linux/amd64',
+      AttachStdin: false,
+      AttachStdout: true,
+      AttachStderr: true,
+      Tty: false,
+      OpenStdin: false,
+      StdinOnce: false,
     };
 
     const container =
       (await getExistingContainer(docker, config.name!)) ??
       (await docker.createContainer(config));
-
-    const exec = await container.attach({
-      stream: true,
-      stdout: true,
-      stderr: true,
-    });
-
-    exec.pipe(process.stdout);
 
     return container;
   } catch (error) {
@@ -105,13 +103,49 @@ async function createContainer(docker: Docker, tempDir: TempDir) {
 }
 
 export async function runDocker(tempDir: TempDir) {
-  const docker = new Docker();
-  await downloadImage(docker);
-  const container = await createContainer(docker, tempDir);
+  try {
+    const docker = new Docker();
+    await downloadImage(docker);
+    const container = await createContainer(docker, tempDir);
 
-  const timeout = new Promise((res) =>
-    setTimeout(() => res('Timed out'), 1000 * 60 * 60),
-  );
+    // Start the container first
+    await container.start();
+    console.log('Container started successfully');
 
-  const result = await Promise.race([container.start(), timeout]);
+    // Set up a stream to capture output after container is started
+    const stream = await container.attach({
+      stream: true,
+      stdout: true,
+      stderr: true,
+    });
+
+    // Properly handle the stream output
+    stream.pipe(process.stdout);
+
+    // Set up a timeout
+    const timeoutDuration = 1000 * 60 * 60;
+    const timeoutPromise = new Promise<string>((resolve) => {
+      setTimeout(
+        () => resolve('Container execution timed out'),
+        timeoutDuration,
+      );
+    });
+
+    // Wait for container to finish or timeout
+    const waitPromise = container.wait();
+
+    const result = await Promise.race([waitPromise, timeoutPromise]);
+
+    if (typeof result === 'string') {
+      console.log(result); // This is the timeout message
+      await container.stop({ t: 10 });
+    } else {
+      console.log(`Container exited with status code: ${result.StatusCode}`);
+    }
+
+    return result;
+  } catch (error) {
+    console.error('Error running Docker container:', error);
+    throw error;
+  }
 }
