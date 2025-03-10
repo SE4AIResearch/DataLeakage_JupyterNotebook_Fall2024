@@ -1,7 +1,5 @@
-#install-leakage {
-  margin-top: 10px;
-}
-
 .help {
   margin-bottom: 10px;
+  position: absolute; 
+  bottom: 5px;
 }

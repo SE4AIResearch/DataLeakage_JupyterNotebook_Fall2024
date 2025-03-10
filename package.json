@@ -14,6 +14,16 @@
   ],
   "main": "./dist/extension.js",
   "contributes": {
+    "configuration": {
+      "title": "Leakage Detector",
+      "properties": {
+        "scope.name": {
+          "type": "",
+          "default": "",
+          "description": "test"
+        }
+      }
+    },
     "viewsContainers": {
       "activitybar": [
         {
@@ -44,6 +54,16 @@
         "command": "data-leakage.quickfix",
         "category": "Code Action",
         "title": "Quickfix for Leakage Error"
+      },
+      {
+        "command": "data-leakage.showButton",
+        "title": "Data Leakage",
+        "icon": "$(play)"
+      },
+      {
+        "command": "data-leakage.showSettings",
+        "title": "Settings",
+        "icon": "$(gear)"
       }
     ],
     "views": {
@@ -51,7 +71,7 @@
         {
           "type": "webview",
           "id": "data-leakage.buttonView",
-          "name": "Button View"
+          "name": "Data Leakage"
         }
       ],
       "leakage-overview": [
@@ -59,6 +79,20 @@
           "type": "webview",
           "id": "data-leakage.overviewViewProvider",
           "name": "Leakage Overview"
+        }
+      ]
+    },
+    "menus": {
+      "view/title": [
+        {
+          "command": "data-leakage.showButton",
+          "when": "view == data-leakage.buttonView",
+          "group": "navigation"
+        },
+        {
+          "command": "data-leakage.showSettings",
+          "when": "view == data-leakage.buttonView",
+          "group": "navigation"
         }
       ]
     }
