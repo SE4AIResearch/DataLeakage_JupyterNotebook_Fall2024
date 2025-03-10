@@ -17,14 +17,30 @@ import { runNative } from './_native';
 async function runAlgorithm(
   context: vscode.ExtensionContext,
   tempDir: TempDir,
+  method: string,
 ) {
-  try {
-    await runNative(context, tempDir);
-  } catch (err) {
-    vscode.window.showErrorMessage(
-      'Native Implementation Failed. Falling back to Docker.',
-    );
+  if (method === 'native') {
+    console.log('native method was chosen');
+    try {
+      await runNative(context, tempDir);
+    } catch (err) {
+      vscode.window.showErrorMessage(
+        'Native Implementation Failed. Falling back to Docker.',
+      );
 
+      try {
+        await runDocker(tempDir);
+      } catch (err) {
+        vscode.window.showErrorMessage(
+          'Docker Implementation Failed. Extension Exiting.',
+        );
+        throw err;
+      }
+    }
+  }
+
+  if (method === 'docker') {
+    console.log('docker method was chosen');
     try {
       await runDocker(tempDir);
     } catch (err) {
@@ -49,6 +65,7 @@ async function analyzeNotebook(
   view: vscode.WebviewView,
   context: vscode.ExtensionContext,
   changeView: () => Promise<void>,
+  method: string,
 ) {
   if (vscode.window.activeNotebookEditor === undefined) {
     vscode.window.showErrorMessage(
@@ -108,7 +125,7 @@ async function analyzeNotebook(
 
       // Run Algorithm & Wait for result
 
-      await runAlgorithm(context, tempDir);
+      await runAlgorithm(context, tempDir, method);
       const elapsedTime = (performance.now() - startTime) / 1000;
       vscode.window.showInformationMessage(
         `Analysis completed in ${elapsedTime} second${elapsedTime === 1 ? '' : 's'}`,
@@ -140,6 +157,7 @@ export async function analyzeNotebookWithProgress(
   view: vscode.WebviewView,
   context: vscode.ExtensionContext,
   changeView: () => Promise<void>,
+  method: string,
 ) {
   vscode.window.withProgress(
     {
@@ -150,7 +168,7 @@ export async function analyzeNotebookWithProgress(
       return (async () => {
         progress.report({ increment: 0 });
         try {
-          await analyzeNotebook(view, context, changeView);
+          await analyzeNotebook(view, context, changeView, method);
         } catch (err) {
           console.error(err);
         }

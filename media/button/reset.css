@@ -27,4 +27,6 @@ ul {
 img {
 	max-width: 100%;
 	height: auto;
+	text-decoration: none;
+    outline: none;
 }

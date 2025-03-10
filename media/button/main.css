@@ -1,5 +1,37 @@
+@font-face {
+  font-family: "Inter";
+  src: url("/fonts/Inter/InterDisplay-Light.woff2") format("woff2");
+  font-weight: 300;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "JetBrains Mono";
+  src: url("/fonts/JetBrainsMono/JetBrainsMono-Light.woff2") format("woff2");
+  font-weight: 300;
+  font-style: normal;
+}
+
 body {
   background-color: transparent;
+  font-family:
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    Oxygen,
+    Ubuntu,
+    Cantarell,
+    "Open Sans",
+    "Helvetica Neue",
+    sans-serif;
+}
+
+
+
+h2 {
+  font-weight: bold;
 }
 
 .list {
@@ -39,6 +71,72 @@ body {
   margin: 0 auto;
 }
 
+a.button{
+  display: block;
+  border: none;
+  margin: 0 auto;
+}
+
+.select{
+  color: var(--vscode-input-foreground);
+  background-color: var(--vscode-input-background);
+  width: 80px;
+  border-radius: 5px;
+  padding: var(--input-padding-vertical) var(--input-padding-horizontal);
+}
+
+.dark {
+  color: var(--vscode-input-foreground);
+  
+}
+
+.light {
+  color: black;
+}
+
+a {
+  text-decoration: none;
+  outline: none;
+}
+
+a.img {
+  text-align: right;
+  justify-content: right;
+  position: relative;
+  left: 60px;
+}
+
+.middle {
+  padding: 5px 0px 0px 0px;
+}
+
 .check {
   background: green;
+}
+
+.column {
+  float: left;
+  width: 50%;
+}
+.column-right{
+  float: right;
+  width: 50%;
+}
+
+.right{
+  float: right;
+  width: 50%;
+  margin: 0px 0px 0px 0px;
+  position: fixed;
+}
+
+/* Clear floats after the columns */
+.row:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+.windows-dl{
+  display: none;
 }
