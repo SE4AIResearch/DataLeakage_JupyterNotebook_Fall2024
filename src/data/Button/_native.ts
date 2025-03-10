@@ -33,8 +33,11 @@ function getOutputByOS(input: [any, any, any]) {
 function isConda(interpreterPath: string) {
   const parentDir = path.dirname(interpreterPath);
   const grandparentDir = path.dirname(parentDir);
-  // check if grandparentDir includes conda-meta folder
-  if (fs.existsSync(path.join(grandparentDir, 'conda-meta'))) {
+  // check if grandparentDir/parentDir includes conda-meta folder
+  if (
+    fs.existsSync(path.join(grandparentDir, 'conda-meta')) ||
+    fs.existsSync(path.join(parentDir, 'conda-meta'))
+  ) {
     return true;
   } else {
     return false;
@@ -44,9 +47,14 @@ function isConda(interpreterPath: string) {
 function getEnvPath(interpreterPath: string) {
   const parentDir = path.dirname(interpreterPath);
   const grandparentDir = path.dirname(parentDir);
+  console.log('Interpreter Parent Directory: ', parentDir);
+  console.log('Interpreter Grandparent Directory: ', grandparentDir);
 
   if (isConda(interpreterPath)) {
-    return grandparentDir;
+    const rootDir = fs.existsSync(path.join(parentDir, 'conda-meta'))
+      ? parentDir
+      : grandparentDir;
+    return rootDir;
   } else {
     return path.join(
       parentDir,
@@ -72,19 +80,20 @@ async function runCommandWithPythonInterpreter(command: string) {
   const shellFlag = process.platform === 'win32' ? '/c' : '-c';
 
   console.log(pythonPath);
+  console.log('Is it running Conda: ', isConda(pythonPath));
 
   const shellCommand = `
-  ${
-    isConda(pythonPath)
-      ? `
-      conda init ${process.platform === 'win32' ? 'cmd' : process.platform === 'darwin' ? 'zsh' : 'bash'}
-      ${process.platform === 'win32' ? `call ${envPath}` : `source activate ${envPath}`}
+${
+  isConda(pythonPath)
+    ? `
+conda init ${process.platform === 'win32' ? 'cmd' : process.platform === 'darwin' ? 'zsh' : 'bash'}
+${process.platform === 'win32' ? `call ${envPath}` : `source activate ${envPath}`}
       `
-      : process.platform === 'win32'
-        ? `${envPath}`
-        : `source ${envPath}`
-  }
-  ${command}
+    : process.platform === 'win32'
+      ? `${envPath}`
+      : `source ${envPath}`
+}
+${command}
   `;
 
   try {
@@ -93,7 +102,9 @@ async function runCommandWithPythonInterpreter(command: string) {
       shellCommand,
     );
     await new Promise((resolve, reject) => {
-      const child = spawn(shell, [shellFlag, shellCommand]);
+      const child = spawn(shell, [shellFlag, shellCommand], {
+        stdio: ['ignore', 'pipe', 'pipe'],
+      });
       let stdout = '';
       let stderr = '';
 
