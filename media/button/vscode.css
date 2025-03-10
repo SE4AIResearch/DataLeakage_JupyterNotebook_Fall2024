@@ -8,7 +8,7 @@
 
 body {
   padding: 0 var(--container-paddding);
-  color: var(--vscode-foreground);
+  /* color: var(--vscode-foreground); */
   font-size: var(--vscode-font-size);
   font-weight: var(--vscode-font-weight);
   font-family: var(--vscode-font-family);
@@ -39,6 +39,40 @@ a:active {
   color: var(--vscode-textLink-activeForeground);
 }
 
+a.button {
+  font-size: var(--vscode-font-size);
+  font-weight: var(--vscode-font-weight);
+  font-family: var(--vscode-font-family);
+  display: block;
+  margin: 0 auto;
+  border: none;
+  padding: var(--input-padding-vertical) var(--input-padding-horizontal);
+  width: 80px;
+  text-align: center;
+  outline: 1px solid transparent;
+  outline-offset: 2px !important;
+  color: var(--vscode-button-foreground);
+  background: var(--vscode-button-background);
+  text-decoration: none;
+  box-shadow: none;
+  height: 27px;
+  float: left;
+}
+
+a.button:hover {
+  cursor: pointer;
+  background: var(--vscode-button-hoverBackground);
+}
+
+a.button:focus {
+  outline-color: var(--vscode-focusBorder);
+}
+
+a.button:disabled {
+  cursor: progress;
+  background: color-mix(in srgb, var(--vscode-button-background), grey 50%);
+}
+
 code {
   font-size: var(--vscode-editor-font-size);
   font-family: var(--vscode-editor-font-family);
@@ -53,6 +87,30 @@ button {
   outline-offset: 2px !important;
   color: var(--vscode-button-foreground);
   background: var(--vscode-button-background);
+}
+
+button.test {
+  border: none;
+  padding: var(--input-padding-vertical) var(--input-padding-horizontal);
+  width: 80px;
+  text-align: center;
+  outline: 1px solid transparent;
+  outline-offset: 2px !important;
+  color: var(--vscode-button-foreground);
+  background: var(--vscode-button-background);
+}
+
+button.img {
+  display: inline-block;
+  height: 20px;
+  padding: 0;
+  margin: 5;
+  vertical-align: top;
+  width: 20px;
+  background: none;
+  color: none;
+  outline: none;
+  outline-offset: none !important;
 }
 
 button:hover {
@@ -76,6 +134,10 @@ button.secondary {
 
 button.secondary:hover {
   background: var(--vscode-button-secondaryHoverBackground);
+}
+
+button.img:hover{
+  background: none;
 }
 
 input:not([type='checkbox']),

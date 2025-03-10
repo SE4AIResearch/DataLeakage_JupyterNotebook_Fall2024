@@ -29,7 +29,6 @@
         table.innerHTML = `
           <tr>
             <th>ID</th>
-            <th>Relation ID</th>
             <th>Type</th>
             <th>General Cause</th>
             <th>Cell</th>
@@ -48,9 +47,9 @@
           idTd.textContent = row.id;
           tr.appendChild(idTd);
 
-          const relationIdTd = document.createElement('td');
-          relationIdTd.textContent = row.relationId;
-          tr.appendChild(relationIdTd);
+          // const relationIdTd = document.createElement('td');
+          // relationIdTd.textContent = row.relationId;
+          // tr.appendChild(relationIdTd);
 
           const typeTd = document.createElement('td');
           typeTd.textContent = row.type;
