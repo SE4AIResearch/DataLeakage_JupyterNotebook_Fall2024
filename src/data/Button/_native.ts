@@ -76,8 +76,6 @@ async function runCommandWithPythonInterpreter(command: string) {
     pythonExtension.exports.settings.getExecutionDetails().execCommand[0];
 
   const envPath = getEnvPath(pythonPath);
-  const shell = process.platform === 'win32' ? 'cmd.exe' : 'bash';
-  const shellFlag = process.platform === 'win32' ? '/c' : '-c';
 
   console.log(pythonPath);
   console.log('Is it running Conda: ', isConda(pythonPath));
@@ -86,8 +84,8 @@ async function runCommandWithPythonInterpreter(command: string) {
 ${
   isConda(pythonPath)
     ? `
-conda init ${process.platform === 'win32' ? 'cmd' : process.platform === 'darwin' ? 'zsh' : 'bash'}
-${process.platform === 'win32' ? `call ${envPath}` : `source activate ${envPath}`}
+conda init ${process.platform === 'win32' ? 'powershell.exe' : process.platform === 'darwin' ? 'zsh' : 'bash'}
+${process.platform === 'win32' ? `conda activate ${envPath}` : `source activate ${envPath}`}
       `
     : process.platform === 'win32'
       ? `${envPath}`
@@ -102,9 +100,16 @@ ${command}
       shellCommand,
     );
     await new Promise((resolve, reject) => {
-      const child = spawn(shell, [shellFlag, shellCommand], {
-        stdio: ['ignore', 'pipe', 'pipe'],
-      });
+      const shell = process.platform === 'win32' ? 'powershell.exe' : 'bash';
+      const shellFlag = process.platform === 'win32' ? '/c' : '-c';
+      console.log(shell, shellFlag);
+      const child = spawn(shell, [
+        shellFlag,
+        process.platform === 'win32'
+          ? shellCommand.trim().replace(/\\/g, '\\\\')
+          : shellCommand.trim(),
+      ]);
+
       let stdout = '';
       let stderr = '';
 
