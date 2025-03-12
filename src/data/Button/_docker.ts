@@ -78,7 +78,10 @@ async function createContainer(docker: Docker, tempDir: TempDir) {
     const config: ContainerCreateOptions = {
       name: 'DataLeakageAlgo',
       Image: DockerTemp.IMAGE_NAME,
-      Cmd: [`${DockerTemp.PYTHON_FILE_PATH}`, `-o`],
+      Entrypoint: ['bash', '-c'],
+      Cmd: [
+        `python3 -m src.main ${DockerTemp.PYTHON_FILE_PATH} -o && sleep 1s`,
+      ],
       HostConfig: {
         Binds: [`${tempDir.getAlgoDirPath()}:${DockerTemp.CONTAINER_DIR_PATH}`],
       },
@@ -90,6 +93,8 @@ async function createContainer(docker: Docker, tempDir: TempDir) {
       OpenStdin: false,
       StdinOnce: false,
     };
+
+    console.log(`Docker Bind Path: ${config.HostConfig?.Binds}`);
 
     const container =
       (await getExistingContainer(docker, config.name!)) ??
