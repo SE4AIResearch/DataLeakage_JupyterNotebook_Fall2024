@@ -164,16 +164,20 @@ export class ButtonViewProvider {
     const user_os = os.platform();
     const user_version = os.release();
     var os_label = user_os.charAt(0).toUpperCase() + user_os.slice(1);
-    console.log(user_version);
     var os_link = '';
 
     if (user_os === 'win32') {
       os_link = 'https://leakage-detector.vercel.app/binaries/windows-x64.zip';
     } else if (user_os === 'linux') {
-      os_link = 'https://leakage-detector.vercel.app/binaries/linux-amd64.zip';
+      os_link = 'https://leakage-detector.vercel.app/binaries/linux-x64.zip';
     } else if (user_os === 'darwin') {
-      os_link =
-        'https://leakage-detector.vercel.app/binaries/macos14-arm64.zip';
+      const user_arch = os.arch();
+      if (user_arch == "arm64"){
+        os_link = 'https://leakage-detector.vercel.app/binaries/macos-arm64.zip';
+      }
+      else{
+        os_link = 'https://leakage-detector.vercel.app/binaries/macos-x64.zip';
+      }
       os_label = 'MacOS';
     }
     StateManager.saveData(this._context, "test", "hello");
@@ -181,10 +185,6 @@ export class ButtonViewProvider {
     if (method === undefined){
       StateManager.saveData(this._context, "method", "docker");
     }
-
-    console.log(vscode.window.activeColorTheme.kind);
-
-    console.log(vscode.window.activeColorTheme.kind);
 
     var icon_link = 'https://i.imgur.com/TKs7dc2.png';
     var color_mode = 'dark';
