@@ -6,7 +6,7 @@ import {
   NotAnalyzedError,
 } from '../../helpers/Leakages/createLeakageAdapters';
 import { findRows } from './_findRows';
-import { QuickFixProvider } from './QuickFixProvider';
+import { QuickFixManual } from './quickFixManual';
 
 export const LEAKAGE_ERROR = 'dataLeakage';
 export const COLLECTION_NAME = 'notebook_leakage_error';
@@ -104,16 +104,6 @@ const configureNotebookDiagnostics = async (
     const rows = await findRows(editor, fsPath, adapters);
 
     refreshNotebookDiagnostics(editor.document, diagnosticCollection, rows);
-
-    context.subscriptions.push(
-      vscode.languages.registerCodeActionsProvider(
-        'python',
-        await QuickFixProvider.create(context),
-        {
-          providedCodeActionKinds: QuickFixProvider.ProvidedCodeActionKinds,
-        },
-      ),
-    );
   } catch (err) {
     if (err instanceof NotAnalyzedError) {
       console.warn('Warning: Notebook has not been analyzed before.', err);
