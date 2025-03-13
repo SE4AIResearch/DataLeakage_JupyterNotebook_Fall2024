@@ -8,8 +8,9 @@ import {
   subscribeToDocumentChanges,
 } from './data/Diagnostics/notebookDiagnostics';
 import { quickFixLLM } from './data/Diagnostics/quickFixLLM';
+import { QuickFixManual } from './data/Diagnostics/quickFixManual';
 
-export function activate(context: vscode.ExtensionContext) {
+export async function activate(context: vscode.ExtensionContext) {
   /* Diagnostics */
 
   const notebookDiagnostics =
@@ -18,7 +19,20 @@ export function activate(context: vscode.ExtensionContext) {
   subscribeToDocumentChanges(context, notebookDiagnostics);
 
   context.subscriptions.push(
-    vscode.commands.registerCommand('dataleakage-jupyternotebook-fall2024.quickFixLLM', quickFixLLM),
+    vscode.languages.registerCodeActionsProvider(
+      'python',
+      await QuickFixManual.create(context),
+      {
+        providedCodeActionKinds: QuickFixManual.ProvidedCodeActionKinds,
+      },
+    ),
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      'dataleakage-jupyternotebook-fall2024.quickFixLLM',
+      quickFixLLM,
+    ),
   );
 
   /* Leakage Overview View */
@@ -50,19 +64,19 @@ export function activate(context: vscode.ExtensionContext) {
     context.extensionUri,
     context,
     changeView,
-    "button"
+    'button',
   );
-  const refreshViewButtons = async() =>
-    await buttonProvider.refresh("buttons");
+  const refreshViewButtons = async () =>
+    await buttonProvider.refresh('buttons');
 
-  const refreshViewSettings = async() =>
-    await buttonProvider.refresh("settings");
+  const refreshViewSettings = async () =>
+    await buttonProvider.refresh('settings');
 
   const buttonProvider2 = new ButtonViewProvider(
     context.extensionUri,
     context,
     changeView,
-    "settings"
+    'settings',
   );
   context.subscriptions.push(
     vscode.window.registerWebviewViewProvider(
@@ -83,39 +97,43 @@ export function activate(context: vscode.ExtensionContext) {
     ),
   );*/
 
-  const buttonHandler = async () =>
-    {
-/*       context.subscriptions.push(
+  const buttonHandler = async () => {
+    /*       context.subscriptions.push(
         vscode.window.registerWebviewViewProvider(
           ButtonViewProvider.viewType,
           buttonProvider,
         ),
       ); */
-      await refreshViewButtons();
-    }
+    await refreshViewButtons();
+  };
 
-  const buttonHandler2 = async () =>
-    {
-      /* console.log(context.subscriptions);
+  const buttonHandler2 = async () => {
+    /* console.log(context.subscriptions);
       context.subscriptions.push(
         vscode.window.registerWebviewViewProvider(
           ButtonViewProvider.viewType,
           buttonProvider2,
         ),
       ); */
-      await refreshViewSettings();
-    }
+    await refreshViewSettings();
+  };
 
-  const settingsHandler = () =>
-  {
+  const settingsHandler = () => {
     context.subscriptions.push(
       vscode.window.registerWebviewViewProvider(
         SettingsViewProvider.viewType,
         settingsProvider,
       ),
     );
-  }
+  };
 
-  context.subscriptions.push(vscode.commands.registerCommand("data-leakage.showButton", buttonHandler));
-  context.subscriptions.push(vscode.commands.registerCommand("data-leakage.showSettings", buttonHandler2));
+  context.subscriptions.push(
+    vscode.commands.registerCommand('data-leakage.showButton', buttonHandler),
+  );
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      'data-leakage.showSettings',
+      buttonHandler2,
+    ),
+  );
 }
