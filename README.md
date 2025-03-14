@@ -18,6 +18,7 @@ The extension creates two tables in the bottom panel. "Leakage Summary" shows ho
 ## Requirements
 
 * [Pre-built binaries](https://leakage-detector.vercel.app/download) for Windows, macOS, or Linux (failing that, [Docker](https://www.docker.com/) Engine or Desktop)
+* [NodeJS](https://nodejs.org/en/download) which is required to run the prebuilt binaries for Windows, MacOS, and Linux
 * [Python extension for VS Code](https://marketplace.visualstudio.com/items?itemName=ms-python.python)
 
 ## Known Issues
