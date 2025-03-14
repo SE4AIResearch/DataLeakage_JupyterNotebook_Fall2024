@@ -96,9 +96,17 @@ async function createContainer(docker: Docker, tempDir: TempDir) {
 
     console.log(`Docker Bind Path: ${config.HostConfig?.Binds}`);
 
-    const container =
-      (await getExistingContainer(docker, config.name!)) ??
-      (await docker.createContainer(config));
+    const existingContainer = await getExistingContainer(docker, config.name!);
+
+    if (existingContainer) {
+      try {
+        await existingContainer.remove();
+      } catch (err) {
+        console.error('Failed to remove existing container...');
+      }
+    }
+
+    const container = await docker.createContainer(config);
 
     return container;
   } catch (error) {
