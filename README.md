@@ -21,6 +21,8 @@ The extension creates two tables in the bottom panel. "Leakage Summary" shows ho
 * [NodeJS](https://nodejs.org/en/download) which is required to run the prebuilt binaries for Windows, MacOS, and Linux
 * [Python extension for VS Code](https://marketplace.visualstudio.com/items?itemName=ms-python.python)
 * [Jupyter Notebook extension for VS Code](https://marketplace.visualstudio.com/items?itemName=ms-toolsai.jupyter)
+### Optional
+* [Github Copilot](https://marketplace.visualstudio.com/items?itemName=GitHub.copilot) for additional quickfix suggestions
 
 ## Known Issues
 
