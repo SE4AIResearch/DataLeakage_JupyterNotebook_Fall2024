@@ -6,7 +6,7 @@ import {
   NotAnalyzedError,
 } from '../../helpers/Leakages/createLeakageAdapters';
 import { findRows } from './_findRows';
-import { QuickFixProvider } from './QuickFixProvider';
+import { QuickFixManual } from './quickFixManual';
 
 export const LEAKAGE_ERROR = 'dataLeakage';
 export const COLLECTION_NAME = 'notebook_leakage_error';
@@ -94,6 +94,7 @@ const configureNotebookDiagnostics = async (
   context: vscode.ExtensionContext,
   editor: vscode.TextEditor,
   diagnosticCollection: vscode.DiagnosticCollection,
+  quickFixManual: QuickFixManual,
 ) => {
   try {
     // Get Adapter
@@ -104,16 +105,7 @@ const configureNotebookDiagnostics = async (
     const rows = await findRows(editor, fsPath, adapters);
 
     refreshNotebookDiagnostics(editor.document, diagnosticCollection, rows);
-
-    context.subscriptions.push(
-      vscode.languages.registerCodeActionsProvider(
-        'python',
-        await QuickFixProvider.create(context),
-        {
-          providedCodeActionKinds: QuickFixProvider.ProvidedCodeActionKinds,
-        },
-      ),
-    );
+    await quickFixManual.getData(context);
   } catch (err) {
     if (err instanceof NotAnalyzedError) {
       console.warn('Warning: Notebook has not been analyzed before.', err);
@@ -128,12 +120,18 @@ const configureNotebookDiagnostics = async (
 export function subscribeToDocumentChanges(
   context: vscode.ExtensionContext,
   diagnosticCollection: vscode.DiagnosticCollection,
+  quickFixManual: QuickFixManual,
 ): void {
   if (vscode.window.activeTextEditor) {
     const editor = vscode.window.activeTextEditor;
 
     if (editor && editor.document.uri.scheme === 'vscode-notebook-cell') {
-      configureNotebookDiagnostics(context, editor, diagnosticCollection); // async fn
+      configureNotebookDiagnostics(
+        context,
+        editor,
+        diagnosticCollection,
+        quickFixManual,
+      ); // async fn
     }
   }
   context.subscriptions.push(
@@ -143,6 +141,7 @@ export function subscribeToDocumentChanges(
           context,
           editor,
           diagnosticCollection,
+          quickFixManual,
         );
       }
     }),
