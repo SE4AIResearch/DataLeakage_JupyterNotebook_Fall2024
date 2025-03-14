@@ -84,10 +84,7 @@ export class QuickFixManual implements vscode.CodeActionProvider {
   ): vscode.CodeAction[] {
     const actions = context.diagnostics
       .filter((diagnostic) => diagnostic.code === LEAKAGE_ERROR)
-      .flatMap((diagnostic) => [
-        this.createFix(diagnostic, document),
-        this.createLLMAction(diagnostic),
-      ])
+      .flatMap((diagnostic) => [this.createFix(diagnostic, document)])
       .filter((fix) => !!fix);
     return actions;
   }
@@ -213,22 +210,5 @@ export class QuickFixManual implements vscode.CodeActionProvider {
       new vscode.Position(document.lineCount, 0),
       insert,
     );
-  }
-
-  private createLLMAction(
-    diagnostic: vscode.Diagnostic,
-  ): vscode.CodeAction | null {
-    const llmAction = new vscode.CodeAction(
-      'Fix Leakage with Copilot',
-      vscode.CodeActionKind.QuickFix,
-    );
-    llmAction.diagnostics = [diagnostic];
-    llmAction.isPreferred = false;
-    llmAction.command = {
-      title: 'Fix Leakage using Copilot',
-      command: 'dataleakage-jupyternotebook-fall2024.quickFixLLM',
-      arguments: [diagnostic.range.start.line + 1, diagnostic.range.start.line],
-    };
-    return llmAction;
   }
 }

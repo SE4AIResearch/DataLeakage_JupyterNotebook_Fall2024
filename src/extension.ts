@@ -7,7 +7,6 @@ import {
   COLLECTION_NAME,
   subscribeToDocumentChanges,
 } from './data/Diagnostics/notebookDiagnostics';
-import { quickFixLLM } from './data/Diagnostics/quickFixLLM';
 import { QuickFixManual } from './data/Diagnostics/quickFixManual';
 
 export async function activate(context: vscode.ExtensionContext) {
@@ -25,13 +24,6 @@ export async function activate(context: vscode.ExtensionContext) {
     vscode.languages.registerCodeActionsProvider('python', quickFixManual, {
       providedCodeActionKinds: QuickFixManual.ProvidedCodeActionKinds,
     }),
-  );
-
-  context.subscriptions.push(
-    vscode.commands.registerCommand(
-      'dataleakage-jupyternotebook-fall2024.quickFixLLM',
-      quickFixLLM,
-    ),
   );
 
   /* Leakage Overview View */
