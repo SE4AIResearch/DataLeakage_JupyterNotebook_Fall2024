@@ -186,13 +186,13 @@ export class ButtonViewProvider {
       StateManager.saveData(this._context, "method", "docker");
     }
 
-    var icon_link = 'https://i.imgur.com/TKs7dc2.png';
+    var icon_link = 'https://raw.githubusercontent.com/microsoft/vscode-icons/2ca0f3225c1ecd16537107f60f109317fcfc3eb0/icons/dark/desktop-download.svg';
     var color_mode = 'dark';
     if (
       vscode.window.activeColorTheme.kind != 2 &&
       vscode.window.activeColorTheme.kind != 3
     ) {
-      icon_link = 'https://cdn-icons-png.flaticon.com/512/0/532.png';
+      icon_link = 'https://raw.githubusercontent.com/microsoft/vscode-icons/2ca0f3225c1ecd16537107f60f109317fcfc3eb0/icons/light/desktop-download.svg';
       color_mode = 'light';
     }
 
