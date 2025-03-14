@@ -94,6 +94,7 @@ const configureNotebookDiagnostics = async (
   context: vscode.ExtensionContext,
   editor: vscode.TextEditor,
   diagnosticCollection: vscode.DiagnosticCollection,
+  quickFixManual: QuickFixManual,
 ) => {
   try {
     // Get Adapter
@@ -104,6 +105,7 @@ const configureNotebookDiagnostics = async (
     const rows = await findRows(editor, fsPath, adapters);
 
     refreshNotebookDiagnostics(editor.document, diagnosticCollection, rows);
+    await quickFixManual.getData(context);
   } catch (err) {
     if (err instanceof NotAnalyzedError) {
       console.warn('Warning: Notebook has not been analyzed before.', err);
@@ -118,12 +120,18 @@ const configureNotebookDiagnostics = async (
 export function subscribeToDocumentChanges(
   context: vscode.ExtensionContext,
   diagnosticCollection: vscode.DiagnosticCollection,
+  quickFixManual: QuickFixManual,
 ): void {
   if (vscode.window.activeTextEditor) {
     const editor = vscode.window.activeTextEditor;
 
     if (editor && editor.document.uri.scheme === 'vscode-notebook-cell') {
-      configureNotebookDiagnostics(context, editor, diagnosticCollection); // async fn
+      configureNotebookDiagnostics(
+        context,
+        editor,
+        diagnosticCollection,
+        quickFixManual,
+      ); // async fn
     }
   }
   context.subscriptions.push(
@@ -133,6 +141,7 @@ export function subscribeToDocumentChanges(
           context,
           editor,
           diagnosticCollection,
+          quickFixManual,
         );
       }
     }),

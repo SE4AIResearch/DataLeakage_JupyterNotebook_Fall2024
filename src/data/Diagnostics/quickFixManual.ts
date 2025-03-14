@@ -19,19 +19,17 @@ export class QuickFixManual implements vscode.CodeActionProvider {
     vscode.CodeActionKind.QuickFix,
   ];
 
-  private constructor(
+  public constructor(
     private readonly _context: vscode.ExtensionContext,
-    private readonly _internalLineMappings: Record<number, number>,
-    private readonly _invocationLineMappings: Record<string, number>,
-    private readonly _lineMetadataMappings: Record<number, Metadata>,
-    private readonly _trainTestMappings: Record<number, Set<number>>,
-    private readonly _taintMappings: Record<number, Taint>,
-    private readonly _variableEquivalenceMappings: Record<string, string>,
+    private _internalLineMappings: Record<number, number>,
+    private _invocationLineMappings: Record<string, number>,
+    private _lineMetadataMappings: Record<number, Metadata>,
+    private _trainTestMappings: Record<number, Set<number>>,
+    private _taintMappings: Record<number, Taint>,
+    private _variableEquivalenceMappings: Record<string, string>,
   ) {}
 
-  public static async create(
-    context: vscode.ExtensionContext,
-  ): Promise<QuickFixManual> {
+  public async getData(context: vscode.ExtensionContext): Promise<void> {
     if (vscode.window.activeNotebookEditor) {
       const fsPath = vscode.window.activeNotebookEditor.notebook.uri.fsPath;
       const tempDir = await TempDir.getTempDir(fsPath);
@@ -56,33 +54,23 @@ export class QuickFixManual implements vscode.CodeActionProvider {
         'input',
         pythonFileTotalLines,
       );
-      const internalLineMappings = await leakages.getInternalLineMappings();
-      const invocationLineMappings = await leakages.getInvocationLineMappings();
-      const lineMetadataMappings = await leakages.getLineMetadataMappings(
-        internalLineMappings,
-        invocationLineMappings,
+      this._internalLineMappings = await leakages.getInternalLineMappings();
+      this._invocationLineMappings = await leakages.getInvocationLineMappings();
+      this._lineMetadataMappings = await leakages.getLineMetadataMappings(
+        this._internalLineMappings,
+        this._invocationLineMappings,
       );
-      const trainTestMappings = await leakages.getTrainTestMappings(
-        internalLineMappings,
-        invocationLineMappings,
+      this._trainTestMappings = await leakages.getTrainTestMappings(
+        this._internalLineMappings,
+        this._invocationLineMappings,
       );
-      const taintMappings = await leakages.getTaintMappings(
-        internalLineMappings,
-        invocationLineMappings,
+      this._taintMappings = await leakages.getTaintMappings(
+        this._internalLineMappings,
+        this._invocationLineMappings,
       );
-      const variableEquivalenceMappings =
+      this._variableEquivalenceMappings =
         await leakages.getVariableEquivalenceMappings();
       // const dataFlowMappings = await leakages.getDataFlowMappings();
-
-      return new QuickFixManual(
-        context,
-        internalLineMappings,
-        invocationLineMappings,
-        lineMetadataMappings,
-        trainTestMappings,
-        taintMappings,
-        variableEquivalenceMappings,
-      );
     } else {
       throw new Error('No active notebook editor found.');
     }

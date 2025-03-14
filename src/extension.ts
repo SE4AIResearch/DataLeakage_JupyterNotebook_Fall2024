@@ -16,16 +16,15 @@ export async function activate(context: vscode.ExtensionContext) {
   const notebookDiagnostics =
     vscode.languages.createDiagnosticCollection(COLLECTION_NAME);
   context.subscriptions.push(notebookDiagnostics);
-  subscribeToDocumentChanges(context, notebookDiagnostics);
+
+  const quickFixManual = new QuickFixManual(context, {}, {}, {}, {}, {}, {});
+
+  subscribeToDocumentChanges(context, notebookDiagnostics, quickFixManual);
 
   context.subscriptions.push(
-    vscode.languages.registerCodeActionsProvider(
-      'python',
-      await QuickFixManual.create(context),
-      {
-        providedCodeActionKinds: QuickFixManual.ProvidedCodeActionKinds,
-      },
-    ),
+    vscode.languages.registerCodeActionsProvider('python', quickFixManual, {
+      providedCodeActionKinds: QuickFixManual.ProvidedCodeActionKinds,
+    }),
   );
 
   context.subscriptions.push(
