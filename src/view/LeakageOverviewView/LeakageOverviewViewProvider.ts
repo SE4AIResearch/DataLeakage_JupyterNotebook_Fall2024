@@ -1,14 +1,14 @@
 import * as vscode from 'vscode';
 
-import { getNonce, getWebviewOptions } from '../helpers/utils';
+import { getNonce, getWebviewOptions } from '../../helpers/utils';
 import {
   getAdaptersFromFile,
   getCounts,
   LeakageAdapterCell,
-} from '../helpers/Leakages/createLeakageAdapters';
-import { goToLeakageLine } from '../data/Table/table';
-import { isRow, Row } from '../validation/table';
-import { LeakageType } from '../data/Leakages/types';
+} from '../../helpers/Leakages/createLeakageAdapters';
+import { goToLeakageLine } from '../../data/Table/table';
+import { isRow, Row } from '../../validation/table';
+import { LeakageType } from '../../data/Leakages/types';
 
 /**
  * Manages Leakage Overview Webview
@@ -46,7 +46,7 @@ export class LeakageOverviewViewProvider {
           console.log('Clicked', isRow(data.row), data.row);
           isRow(data.row) && goToLeakageLine(data.row);
         default:
-          throw 'Error: unrecognized data type';
+          throw new Error('Error: unrecognized data type');
       }
     });
   }
@@ -130,45 +130,24 @@ export class LeakageOverviewViewProvider {
       vscode.Uri.joinPath(
         this._extensionUri,
         'media',
-        'leakage_overview',
-        'main.js',
+        'view',
+        'LeakageOverviewView',
+        'js',
+        'index.js',
       ),
     );
 
-    // Do the same for the stylesheet.
-    const styleResetUri = webview.asWebviewUri(
+    const styles = [
+      vscode.Uri.joinPath(this._extensionUri, 'media', 'view', 'index.css'),
       vscode.Uri.joinPath(
         this._extensionUri,
         'media',
-        'leakage_overview',
-        'reset.css',
+        'view',
+        'LeakageOverviewView',
+        'css',
+        'index.css',
       ),
-    );
-    const styleVSCodeUri = webview.asWebviewUri(
-      vscode.Uri.joinPath(
-        this._extensionUri,
-        'media',
-        'leakage_overview',
-        'vscode.css',
-      ),
-    );
-    const styleMainUri = webview.asWebviewUri(
-      vscode.Uri.joinPath(
-        this._extensionUri,
-        'media',
-        'leakage_overview',
-        'main.css',
-      ),
-    );
-
-    const stylePriorityUri = webview.asWebviewUri(
-      vscode.Uri.joinPath(
-        this._extensionUri,
-        'media',
-        'leakage_overview',
-        'prio.css',
-      ),
-    );
+    ];
 
     const nonce = getNonce();
     return `<!DOCTYPE html>
@@ -186,10 +165,8 @@ export class LeakageOverviewViewProvider {
 
 				<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-				<link href="${styleResetUri}" rel="stylesheet">
-				<link href="${styleVSCodeUri}" rel="stylesheet">
-				<link href="${styleMainUri}" rel="stylesheet">
-				<link href="${stylePriorityUri}" rel="stylesheet">
+				<link href="${styles[0]}" rel="stylesheet">
+				<link href="${styles[1]}" rel="stylesheet">
 
 				<title>Data Overview</title>
 			</head>

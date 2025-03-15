@@ -3,6 +3,7 @@ import { createPopup } from '../../components/popup';
 
 import * as vscode from 'vscode';
 import { createLayout } from './layout';
+import { createPrimaryButton } from '../../components/primaryButton';
 
 /**
  * html wrapper is needed for prettier formatting
@@ -12,28 +13,32 @@ const html = String.raw;
 export function createMainPage(
   webview: vscode.Webview,
   extensionUri: vscode.Uri,
-  method: string,
+  method: 'docker' | 'native',
+  colorMode: 'light' | 'dark',
 ) {
   const nonce = getNonce();
 
   return createLayout(
     webview,
     extensionUri,
-    { nonce },
+    { nonce, colorMode },
     html`
-      <div>
-        <h2>Data Leakage</h2>
-        <br />
+      <div class="">
+        <h2 class="mb-6 text-(--vscode-foreground) text-xl font-semibold">
+          Data Leakage
+        </h2>
         <div>
           <div ${method === 'native' ? 'hidden' : ''}>
-            <button class="button" id="run-leakage-docker">
-              Run Data Leakage Analysis
-            </button>
+            ${createPrimaryButton(
+              'Run Data Leakage Analysis',
+              'run-leakage-docker',
+            )}
           </div>
           <div ${method === 'native' ? '' : 'hidden'}>
-            <button class="button" id="run-leakage-native" hidden="true">
-              Run Data Leakage Analysis
-            </button>
+            ${createPrimaryButton(
+              'Run Data Leakage Analysis',
+              'run-leakage-native',
+            )}
           </div>
         </div>
 

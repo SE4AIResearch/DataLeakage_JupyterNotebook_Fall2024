@@ -152,7 +152,7 @@ export class ButtonViewProvider {
     const iconLink = isLightMode
       ? 'https://cdn-icons-png.flaticon.com/512/0/532.png'
       : 'https://i.imgur.com/TKs7dc2.png';
-    const colorMode = isLightMode ? 'light' : 'dark';
+    const colorMode: 'light' | 'dark' = isLightMode ? 'light' : 'dark';
 
     const method = StateManager.loadData(this._context, 'method') ?? 'docker';
     if (method === undefined) {
@@ -169,7 +169,7 @@ export class ButtonViewProvider {
         colorMode,
       );
     } else {
-      return createMainPage(webview, this._extensionUri, method);
+      return createMainPage(webview, this._extensionUri, method, colorMode);
     }
   }
 }

@@ -7,26 +7,26 @@
   const docker_button = document.getElementById('run-leakage-docker');
   //const installLeakageBtn = document.getElementById('install-leakage');
 
-    // Handle messages sent from the extension to the webview
-    window.addEventListener('message', (event) => {
-      const message = event.data; // The json data that the extension sent
-      switch (message.type) {
-        case 'analysisCompleted': {
-          native_button.disabled = false;
-          docker_button.disabled = false;
-          break;
-        }
-        case 'webviewLoaded': {
-          native_button.disabled = message.isRunning ?? false;
-          docker_button.disabled = message.isRunning ?? false;
-          break;
-        }
-        case 'filePickerDone': {
-          installLeakageBtn.disabled = false;
-          break;
-        }
+  // Handle messages sent from the extension to the webview
+  window.addEventListener('message', (event) => {
+    const message = event.data; // The json data that the extension sent
+    switch (message.type) {
+      case 'analysisCompleted': {
+        native_button.disabled = false;
+        docker_button.disabled = false;
+        break;
       }
-    });
+      case 'webviewLoaded': {
+        native_button.disabled = message.isRunning ?? false;
+        docker_button.disabled = message.isRunning ?? false;
+        break;
+      }
+      case 'filePickerDone': {
+        installLeakageBtn.disabled = false;
+        break;
+      }
+    }
+  });
 
   native_button.addEventListener('click', (e) => {
     vscode.postMessage({ type: 'analyzeNotebookNative' });
@@ -40,9 +40,6 @@
     native_button.disabled = true;
     docker_button.disabled = true;
   });
-
-
-  
 
   vscode.postMessage({ type: 'webviewLoaded' });
 

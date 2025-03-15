@@ -3,6 +3,7 @@ import os from 'os';
 
 import { getNonce } from '../../../../helpers/utils';
 import { createLayout } from './layout';
+import { createPrimaryButton } from '../../components/primaryButton';
 
 /**
  * html wrapper is needed for prettier formatting
@@ -14,7 +15,7 @@ export function createSettingsPage(
   extensionUri: vscode.Uri,
   method: 'docker' | 'native',
   iconLink: string,
-  colorMode: string,
+  colorMode: 'light' | 'dark',
 ) {
   const platform = String(os.platform());
   const arch = os.arch();
@@ -45,49 +46,65 @@ export function createSettingsPage(
   return createLayout(
     webview,
     extensionUri,
-    { nonce },
-    html`<div>
-      <h2 class="mb-10px">User Settings</h2>
+    { nonce, colorMode },
+    html` <div class="flex flex-col justify-between h-[100vh]">
+      <div>
+        <h2 class="mb-6 text-(--vscode-foreground) text-xl font-semibold">
+          User Settings
+        </h2>
 
-      <div class="flex justify-between mt-30px">
-        <label class="center" for="method-select">Run Mode</label>
-        <select
-              class="select ${colorMode}"
+        <div class="mb-6 flex justify-between items-center">
+          <label class="" for="method-select">Run Mode</label>
+          <div class="grid justify-end items-center">
+            <select
+              class="col-start-1 row-start-1 text-(--vscode-input-foreground) bg-(--vscode-input-background) rounded-md pl-2 pr-6 py-1 appearance-none outline-transparent!"
               name="method-select"
               id="method-select"
             >
-              ${
-                method === 'docker'
-                  ? html`
-                      <option value="Docker" selected="selected">Docker</option>
-                      <option value="Native">Native</option>
-                    `
-                  : html` <option value="Docker">Docker</option>
-                      <option value="Native" selected="selected">
-                        Native
-                      </option>`
-              }
+              ${method === 'docker'
+                ? html`
+                    <option value="Docker" selected="selected">Docker</option>
+                    <option value="Native">Native</option>
+                  `
+                : html`
+                    <option value="Docker">Docker</option>
+                    <option value="Native" selected="selected">Native</option>
+                  `}
             </select>
-      </div>
+            <img
+              src="${colorMode === 'dark'
+                ? 'https://raw.githubusercontent.com/microsoft/vscode-icons/2ca0f3225c1ecd16537107f60f109317fcfc3eb0/icons/dark/triangle-down.svg'
+                : 'https://raw.githubusercontent.com/microsoft/vscode-codicons/f3fee3d9b8878fe0056ceda328119227c0b66a53/src/icons/triangle-down.svg'}"
+              class="pointer-events-none col-start-1 row-start-1 justify-self-end mr-1 text-${colorMode ===
+              'dark'
+                ? '(--vscode-input-foreground)'
+                : 'black'}"
+            />
+          </div>
+        </div>
 
-
-      <div
-        id="nativeButtons"
-        style="display:none"
-        class="mt-10px"
-      ${method === 'docker' ? 'hidden="true"' : ''}"
-      >
-        <div class="flex justify-between">
+        <div
+          id="nativeButtons"
+          style="display:none"
+          class="mb-6 flex justify-between items-center"
+          ${method === 'docker' ? 'hidden="true"' : ''}
+        >
           <span class="">${platformDisplay}</span>
           <a class="" href=${binaryLink}>
-            <img src="${iconLink}" alt="Download" width="20" height="20" />
+            <img
+              src="${iconLink}"
+              class="text-(--vscode-foreground)"
+              alt="Download"
+              width="20"
+              height="20"
+            />
           </a>
         </div>
 
-        <button class="button mt-10px" id="install-leakage">Install</button>
+        ${createPrimaryButton('Install', 'install-leakage')}
       </div>
 
-      <div class="help">
+      <div class="help mb-2">
         <span>Need help?</span>
         <a
           class=""

@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { ButtonViewProvider } from './view/ButtonView/ButtonViewProvider';
-import { LeakageOverviewViewProvider } from './view/LeakageOverviewViewProvider';
+import { LeakageOverviewViewProvider } from './view/LeakageOverviewView/LeakageOverviewViewProvider';
 
 import {
   COLLECTION_NAME,

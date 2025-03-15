@@ -1,0 +1,40 @@
+<div>
+  <h2 class="mb-10">User Settings</h2>
+
+  <div class="flex justify-between mt-10">
+    <label class="" for="method-select">Run Mode</label>
+    <div class="grid">
+      <select
+        class="text-(--vscode-input-foreground) bg-(--vscode-input-background) rounded-md px-(--input-padding-horizontal) py-(--input-padding-vertical) appearance-none"
+        name="method-select"
+        id="method-select"
+      >
+        ${ method === 'docker' ? html`
+        <option value="Docker" selected="selected">Docker</option>
+        <option value="Native">Native</option>
+        ` : html`
+        <option value="Docker">Docker</option>
+        <option value="Native" selected="selected">Native</option>
+        ` }
+      </select>
+    </div>
+  </div>
+
+  <div id="nativeButtons" style="display: none" class="mt-10px">
+    <div class="flex justify-between">
+      <span class="">${platformDisplay}</span>
+      <a class="" href="${binaryLink}">
+        <img src="${iconLink}" alt="Download" width="20" height="20" />
+      </a>
+    </div>
+
+    <button class="button mt-10px" id="install-leakage">Install</button>
+  </div>
+
+  <div class="help">
+    <span>Need help?</span>
+    <a class="" id="website-link" href="https://leakage-detector.vercel.app/"
+      >Click here to learn more about data leakage</a
+    >
+  </div>
+</div>
