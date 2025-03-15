@@ -142,6 +142,6 @@
   },
   "publisher": "leakage-detector",
   "repository": "https://github.com/SE4AIResearch/DataLeakage_JupyterNotebook_Fall2024",
-  "icon": "/media/images/Logo64",
+  "icon": "/media/images/Logo64.png",
   "license": "ISC"
 }
