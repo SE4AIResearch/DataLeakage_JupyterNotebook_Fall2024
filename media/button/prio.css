@@ -1,5 +1,83 @@
 .help {
   margin-bottom: 10px;
-  position: absolute; 
+  position: absolute;
   bottom: 5px;
+}
+
+.popup {
+  display: flex;
+  flex-direction: column;
+  padding: 5px;
+  margin: 20px 0px;
+  border: 2px solid hsla(0, 50%, 100%, 0.25);
+  border-radius: 5px;
+  background-color: hsla(0, 0%, 17.6%, 1);
+}
+
+.popup__title-wrapper {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  margin: 5px 5px 10px 5px;
+}
+
+.popup__title {
+  font-size: 1.1rem;
+  color: hsla(0, 0%, 70%, 1);
+}
+
+.popup__exit-btn {
+  border: none;
+  padding: 0px;
+  width: 1rem;
+  text-align: center;
+  background: none;
+  font-size: 1.1rem;
+  color: hsla(0, 0%, 70%, 1);
+}
+
+.popup__text {
+  margin: 5px 5px;
+  font-size: 1.1rem;
+  line-height: 1.4rem;
+}
+
+.popup__anchor-settings-btn {
+  cursor: pointer;
+}
+
+.flex {
+  display: flex;
+}
+
+.flex-column {
+  flex-direction: column;
+}
+
+.justify-between {
+  justify-content: space-between;
+}
+
+.width-100p {
+  width: 100%;
+}
+
+.mt-10px {
+  margin-top: 10px;
+}
+
+.mt-20px {
+  margin-top: 20px;
+}
+
+.mt-30px {
+  margin-top: 30px;
+}
+
+.mt-40px {
+  margin-top: 40px;
+}
+
+.mb-10px {
+  margin-bottom: 10px;
 }

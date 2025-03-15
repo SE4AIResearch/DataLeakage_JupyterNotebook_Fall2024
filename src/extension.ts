@@ -1,6 +1,5 @@
 import * as vscode from 'vscode';
-import { ButtonViewProvider } from './view/ButtonViewProvider';
-import { SettingsViewProvider } from './view/SettingsViewProvider';
+import { ButtonViewProvider } from './view/ButtonView/ButtonViewProvider';
 import { LeakageOverviewViewProvider } from './view/LeakageOverviewViewProvider';
 
 import {
@@ -51,24 +50,20 @@ export async function activate(context: vscode.ExtensionContext) {
   const changeView = async () =>
     await leakageOverviewViewProvider.updateTables();
 
+  const buttonHandler =
+    (buttonProvider: ButtonViewProvider, view: 'buttons' | 'settings') =>
+    async () =>
+      await (view === 'buttons'
+        ? buttonProvider.refresh('buttons')
+        : buttonProvider.refresh('settings'));
+
   const buttonProvider = new ButtonViewProvider(
     context.extensionUri,
     context,
     changeView,
     'button',
   );
-  const refreshViewButtons = async () =>
-    await buttonProvider.refresh('buttons');
 
-  const refreshViewSettings = async () =>
-    await buttonProvider.refresh('settings');
-
-  const buttonProvider2 = new ButtonViewProvider(
-    context.extensionUri,
-    context,
-    changeView,
-    'settings',
-  );
   context.subscriptions.push(
     vscode.window.registerWebviewViewProvider(
       ButtonViewProvider.viewType,
@@ -76,55 +71,16 @@ export async function activate(context: vscode.ExtensionContext) {
     ),
   );
 
-  const settingsProvider = new SettingsViewProvider(
-    context.extensionUri,
-    context,
-    changeView,
-  );
-  /*context.subscriptions.push(
-    vscode.window.registerWebviewViewProvider(
-      SettingsViewProvider.viewType,
-      settingsProvider,
-    ),
-  );*/
-
-  const buttonHandler = async () => {
-    /*       context.subscriptions.push(
-        vscode.window.registerWebviewViewProvider(
-          ButtonViewProvider.viewType,
-          buttonProvider,
-        ),
-      ); */
-    await refreshViewButtons();
-  };
-
-  const buttonHandler2 = async () => {
-    /* console.log(context.subscriptions);
-      context.subscriptions.push(
-        vscode.window.registerWebviewViewProvider(
-          ButtonViewProvider.viewType,
-          buttonProvider2,
-        ),
-      ); */
-    await refreshViewSettings();
-  };
-
-  const settingsHandler = () => {
-    context.subscriptions.push(
-      vscode.window.registerWebviewViewProvider(
-        SettingsViewProvider.viewType,
-        settingsProvider,
-      ),
-    );
-  };
-
   context.subscriptions.push(
-    vscode.commands.registerCommand('data-leakage.showButton', buttonHandler),
+    vscode.commands.registerCommand(
+      'data-leakage.showButton',
+      buttonHandler(buttonProvider, 'buttons'),
+    ),
   );
   context.subscriptions.push(
     vscode.commands.registerCommand(
       'data-leakage.showSettings',
-      buttonHandler2,
+      buttonHandler(buttonProvider, 'settings'),
     ),
   );
 }
