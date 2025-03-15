@@ -136,7 +136,7 @@ button.secondary:hover {
   background: var(--vscode-button-secondaryHoverBackground);
 }
 
-button.img:hover{
+button.img:hover {
   background: none;
 }
 
