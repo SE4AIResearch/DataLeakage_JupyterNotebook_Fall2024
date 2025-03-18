@@ -138,14 +138,18 @@ export class LeakageOverviewViewProvider {
     );
 
     const styles = [
-      vscode.Uri.joinPath(this._extensionUri, 'media', 'view', 'index.css'),
-      vscode.Uri.joinPath(
-        this._extensionUri,
-        'media',
-        'view',
-        'LeakageOverviewView',
-        'css',
-        'index.css',
+      webview.asWebviewUri(
+        vscode.Uri.joinPath(this._extensionUri, 'media', 'view', 'index.css'),
+      ),
+      webview.asWebviewUri(
+        vscode.Uri.joinPath(
+          this._extensionUri,
+          'media',
+          'view',
+          'LeakageOverviewView',
+          'css',
+          'index.css',
+        ),
       ),
     ];
 

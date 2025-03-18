@@ -4,18 +4,25 @@
 const html = String.raw;
 
 export function createPrimaryButton(text: string, id: string | undefined) {
-  return html`<button
-    class="
+  return html`
+    <div class="relative">
+      <button
+        class="
       px-8 py-2 w-full text-center 
       text-(--vscode-button-foreground) 
       bg-(--vscode-button-background) 
       hover:cursor-pointer 
-      hover:bg-(--vscode-button-hoverBackground) 
+      hover:bg-(--vscode-button-hoverBackground)
+      active:absolute
+      active:top-1
       focus:outline-(--vscode-focusBorder) 
       disabled:cursor-progress 
-      disabled:bg-[color-mix(in srgb, var(--vscode-button-background), grey 50%)]
+      disabled:bg-vscode-button-disabledBackground
     "
-  >
-    ${text}
-  </button> `;
+        id="${id}"
+      >
+        ${text}
+      </button>
+    </div>
+  `;
 }
