@@ -19,6 +19,7 @@ The extension creates two tables in the bottom panel. "Leakage Summary" shows ho
 
 * [Pre-built binaries](https://leakage-detector.vercel.app/download) for Windows, macOS, or Linux AND/OR [Docker](https://www.docker.com/) Desktop
 * [NodeJS](https://nodejs.org/en/download) which is required to run the prebuilt binaries for Windows, MacOS, and Linux
+* [Souffle](https://souffle-lang.github.io/install) which is required to run the prebuilt binaries for MacOS
 * [Python extension for VS Code](https://marketplace.visualstudio.com/items?itemName=ms-python.python)
 * [Jupyter Notebook extension for VS Code](https://marketplace.visualstudio.com/items?itemName=ms-toolsai.jupyter)
 ### Optional
