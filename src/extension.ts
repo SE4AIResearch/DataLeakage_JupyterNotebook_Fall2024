@@ -76,12 +76,6 @@ export function activate(context: vscode.ExtensionContext) {
     context,
     changeView,
   );
-  /*context.subscriptions.push(
-    vscode.window.registerWebviewViewProvider(
-      SettingsViewProvider.viewType,
-      settingsProvider,
-    ),
-  );*/
 
   const buttonHandler = async () =>
     {
