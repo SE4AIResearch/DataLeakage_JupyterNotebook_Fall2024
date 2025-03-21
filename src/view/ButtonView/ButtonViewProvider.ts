@@ -22,7 +22,7 @@ export class ButtonViewProvider {
     private readonly _extensionUri: vscode.Uri,
     private readonly _context: vscode.ExtensionContext,
     private readonly _changeView: () => Promise<void>,
-    private readonly _output: String,
+    private readonly _output: 'buttons' | 'settings',
   ) {}
 
   public resolveWebviewView(
@@ -47,6 +47,9 @@ export class ButtonViewProvider {
           break;
         case 'analyzeNotebookDocker':
           await this.analyzeNotebookDocker();
+          break;
+        case 'goToSettingsPage':
+          this.refresh('settings');
           break;
         case 'webviewLoaded':
           try {
@@ -97,7 +100,7 @@ export class ButtonViewProvider {
     });
   }
 
-  public async refresh(output: String) {
+  public async refresh(output: 'buttons' | 'settings') {
     try {
       if (this._view) {
         this._view.webview.html = this._getHtmlForWebview(
@@ -142,7 +145,10 @@ export class ButtonViewProvider {
     }
   }
 
-  private _getHtmlForWebview(webview: vscode.Webview, output: String) {
+  private _getHtmlForWebview(
+    webview: vscode.Webview,
+    output: 'buttons' | 'settings',
+  ) {
     StateManager.saveIsRunning(this._context, false);
 
     const isLightMode =

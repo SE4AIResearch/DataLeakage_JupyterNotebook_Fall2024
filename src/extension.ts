@@ -61,7 +61,7 @@ export async function activate(context: vscode.ExtensionContext) {
     context.extensionUri,
     context,
     changeView,
-    'button',
+    'buttons',
   );
 
   context.subscriptions.push(

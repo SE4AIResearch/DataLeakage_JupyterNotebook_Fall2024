@@ -5,6 +5,9 @@
   const vscode = acquireVsCodeApi();
   const native_button = document.getElementById('run-leakage-native');
   const docker_button = document.getElementById('run-leakage-docker');
+  const popupSettingsAnchor = document.querySelector(
+    '.popup__anchor-settings-btn',
+  );
   //const installLeakageBtn = document.getElementById('install-leakage');
 
   // Handle messages sent from the extension to the webview
@@ -39,6 +42,10 @@
     vscode.postMessage({ type: 'analyzeNotebookDocker' });
     native_button.disabled = true;
     docker_button.disabled = true;
+  });
+
+  popupSettingsAnchor.addEventListener('click', (e) => {
+    vscode.postMessage({ type: 'goToSettingsPage' });
   });
 
   vscode.postMessage({ type: 'webviewLoaded' });

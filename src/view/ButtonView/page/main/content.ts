@@ -24,7 +24,9 @@ export function createMainPage(
     { nonce, colorMode },
     html`
       <div class="">
-        <h2 class="mb-6 text-(--vscode-foreground) text-xl font-semibold">
+        <h2
+          class="mb-6 text-(--vscode-foreground) text-xl font-semibold hidden"
+        >
           Data Leakage
         </h2>
         <div>
@@ -44,6 +46,8 @@ export function createMainPage(
 
         <!-- TODO: Add create popup right over here 
         -->
+
+        ${createPopup()}
       </div>
     `,
   );
