@@ -9,6 +9,9 @@ import {
 import { goToLeakageLine } from '../../data/Table/table';
 import { isRow, Row } from '../../validation/table';
 import { LeakageType } from '../../data/Leakages/types';
+import { createMainPage } from './page/main/content';
+
+// TODO: Convert into content.ts and layout.ts like ButtonViewProvider
 
 /**
  * Manages Leakage Overview Webview
@@ -125,91 +128,12 @@ export class LeakageOverviewViewProvider {
   }
 
   private _getHtmlForWebview(webview: vscode.Webview) {
-    // Get the local path to main script run in the webview, then convert it to a uri we can use in the webview.
-    const scriptUri = webview.asWebviewUri(
-      vscode.Uri.joinPath(
-        this._extensionUri,
-        'media',
-        'view',
-        'LeakageOverviewView',
-        'js',
-        'index.js',
-      ),
-    );
+    const isLightMode =
+      vscode.window.activeColorTheme.kind !== 2 &&
+      vscode.window.activeColorTheme.kind !== 3;
 
-    const styles = [
-      webview.asWebviewUri(
-        vscode.Uri.joinPath(this._extensionUri, 'media', 'view', 'index.css'),
-      ),
-      webview.asWebviewUri(
-        vscode.Uri.joinPath(
-          this._extensionUri,
-          'media',
-          'view',
-          'LeakageOverviewView',
-          'css',
-          'index.css',
-        ),
-      ),
-    ];
+    const colorMode: 'light' | 'dark' = isLightMode ? 'light' : 'dark';
 
-    const nonce = getNonce();
-    return `<!DOCTYPE html>
-			<html lang="en">
-			<head>
-				<meta charset="UTF-8">
-
-				<!--
-					Use a content security policy to only allow loading styles from our extension directory,
-					and only allow scripts that have a specific nonce.
-					(See the 'webview-sample' extension sample for img-src content security policy examples)
-				-->
-				<meta http-equiv="Content-Security-Policy" content="default-src 'none';
-				style-src ${webview.cspSource}; script-src 'nonce-${nonce}';">
-
-				<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-				<link href="${styles[0]}" rel="stylesheet">
-				<link href="${styles[1]}" rel="stylesheet">
-
-				<title>Data Overview</title>
-			</head>
-			<body>
-				<h1>Leakage Summary</h1>
-      <table>
-        <tr>
-          <th>Type</th>
-          <th>Unique Leakage Count</th>
-        </tr>
-        <tr>
-          <td>Pre-Processing</td>
-          <td id='preprocess'>0</td>
-        </tr>
-        <tr>
-          <td>Overlap</td>
-          <td id='overlap'>0</td>
-        </tr>
-        <tr>
-          <td>Multi-Test</td>
-          <td id='multitest'>0</td>
-        </tr>
-      </table>
-
-      <h1>Leakage Instances</h1>
-      <table id="leakage-instances-table">
-        <tr>
-          <th>Type</th>
-          <th>Cell</th>
-          <th>Line</th>
-          <th>Model Variable Name</th>
-          <th>Data Variable Name</th>
-          <th>Method</th>
-        </tr>
-        <!-- Rows will be added here dynamically -->
-      </table>
-        
-				<script nonce="${nonce}" src="${scriptUri}"></script>
-			</body>
-			</html>`;
+    return createMainPage(webview, this._extensionUri, colorMode);
   }
 }
