@@ -35,6 +35,7 @@ export type LeakageAdapter = {
     | 'Multi-Test Leakage';
   cause: string;
   line: number;
+  displayLine: number;
   model: string;
   variable: string;
   method: string;
@@ -50,7 +51,9 @@ export type LeakageAdapterCell = {
     | 'Multi-Test Leakage';
   cause: string;
   line: number;
+  displayLine: number;
   cell: number;
+  displayCell: number;
   model: string;
   variable: string;
   method: string;
@@ -149,6 +152,7 @@ const leakageAdapterHelper = (
         displayType: convertTypeToReadableString(type),
         cause: createCause(type),
         line: Number(leakageLine[0]),
+        displayLine: Number(leakageLine[0]) + 1,
         model: renamePrivateVar(
           renameDuplicates(leakageLine[1].metadata?.model || 'Unknown Model'),
         ),
@@ -265,7 +269,9 @@ export async function getAdaptersFromFile(
     return {
       ...adapter,
       line: jupyCellLine.lineIndex,
+      displayLine: jupyCellLine.lineIndex + 1,
       cell: jupyCellLine.cellIndex,
+      displayCell: jupyCellLine.cellIndex + 1,
     };
   });
 
