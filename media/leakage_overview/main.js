@@ -60,11 +60,11 @@
           tr.appendChild(causeTd);
 
           const cellTd = document.createElement('td');
-          cellTd.textContent = row.cell;
+          cellTd.textContent = row.displayCell;
           tr.appendChild(cellTd);
 
           const lineTd = document.createElement('td');
-          lineTd.textContent = row.line;
+          lineTd.textContent = row.displayLine;
           tr.appendChild(lineTd);
 
           const modelTd = document.createElement('td');
