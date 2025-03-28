@@ -105,13 +105,41 @@ export function createSettingsPage(
       </div>
 
       <div class="help mb-2">
-        <span>Need help?</span>
-        <a
-          class=""
-          id="website-link"
-          href="https://leakage-detector.vercel.app/"
-          >Click here to learn more about data leakage</a
-        >
+        <div class="mb-2">
+          <p>Need help?</p>
+          <a
+            class=""
+            id="website-link"
+            href="https://leakage-detector.vercel.app/"
+            >Click here to learn more about data leakage</a
+          >
+        </div>
+
+        <div
+          class="
+          w-full
+          h-1
+          rounded-lg
+          bg-neutral-500/50
+          mb-2
+          "
+        ></div>
+
+        <div class="mb-2">
+          <p>
+            If you would like extra options besides the quickfix we provide, we
+            recommend LLM extensions like
+            <a
+              href="https://marketplace.visualstudio.com/items?itemName=GitHub.copilot"
+              >GitHub Copilot</a
+            >
+            or
+            <a
+              href="https://marketplace.visualstudio.com/items?itemName=Continue.continue"
+              >Continue</a
+            >.
+          </p>
+        </div>
       </div>
     </div>`,
   );

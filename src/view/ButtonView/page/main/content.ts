@@ -1,5 +1,4 @@
 import { getNonce } from '../../../../helpers/utils';
-import { createPopup } from '../../components/popup';
 
 import * as vscode from 'vscode';
 import { createLayout } from './layout';
@@ -23,13 +22,23 @@ export function createMainPage(
     extensionUri,
     { nonce, colorMode },
     html`
-      <div class="">
-        <h2
-          class="mb-6 text-(--vscode-foreground) text-xl font-semibold hidden"
-        >
-          Data Leakage
-        </h2>
-        <div>
+      <div
+        class="popup flex flex-col pb-4 pt-2 px-5 mt-4 bg-neutral-500/35 rounded-sm"
+      >
+        <div class="mt-4 mb-4 flex justify-center items-center">
+          <h2
+            class="text-(--vscode-foreground) text-2xl font-semibold text-center min-[320px]:hidden font-[Inter]"
+          >
+            DATA LEAKAGE
+          </h2>
+          <img
+            src="https://gcdnb.pbrd.co/images/zDihxnin0UEA.png?o=1"
+            alt="Leakage Detector Logo"
+            class="h-0 max-h-[33px]! min-[320px]:h-full"
+          />
+        </div>
+
+        <div class="mb-6">
           <div ${method === 'native' ? 'hidden' : ''}>
             ${createPrimaryButton(
               'Run Data Leakage Analysis',
@@ -44,10 +53,32 @@ export function createMainPage(
           </div>
         </div>
 
-        <!-- TODO: Add create popup right over here 
-        -->
+        <div
+          class="
+          w-full
+          h-1
+          rounded-lg
+          bg-neutral-500/50
+          mb-5
+          "
+        ></div>
 
-        ${createPopup()}
+        <div class="">
+          <p class="text-neutral-700 dark:text-neutral-300 text-center">
+            First time installing?
+          </p>
+        </div>
+
+        <div class="">
+          <p class="text-neutral-700 dark:text-neutral-300 text-center">
+            Click the gear icon above, or
+          </p>
+          <div class="flex justify-center items-center">
+            <a class="popup__anchor-settings-btn cursor-pointer font-semibold"
+              >click here</a
+            >
+          </div>
+        </div>
       </div>
     `,
   );

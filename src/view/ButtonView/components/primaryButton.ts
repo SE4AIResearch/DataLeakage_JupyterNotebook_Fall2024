@@ -8,7 +8,7 @@ export function createPrimaryButton(text: string, id: string | undefined) {
     <div class="relative">
       <button
         class="
-      px-8 py-2 w-full text-center 
+      px-8 py-1 w-full text-center rounded-sm
       text-(--vscode-button-foreground) 
       bg-(--vscode-button-background) 
       hover:cursor-pointer 
