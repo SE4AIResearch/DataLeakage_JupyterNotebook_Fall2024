@@ -37,7 +37,7 @@ export function createLayout(
   };
 
   return html`<!doctype html>
-    <html lang="en" class="${data.colorMode}">
+    <html lang="en" class="${data.colorMode === 'dark' ? 'dark' : ''}">
       <head>
         <meta charset="UTF-8" />
 

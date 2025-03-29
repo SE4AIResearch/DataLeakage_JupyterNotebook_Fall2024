@@ -27,12 +27,14 @@ export function createMainPage(
       >
         <div class="mt-4 mb-4 flex justify-center items-center">
           <h2
-            class="text-(--vscode-foreground) text-2xl font-semibold text-center min-[320px]:hidden font-[Inter]"
+            class="text-neutral-700 dark:text-neutral-300 text-2xl font-semibold text-center min-[320px]:hidden font-sans"
           >
             DATA LEAKAGE
           </h2>
           <img
-            src="https://gcdnb.pbrd.co/images/zDihxnin0UEA.png?o=1"
+            src="${colorMode === 'light'
+              ? 'https://gcdnb.pbrd.co/images/AKs1mUGaPjnV.png?o=1'
+              : 'https://gcdnb.pbrd.co/images/Vg9ktSAV67Oo.png?o=1'}"
             alt="Leakage Detector Logo"
             class="h-0 max-h-[33px]! min-[320px]:h-full"
           />

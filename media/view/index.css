@@ -11,18 +11,12 @@
     --color-neutral-500: oklch(0.556 0 0);
     --color-neutral-700: oklch(0.371 0 0);
     --color-neutral-800: oklch(0.269 0 0);
-    --color-white: #fff;
     --spacing: 0.25rem;
-    --text-lg: 1.125rem;
-    --text-lg--line-height: calc(1.75 / 1.125);
     --text-xl: 1.25rem;
     --text-xl--line-height: calc(1.75 / 1.25);
     --text-2xl: 1.5rem;
     --text-2xl--line-height: calc(2 / 1.5);
-    --text-4xl: 2.25rem;
-    --text-4xl--line-height: calc(2.5 / 2.25);
     --font-weight-semibold: 600;
-    --font-weight-bold: 700;
     --radius-sm: 0.25rem;
     --radius-md: 0.375rem;
     --radius-lg: 0.5rem;
@@ -224,12 +218,6 @@
       max-width: 96rem;
     }
   }
-  .my-2 {
-    margin-block: calc(var(--spacing) * 2);
-  }
-  .my-4 {
-    margin-block: calc(var(--spacing) * 4);
-  }
   .mt-4 {
     margin-top: calc(var(--spacing) * 4);
   }
@@ -247,12 +235,6 @@
   }
   .mb-6 {
     margin-bottom: calc(var(--spacing) * 6);
-  }
-  .mb-8 {
-    margin-bottom: calc(var(--spacing) * 8);
-  }
-  .mb-10 {
-    margin-bottom: calc(var(--spacing) * 10);
   }
   .block {
     display: block;
@@ -281,26 +263,11 @@
   .h-1 {
     height: calc(var(--spacing) * 1);
   }
-  .h-\[2px\] {
-    height: 2px;
-  }
   .h-\[100vh\] {
     height: 100vh;
   }
-  .max-h-\[15px\] {
-    max-height: 15px;
-  }
-  .max-h-\[30px\]\! {
-    max-height: 30px !important;
-  }
   .max-h-\[33px\]\! {
     max-height: 33px !important;
-  }
-  .max-h-\[34px\] {
-    max-height: 34px;
-  }
-  .max-h-\[500px\] {
-    max-height: 500px;
   }
   .w-full {
     width: 100%;
@@ -368,32 +335,11 @@
   .bg-neutral-500 {
     background-color: var(--color-neutral-500);
   }
-  .bg-neutral-500\/4 {
-    background-color: color-mix(in oklab, var(--color-neutral-500) 4%, transparent);
-  }
-  .bg-neutral-500\/20 {
-    background-color: color-mix(in oklab, var(--color-neutral-500) 20%, transparent);
-  }
   .bg-neutral-500\/35 {
     background-color: color-mix(in oklab, var(--color-neutral-500) 35%, transparent);
   }
-  .bg-neutral-500\/40 {
-    background-color: color-mix(in oklab, var(--color-neutral-500) 40%, transparent);
-  }
-  .bg-neutral-500\/45 {
-    background-color: color-mix(in oklab, var(--color-neutral-500) 45%, transparent);
-  }
   .bg-neutral-500\/50 {
     background-color: color-mix(in oklab, var(--color-neutral-500) 50%, transparent);
-  }
-  .bg-neutral-500\/55 {
-    background-color: color-mix(in oklab, var(--color-neutral-500) 55%, transparent);
-  }
-  .bg-neutral-500\/60 {
-    background-color: color-mix(in oklab, var(--color-neutral-500) 60%, transparent);
-  }
-  .bg-white {
-    background-color: var(--color-white);
   }
   .px-5 {
     padding-inline: calc(var(--spacing) * 5);
@@ -403,9 +349,6 @@
   }
   .py-1 {
     padding-block: calc(var(--spacing) * 1);
-  }
-  .py-2 {
-    padding-block: calc(var(--spacing) * 2);
   }
   .pt-2 {
     padding-top: calc(var(--spacing) * 2);
@@ -422,28 +365,16 @@
   .text-center {
     text-align: center;
   }
-  .font-\[Inter\] {
-    font-family: Inter;
+  .font-sans {
+    font-family: var(--font-sans);
   }
   .text-2xl {
     font-size: var(--text-2xl);
     line-height: var(--tw-leading, var(--text-2xl--line-height));
   }
-  .text-4xl {
-    font-size: var(--text-4xl);
-    line-height: var(--tw-leading, var(--text-4xl--line-height));
-  }
-  .text-lg {
-    font-size: var(--text-lg);
-    line-height: var(--tw-leading, var(--text-lg--line-height));
-  }
   .text-xl {
     font-size: var(--text-xl);
     line-height: var(--tw-leading, var(--text-xl--line-height));
-  }
-  .font-bold {
-    --tw-font-weight: var(--font-weight-bold);
-    font-weight: var(--font-weight-bold);
   }
   .font-semibold {
     --tw-font-weight: var(--font-weight-semibold);
@@ -537,28 +468,13 @@
       height: 100%;
     }
   }
-  .min-\[640px\]\:h-\[640px\] {
-    @media (width >= 640px) {
-      height: 640px;
-    }
-  }
-  .sm\:h-full {
-    @media (width >= 40rem) {
-      height: 100%;
-    }
-  }
-  .md\:h-full {
-    @media (width >= 48rem) {
-      height: 100%;
-    }
-  }
   .dark\:text-neutral-200 {
-    @media (prefers-color-scheme: dark) {
+    &:where(.dark, .dark *) {
       color: var(--color-neutral-200);
     }
   }
   .dark\:text-neutral-300 {
-    @media (prefers-color-scheme: dark) {
+    &:where(.dark, .dark *) {
       color: var(--color-neutral-300);
     }
   }

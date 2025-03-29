@@ -49,7 +49,9 @@ export function createSettingsPage(
     { nonce, colorMode },
     html` <div class="flex flex-col justify-between h-[100vh]">
       <div>
-        <h2 class="mb-6 text-(--vscode-foreground) text-xl font-semibold">
+        <h2
+          class="mb-6 text-neutral-700 dark:text-neutral-300 text-xl font-semibold"
+        >
           User Settings
         </h2>
 

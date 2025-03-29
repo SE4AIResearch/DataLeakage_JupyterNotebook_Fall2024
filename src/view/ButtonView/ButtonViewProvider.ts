@@ -152,8 +152,11 @@ export class ButtonViewProvider {
     StateManager.saveIsRunning(this._context, false);
 
     const isLightMode =
-      vscode.window.activeColorTheme.kind !== 2 &&
-      vscode.window.activeColorTheme.kind !== 3;
+      vscode.window.activeColorTheme.kind === vscode.ColorThemeKind.Light ||
+      vscode.window.activeColorTheme.kind ===
+        vscode.ColorThemeKind.HighContrastLight;
+
+    console.log('Theme: ', vscode.window.activeColorTheme.kind, isLightMode);
 
     const iconLink = isLightMode
       ? 'https://cdn-icons-png.flaticon.com/512/0/532.png'
