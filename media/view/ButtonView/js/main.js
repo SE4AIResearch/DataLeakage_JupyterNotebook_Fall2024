@@ -5,28 +5,31 @@
   const vscode = acquireVsCodeApi();
   const native_button = document.getElementById('run-leakage-native');
   const docker_button = document.getElementById('run-leakage-docker');
+  const popupSettingsAnchor = document.querySelector(
+    '.popup__anchor-settings-btn',
+  );
   //const installLeakageBtn = document.getElementById('install-leakage');
 
-    // Handle messages sent from the extension to the webview
-    window.addEventListener('message', (event) => {
-      const message = event.data; // The json data that the extension sent
-      switch (message.type) {
-        case 'analysisCompleted': {
-          native_button.disabled = false;
-          docker_button.disabled = false;
-          break;
-        }
-        case 'webviewLoaded': {
-          native_button.disabled = message.isRunning ?? false;
-          docker_button.disabled = message.isRunning ?? false;
-          break;
-        }
-        case 'filePickerDone': {
-          installLeakageBtn.disabled = false;
-          break;
-        }
+  // Handle messages sent from the extension to the webview
+  window.addEventListener('message', (event) => {
+    const message = event.data; // The json data that the extension sent
+    switch (message.type) {
+      case 'analysisCompleted': {
+        native_button.disabled = false;
+        docker_button.disabled = false;
+        break;
       }
-    });
+      case 'webviewLoaded': {
+        native_button.disabled = message.isRunning ?? false;
+        docker_button.disabled = message.isRunning ?? false;
+        break;
+      }
+      case 'filePickerDone': {
+        installLeakageBtn.disabled = false;
+        break;
+      }
+    }
+  });
 
   native_button.addEventListener('click', (e) => {
     vscode.postMessage({ type: 'analyzeNotebookNative' });
@@ -41,8 +44,9 @@
     docker_button.disabled = true;
   });
 
-
-  
+  popupSettingsAnchor.addEventListener('click', (e) => {
+    vscode.postMessage({ type: 'goToSettingsPage' });
+  });
 
   vscode.postMessage({ type: 'webviewLoaded' });
 
