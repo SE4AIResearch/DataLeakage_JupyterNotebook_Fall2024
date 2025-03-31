@@ -6,8 +6,8 @@ on:
     branches:
       - prod # Trigger the workflow on pushes to the 'prod' branch
     # tags:
-      # Trigger the workflow on pushes of tags matching the version pattern 'v*.*.*'
-      # - 'v*.*.*'
+    # Trigger the workflow on pushes of tags matching the version pattern 'v*.*.*'
+    # - 'v*.*.*'
 
 jobs:
   build:
@@ -49,7 +49,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18.x'
+          node-version: '22.x'
 
       - name: Install dependencies
         run: npm install

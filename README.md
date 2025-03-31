@@ -1,6 +1,6 @@
 # Leakage Detector
 
-<img src="/media/images/LeakDetectorLogo2.3.png" alt="Leakage Detector Poster Logo" width="400"/>
+<img src="https://gcdnb.pbrd.co/images/xa9zRuVJO0ms.png?o=1" alt="Leakage Detector Poster Logo" width="400"/>
 
 Visual Studio Code extension that detects instances of data leakage in Jupyter Notebooks.
 
@@ -17,8 +17,13 @@ The extension creates two tables in the bottom panel. "Leakage Summary" shows ho
 
 ## Requirements
 
-* [Pre-built binaries](https://leakage-detector.vercel.app/download) for Windows, macOS, or Linux (failing that, [Docker](https://www.docker.com/) Engine or Desktop)
+* [Pre-built binaries](https://leakage-detector.vercel.app/download) for Windows, macOS, or Linux AND/OR [Docker](https://www.docker.com/) Desktop
+* [NodeJS](https://nodejs.org/en/download) which is required to run the prebuilt binaries for Windows, MacOS, and Linux
+* [Souffle](https://souffle-lang.github.io/install) which is required to run the prebuilt binaries for MacOS
 * [Python extension for VS Code](https://marketplace.visualstudio.com/items?itemName=ms-python.python)
+* [Jupyter Notebook extension for VS Code](https://marketplace.visualstudio.com/items?itemName=ms-toolsai.jupyter)
+### Optional
+* [Github Copilot](https://marketplace.visualstudio.com/items?itemName=GitHub.copilot) for additional quickfix suggestions
 
 ## Known Issues
 
