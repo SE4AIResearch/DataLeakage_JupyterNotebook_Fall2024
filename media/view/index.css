@@ -6,11 +6,10 @@
       "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
     --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
       "Courier New", monospace;
-    --color-neutral-200: oklch(0.922 0 0);
     --color-neutral-300: oklch(0.87 0 0);
     --color-neutral-500: oklch(0.556 0 0);
+    --color-neutral-600: oklch(0.439 0 0);
     --color-neutral-700: oklch(0.371 0 0);
-    --color-neutral-800: oklch(0.269 0 0);
     --spacing: 0.25rem;
     --text-xl: 1.25rem;
     --text-xl--line-height: calc(1.75 / 1.25);
@@ -179,14 +178,8 @@
   .pointer-events-none {
     pointer-events: none;
   }
-  .visible {
-    visibility: visible;
-  }
   .absolute {
     position: absolute;
-  }
-  .fixed {
-    position: fixed;
   }
   .relative {
     position: relative;
@@ -236,12 +229,6 @@
   .mb-6 {
     margin-bottom: calc(var(--spacing) * 6);
   }
-  .block {
-    display: block;
-  }
-  .contents {
-    display: contents;
-  }
   .flex {
     display: flex;
   }
@@ -272,17 +259,11 @@
   .w-full {
     width: 100%;
   }
-  .border-collapse {
-    border-collapse: collapse;
-  }
   .transform {
     transform: var(--tw-rotate-x) var(--tw-rotate-y) var(--tw-rotate-z) var(--tw-skew-x) var(--tw-skew-y);
   }
   .cursor-pointer {
     cursor: pointer;
-  }
-  .resize {
-    resize: both;
   }
   .appearance-none {
     appearance: none;
@@ -305,14 +286,6 @@
   .justify-self-end {
     justify-self: flex-end;
   }
-  .truncate {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-  .rounded {
-    border-radius: 0.25rem;
-  }
   .rounded-lg {
     border-radius: var(--radius-lg);
   }
@@ -322,18 +295,11 @@
   .rounded-sm {
     border-radius: var(--radius-sm);
   }
-  .border {
-    border-style: var(--tw-border-style);
-    border-width: 1px;
-  }
   .bg-\(--vscode-button-background\) {
     background-color: var(--vscode-button-background);
   }
   .bg-\(--vscode-input-background\) {
     background-color: var(--vscode-input-background);
-  }
-  .bg-neutral-500 {
-    background-color: var(--color-neutral-500);
   }
   .bg-neutral-500\/35 {
     background-color: color-mix(in oklab, var(--color-neutral-500) 35%, transparent);
@@ -389,40 +355,21 @@
   .text-\(--vscode-input-foreground\) {
     color: var(--vscode-input-foreground);
   }
+  .text-neutral-600 {
+    color: var(--color-neutral-600);
+  }
   .text-neutral-700 {
     color: var(--color-neutral-700);
   }
-  .text-neutral-800 {
-    color: var(--color-neutral-800);
-  }
   .lowercase {
     text-transform: lowercase;
-  }
-  .uppercase {
-    text-transform: uppercase;
   }
   .ordinal {
     --tw-ordinal: ordinal;
     font-variant-numeric: var(--tw-ordinal,) var(--tw-slashed-zero,) var(--tw-numeric-figure,) var(--tw-numeric-spacing,) var(--tw-numeric-fraction,);
   }
-  .underline {
-    text-decoration-line: underline;
-  }
-  .outline {
-    outline-style: var(--tw-outline-style);
-    outline-width: 1px;
-  }
-  .outline-transparent {
-    outline-color: transparent;
-  }
   .outline-transparent\! {
     outline-color: transparent !important;
-  }
-  .filter {
-    filter: var(--tw-blur,) var(--tw-brightness,) var(--tw-contrast,) var(--tw-grayscale,) var(--tw-hue-rotate,) var(--tw-invert,) var(--tw-saturate,) var(--tw-sepia,) var(--tw-drop-shadow,);
-  }
-  .\[engine\:node\@\>\=16\] {
-    engine: node@>=16;
   }
   .hover\:cursor-pointer {
     &:hover {
@@ -466,11 +413,6 @@
   .min-\[320px\]\:h-full {
     @media (width >= 320px) {
       height: 100%;
-    }
-  }
-  .dark\:text-neutral-200 {
-    &:where(.dark, .dark *) {
-      color: var(--color-neutral-200);
     }
   }
   .dark\:text-neutral-300 {
@@ -524,11 +466,6 @@
   inherits: false;
   initial-value: skewY(0);
 }
-@property --tw-border-style {
-  syntax: "*";
-  inherits: false;
-  initial-value: solid;
-}
 @property --tw-font-weight {
   syntax: "*";
   inherits: false;
@@ -550,51 +487,6 @@
   inherits: false;
 }
 @property --tw-numeric-fraction {
-  syntax: "*";
-  inherits: false;
-}
-@property --tw-outline-style {
-  syntax: "*";
-  inherits: false;
-  initial-value: solid;
-}
-@property --tw-blur {
-  syntax: "*";
-  inherits: false;
-}
-@property --tw-brightness {
-  syntax: "*";
-  inherits: false;
-}
-@property --tw-contrast {
-  syntax: "*";
-  inherits: false;
-}
-@property --tw-grayscale {
-  syntax: "*";
-  inherits: false;
-}
-@property --tw-hue-rotate {
-  syntax: "*";
-  inherits: false;
-}
-@property --tw-invert {
-  syntax: "*";
-  inherits: false;
-}
-@property --tw-opacity {
-  syntax: "*";
-  inherits: false;
-}
-@property --tw-saturate {
-  syntax: "*";
-  inherits: false;
-}
-@property --tw-sepia {
-  syntax: "*";
-  inherits: false;
-}
-@property --tw-drop-shadow {
   syntax: "*";
   inherits: false;
 }
