@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { ButtonViewProvider } from './view/ButtonView/ButtonViewProvider';
-import { LeakageOverviewViewProvider } from './view/LeakageOverviewViewProvider';
+import { LeakageOverviewViewProvider } from './view/LeakageOverviewView/LeakageOverviewViewProvider';
 
 import {
   COLLECTION_NAME,
@@ -61,7 +61,7 @@ export async function activate(context: vscode.ExtensionContext) {
     context.extensionUri,
     context,
     changeView,
-    'button',
+    'buttons',
   );
 
   context.subscriptions.push(

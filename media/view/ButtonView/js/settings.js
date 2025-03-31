@@ -14,15 +14,15 @@
     console.log(e);
     switch (methodSelect.value) {
       case 'Docker':
-        nativeButtons.style.display = 'none';
+        nativeButtons.classList.add('hidden');
         vscode.postMessage({ type: 'dockerChosen' });
         break;
       case 'Native':
-        nativeButtons.style.display = 'block';
+        nativeButtons.classList.remove('hidden');
         vscode.postMessage({ type: 'nativeChosen' });
         break;
       case 'empty':
-        nativeButtons.style.display = 'none';
+        nativeButtons.classList.add('hidden');
         break;
     }
   });
