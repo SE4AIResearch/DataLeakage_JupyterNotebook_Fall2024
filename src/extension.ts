@@ -7,8 +7,32 @@ import {
   subscribeToDocumentChanges,
 } from './data/Diagnostics/notebookDiagnostics';
 import { QuickFixManual } from './data/Diagnostics/quickFixManual';
+import Leakages from './data/Leakages/Leakages';
 
 export async function activate(context: vscode.ExtensionContext) {
+  const disposable = vscode.commands.registerCommand(
+    'dataleakage-jupyternotebook-fall2024.runLeakageDetector',
+    async () => {
+      try {
+        const leakages = new Leakages(
+          '/home/terrence/Projects/stevens/stevens_senior_design/DataLeakage_JupyterNotebook_Fall2024/src/_output/',
+          'quick-fix',
+          22,
+        );
+        console.log(
+          await leakages.getDataFlowMappings(
+            await leakages.getVariableEquivalenceMappings(),
+          ),
+        );
+      } catch (error) {
+        console.log(error);
+      }
+      vscode.window.showInformationMessage(
+        'Hello World from DataLeakage_JupyterNotebook_Fall2024!',
+      );
+    },
+  );
+
   /* Diagnostics */
 
   const notebookDiagnostics =

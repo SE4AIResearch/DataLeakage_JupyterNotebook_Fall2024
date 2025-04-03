@@ -26,7 +26,7 @@ export class QuickFixManual implements vscode.CodeActionProvider {
     private _lineMetadataMappings: Record<number, Metadata>,
     private _trainTestMappings: Record<number, Set<number>>,
     private _taintMappings: Record<number, Taint>,
-    private _variableEquivalenceMappings: Record<string, string>,
+    private _variableEquivalenceMappings: Record<string, Set<string>>,
   ) {}
 
   public async getData(context: vscode.ExtensionContext): Promise<void> {
