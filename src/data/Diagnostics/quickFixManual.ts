@@ -27,6 +27,7 @@ export class QuickFixManual implements vscode.CodeActionProvider {
     private _trainTestMappings: Record<number, Set<number>>,
     private _taintMappings: Record<number, Taint>,
     private _variableEquivalenceMappings: Record<string, Set<string>>,
+    private _dataFlowMappings: Record<string, Set<string>>,
   ) {}
 
   public async getData(context: vscode.ExtensionContext): Promise<void> {
@@ -70,13 +71,15 @@ export class QuickFixManual implements vscode.CodeActionProvider {
       );
       this._variableEquivalenceMappings =
         await leakages.getVariableEquivalenceMappings();
-      // const dataFlowMappings = await leakages.getDataFlowMappings();
+      this._dataFlowMappings = await leakages.getDataFlowMappings(
+        this._variableEquivalenceMappings,
+      );
     } else {
       throw new Error('No active notebook editor found.');
     }
   }
 
-  provideCodeActions(
+  public provideCodeActions(
     document: vscode.TextDocument,
     _range: vscode.Range | vscode.Selection,
     context: vscode.CodeActionContext,
@@ -120,7 +123,7 @@ export class QuickFixManual implements vscode.CodeActionProvider {
         break;
       case LeakageType.MultiTestLeakage:
         action.title = 'Use independent test data for evaluation.';
-        this.tryResolveMultiTest(
+        this.tryResolvePreprocessing(
           action.edit,
           document,
           diagnostic.range.start.line + 1,
@@ -162,28 +165,84 @@ export class QuickFixManual implements vscode.CodeActionProvider {
     line: number,
   ) {
     const documentLines = document.getText().split('\n');
-    let featureSelection = -1;
 
+    let featureSelectionLine = -1;
     for (let i = 0; i < document.lineCount; i++) {
       if (documentLines[i].match(/train_test_split/g)) {
-        featureSelection = i;
+        featureSelectionLine = i;
       }
     }
-    if (featureSelection === -1) {
-      throw new Error('Feature selection method not found.');
+    if (featureSelectionLine === -1) {
+      throw new Error(
+        "Feature selection method not found. Looking for 'train_test_split' method.",
+      );
     }
+    const featureSelectionCode = documentLines[featureSelectionLine];
 
     const earliestTaintLine = Math.min(
       ...Object.keys(this._taintMappings).map((e) => parseInt(e)),
     );
 
-    const selectionCode = documentLines[featureSelection];
+    const [X_train, y_train, X_test, y_test] = featureSelectionCode
+      .split('=')[0]
+      .split(',')
+      .map((e) => e.trim());
+    const temp_X_train = `${X_train}_0`;
+    const temp_X_test = `${X_test}_0`;
+    const updatedFeatureSelectionCode = featureSelectionCode
+      .replace(X_train, temp_X_train)
+      .replace(X_test, temp_X_test);
 
-    edit.delete(document.uri, document.lineAt(featureSelection).range);
+    const taint = this._taintMappings[earliestTaintLine];
+    const regexMatch = /(.*)_\d+/g.exec(taint.destVariable);
+    const preprocessor = regexMatch ? regexMatch[1] : taint.destVariable;
+    const preprocessingFit = new RegExp(`${preprocessor}.fit\(.*\)`, 'g');
+    const preprocessingTransform = new RegExp(
+      `(.*)=.*${preprocessor}.transform\(.*\)`,
+      'g',
+    );
+
+    for (let i = earliestTaintLine - 2; i < featureSelectionLine; i++) {
+      if (documentLines[i].includes(preprocessor)) {
+        const matchFit = preprocessingFit.exec(documentLines[i]);
+        if (matchFit) {
+          edit.replace(
+            document.uri,
+            document.lineAt(i).range,
+            documentLines[i].replace(matchFit[1], `(${temp_X_train})`),
+          );
+          continue;
+        }
+
+        const matchTransform = preprocessingTransform.exec(documentLines[i]);
+        if (matchTransform) {
+          const updatedTransform = documentLines[i]
+            .replace(matchTransform[1], `${X_train}`)
+            .replace(matchTransform[2], `(${temp_X_train})`);
+          const newTransform = documentLines[i]
+            .replace(matchTransform[1], `${X_test}`)
+            .replace(matchTransform[2], `(${temp_X_test})`);
+
+          edit.replace(
+            document.uri,
+            document.lineAt(i).range,
+            updatedTransform,
+          );
+          edit.insert(
+            document.uri,
+            new vscode.Position(i + 1, 0),
+            newTransform,
+          );
+          continue;
+        }
+      }
+    }
+
+    edit.delete(document.uri, document.lineAt(featureSelectionLine).range);
     edit.insert(
       document.uri,
       new vscode.Position(earliestTaintLine - 2, 0),
-      `\n${selectionCode}\n`,
+      `${updatedFeatureSelectionCode}\n`,
     );
   }
 
