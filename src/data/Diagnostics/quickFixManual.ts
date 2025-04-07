@@ -180,10 +180,23 @@ export class QuickFixManual implements vscode.CodeActionProvider {
     
     let featureSelectionCode = documentLines[featureSelectionLine];
     let endLine = featureSelectionLine;
+
+    const getParenthesesCount = (str: string) => {
+      let count = 0;
+      let inQuote = false;
+      for (const char of str) {
+        if (char === '"' || char === "'") inQuote = !inQuote;
+        if (char === '(' && !inQuote) count++;
+        else if (char === ')' && !inQuote) count--;
+      }
+      return count;
+    };
     
-    while (!featureSelectionCode.trim().endsWith(')')) {
+    let runningCount = getParenthesesCount(featureSelectionCode.trim());
+    while (runningCount != 0) {
       endLine++;
-      featureSelectionCode += documentLines[endLine].trim();
+      featureSelectionCode += '\n' + documentLines[endLine];
+      runningCount += getParenthesesCount(documentLines[endLine].trim());
     }
 
     const earliestTaintLine = Math.min(
