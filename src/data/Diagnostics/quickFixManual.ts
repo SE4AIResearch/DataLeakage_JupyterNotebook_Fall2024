@@ -207,8 +207,17 @@ export class QuickFixManual implements vscode.CodeActionProvider {
       .split('=')[0]
       .split(',')
       .map((e) => e.trim());
-    const temp_X_train = `${X_train}_0`;
-    const temp_X_test = `${X_test}_0`;
+
+    const gen_temp_var_name = (varName: string) => {
+      let temp_name = `${X_train}_0`;
+      while (temp_name in this._dataFlowMappings) {
+        temp_name += '0';
+      }
+      return temp_name;
+    }
+
+    const temp_X_train = gen_temp_var_name(X_train);
+    const temp_X_test = gen_temp_var_name(X_test);
     const updatedFeatureSelectionCode = featureSelectionCode
       .replace(X_train, temp_X_train)
       .replace(X_test, temp_X_test);
@@ -237,10 +246,10 @@ export class QuickFixManual implements vscode.CodeActionProvider {
         const matchTransform = preprocessingTransform.exec(documentLines[i]);
         if (matchTransform) {
           const updatedTransform = documentLines[i]
-            .replace(matchTransform[1], `${X_train}`)
+            .replace(matchTransform[1], `${X_train} `)
             .replace(matchTransform[2], `(${temp_X_train})`);
           const newTransform = documentLines[i]
-            .replace(matchTransform[1], `${X_test}`)
+            .replace(matchTransform[1], `${X_test} `)
             .replace(matchTransform[2], `(${temp_X_test})`);
 
           edit.replace(
