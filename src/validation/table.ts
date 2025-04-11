@@ -2,7 +2,7 @@ import z from 'zod';
 
 export type Row = {
   id: number;
-  relationId: number;
+  gid: number;
   type: string;
   cause: string;
   cell: number;
@@ -15,7 +15,7 @@ export type Row = {
 export function isRow(unk: unknown): unk is Row {
   const rowSchema = z.object({
     id: z.number(),
-    relationId: z.number(),
+    gid: z.number(),
     type: z.string(),
     cause: z.string(),
     cell: z.number(),
