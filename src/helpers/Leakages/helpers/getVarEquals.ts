@@ -3,7 +3,7 @@ import { parse } from 'csv-parse';
 
 import { VarEquals, Groups, Equivalences } from '../types/types';
 
-export function getVarEqual(varEqualsCSVPath: string): Promise<VarEquals> {
+export function getVarEquals(varEqualsCSVPath: string): Promise<VarEquals> {
   return new Promise((res, rej) => {
     const fileStream = fs.createReadStream(varEqualsCSVPath);
     const groups: Groups = [];

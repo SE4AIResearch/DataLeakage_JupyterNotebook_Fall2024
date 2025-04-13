@@ -26,7 +26,7 @@ import {
 } from '../conversion/LineConversion';
 
 // Import self
-import { getVarEqual } from './helpers/getVarEqual';
+import { getVarEquals } from './helpers/getVarEquals';
 import { LeakageAdapter, LeakageAdapterCell, VarEquals } from './types/types';
 import { createCause } from './helpers/createCause';
 import { convertTypeToReadableString } from './helpers/convertTypeToReadableString';
@@ -144,7 +144,7 @@ async function createLeakageAdapters(
   let pythonCode;
 
   try {
-    varEquals = await getVarEqual(tempDir.getOutputFilePath('varEquals'));
+    varEquals = await getVarEquals(tempDir.getOutputFilePath('varEquals'));
   } catch (err) {
     console.error('varEquals failed');
     throw err;
