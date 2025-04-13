@@ -1,8 +1,6 @@
 import * as vscode from 'vscode';
-import {
-  getAdaptersFromFile,
-  LeakageAdapterCell,
-} from '../../helpers/Leakages/createLeakageAdapters';
+import { getAdaptersFromFile } from '../../helpers/Leakages/createLeakageAdapters';
+import { LeakageAdapterCell } from '../../helpers/Leakages/types/types';
 import { Row } from '../../validation/table';
 
 export async function _updateViewIfNotebookOpen(

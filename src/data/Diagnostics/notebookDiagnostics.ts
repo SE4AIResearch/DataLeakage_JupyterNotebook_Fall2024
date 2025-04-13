@@ -1,10 +1,10 @@
 import * as vscode from 'vscode';
-import {
-  getAdaptersFromFile,
-  INTERNAL_VARIABLE_NAME,
-  LeakageAdapterCell,
-  NotAnalyzedError,
-} from '../../helpers/Leakages/createLeakageAdapters';
+import { getAdaptersFromFile } from '../../helpers/Leakages/createLeakageAdapters';
+import { LeakageAdapterCell } from '../../helpers/Leakages/types/types';
+import { INTERNAL_VARIABLE_NAME } from '../../helpers/Leakages/constants';
+
+import { NotAnalyzedError } from '../../helpers/CustomError';
+
 import { findRows } from './_findRows';
 import { QuickFixManual } from './quickFixManual';
 

@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { LeakageType, Metadata, Taint } from '../Leakages/types';
 import { LEAKAGE_ERROR } from './notebookDiagnostics';
-import { NotAnalyzedError } from '../../helpers/Leakages/createLeakageAdapters';
+import { NotAnalyzedError } from '../../helpers/CustomError';
 import Leakages from '../Leakages/Leakages';
 import { TempDir } from '../../helpers/TempDir';
 import {

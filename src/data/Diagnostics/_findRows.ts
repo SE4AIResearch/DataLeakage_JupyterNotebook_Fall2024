@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 
-import { LeakageAdapterCell } from '../../helpers/Leakages/createLeakageAdapters';
+import { LeakageAdapterCell } from '../../helpers/Leakages/types/types';
 
 export async function findRows(
   editor: vscode.TextEditor,

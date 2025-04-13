@@ -1,15 +1,9 @@
 import fs from 'fs';
 import { parse } from 'csv-parse';
 
-export type Groups = Array<Set<string>>;
+import { VarEquals, Groups, Equivalences } from '../types/types';
 
-export type Equivalences = Record<string, number>; // { varName: groupIndex }
-
-export type VarEquals = { groups: Groups; equivalences: Equivalences };
-
-export function getVarEquivalences(
-  varEqualsCSVPath: string,
-): Promise<VarEquals> {
+export function getVarEqual(varEqualsCSVPath: string): Promise<VarEquals> {
   return new Promise((res, rej) => {
     const fileStream = fs.createReadStream(varEqualsCSVPath);
     const groups: Groups = [];

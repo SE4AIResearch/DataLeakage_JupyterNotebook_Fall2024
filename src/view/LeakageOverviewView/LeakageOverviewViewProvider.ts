@@ -1,14 +1,12 @@
 import * as vscode from 'vscode';
 
-import { getNonce, getWebviewOptions } from '../../helpers/utils';
+import { getWebviewOptions } from '../../helpers/utils';
 import {
   getAdaptersFromFile,
   getCounts,
-  LeakageAdapterCell,
 } from '../../helpers/Leakages/createLeakageAdapters';
 import { goToLeakageLine } from '../../data/Table/table';
 import { isRow, Row } from '../../validation/table';
-import { LeakageType } from '../../data/Leakages/types';
 import { createMainPage } from './page/main/content';
 
 // TODO: Convert into content.ts and layout.ts like ButtonViewProvider

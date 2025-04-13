@@ -19,86 +19,25 @@ import {
 
 // Import /src/helpers
 import { TempDir } from '../TempDir';
+import { NotAnalyzedError } from '../CustomError';
 import {
   ConversionToJupyter,
   ConversionToPython,
 } from '../conversion/LineConversion';
-import { getVarEquivalences, VarEquals } from './getVarEquivalences';
 
-/**
- * Types
- */
-
-export type LeakageAdapter = {
-  id: number;
-  gid: number;
-  type: LeakageType;
-  cause: string;
-  line: number;
-  model: string;
-  variable: string;
-  method: string;
-
-  displayId: number;
-  displayGid: number;
-  displayType:
-    | 'Overlap Leakage'
-    | 'Pre-Processing Leakage'
-    | 'Multi-Test Leakage';
-  displayCause: string;
-  displayLine: number;
-  displayModel: string;
-  displayVariable: string;
-  displayMethod: string;
-};
-
-export type LeakageAdapterCell = {
-  id: number;
-  gid: number;
-  type: LeakageType;
-  cause: string;
-  line: number;
-  cell: number;
-  model: string;
-  variable: string;
-  method: string;
-
-  displayId: number;
-  displayGid: number;
-  displayType:
-    | 'Overlap Leakage'
-    | 'Pre-Processing Leakage'
-    | 'Multi-Test Leakage';
-  displayCause: string;
-  displayLine: number;
-  displayCell: number;
-  displayModel: string;
-  displayVariable: string;
-  displayMethod: string;
-};
-
-export type LeakageAdapterExtra = {
-  leakageAdapters: LeakageAdapter[];
-};
-
-/**
- * Custom Error
- */
-
-export class NotAnalyzedError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'NotAnalyzedError';
-  }
-}
+// Import self
+import { getVarEqual } from './helpers/getVarEqual';
+import { LeakageAdapter, LeakageAdapterCell, VarEquals } from './types/types';
+import { createCause } from './helpers/createCause';
+import { convertTypeToReadableString } from './helpers/convertTypeToReadableString';
+import { replaceVar } from './helpers/replaceVar';
+import { changeUnknown } from './helpers/changeUnknown';
 
 /**
  * Variable
  */
 
 let _relationIdIndex = 1;
-
-export const INTERNAL_VARIABLE_NAME = 'Anon Var';
 
 /**
  * Helper Functions
@@ -114,131 +53,6 @@ const leakageAdapterHelper = (
   const leakageAdapters: LeakageAdapter[] = Object.entries(lines).map(
     (leakageLine) => {
       const lineNumberZeroBased = Number(leakageLine[0]) - 1;
-      const convertTypeToReadableString = (type: LeakageType) =>
-        type === LeakageType.PreProcessingLeakage
-          ? 'Pre-Processing Leakage'
-          : type === LeakageType.OverlapLeakage
-            ? 'Overlap Leakage'
-            : 'Multi-Test Leakage';
-
-      const createCause = (type: LeakageType) =>
-        type === LeakageType.PreProcessingLeakage
-          ? 'Vectorizer fit on train and test data together'
-          : type === LeakageType.OverlapLeakage
-            ? 'Same/Similar data in both train and test'
-            : 'Repeat data evaluation';
-
-      const renameDuplicates = (model: string) => {
-        const regex = /_(\d+)$/;
-        if (!regex.test(model)) {
-          return model;
-        }
-        const modelTrimmed = model.replace(regex, '');
-        const matched = model.match(regex);
-        if (matched === null || matched[0] === undefined) {
-          console.error(
-            'Unknown error occurred while trying to match model ending digits.',
-            matched,
-            model,
-            modelTrimmed,
-          );
-          return model;
-        }
-
-        const lineArr = Object.values(lines);
-        const models = lineArr
-          .map((line) => line.metadata?.model ?? null)
-          .filter((model) => model !== null);
-
-        if (models.includes(modelTrimmed)) {
-          return `${modelTrimmed} (${matched[1]})`;
-        } else {
-          return model;
-        }
-      };
-
-      const isAnon = (v: string) => /^_var\d+$/.test(v);
-
-      const renameAnonVar = (v: string) =>
-        isAnon(v) ? INTERNAL_VARIABLE_NAME : v;
-
-      const changeUnknown = (method: string) => {
-        const sep = method.split('.');
-        return sep.length === 2 && sep[0] === 'Unknown'
-          ? 'AnonModel.' + sep[1]
-          : method;
-      };
-
-      // TODO: Write code here that help separate the clf and also estimator?
-
-      const replaceVar = (v: string) => {
-        const line = pythonCodeArr[lineNumberZeroBased];
-        const index = varEquals.equivalences[v];
-        if (index === undefined) {
-          console.error('Error - Variable not in varEquals');
-          return v;
-        }
-        const group = varEquals.groups[index];
-        if (group === undefined) {
-          console.error('Error - Index does not exist in group');
-          return v;
-        }
-
-        // If variable exist in line, do nothing
-        if (line.includes(v)) {
-          console.log('Variable Exists: ', v, group);
-          return v;
-        }
-
-        // If variable is of type _varN, then we don't bother checking family and should leave it as Anonymous Variable
-        if (isAnon(v)) {
-          console.log('Variable is of type _varN: ', v, group);
-          return renameAnonVar(v);
-        }
-
-        const varsExist = [...group].filter((value: string) =>
-          line.includes(value),
-        );
-
-        if (varsExist.length === 0 && line.includes(v.replace(/_\d+$/, ''))) {
-          // No family visible in line but cropped variable exist in line // Case custom_test2
-          console.log('Renamed duplicate variable: ', v, group);
-          const res = renameDuplicates(v);
-
-          if (res === v) {
-            return v.replace(/_\d+$/, '');
-          } else {
-            return res;
-          }
-        } else if (varsExist.length >= 1) {
-          // Family visible in line // Case nb_362989
-          console.log('Var Family Exists: ', v, group);
-          if (varsExist.length > 1) {
-            console.warn(
-              'Warning - More than one variable in the same group exist in the same line.',
-              varsExist,
-            );
-          }
-          return varsExist[0];
-        } else {
-          console.error(
-            'Error - Unknown edge case found: ',
-            v,
-            varsExist,
-            line,
-          );
-          console.error('Index: ', index);
-          console.error('Line Number: ', lineNumberZeroBased);
-          console.error(
-            'Lines: ',
-            pythonCodeArr.slice(
-              lineNumberZeroBased - 1,
-              lineNumberZeroBased + 2,
-            ),
-          );
-          return v;
-        }
-      };
 
       const data = {
         id: -1,
@@ -261,8 +75,20 @@ const leakageAdapterHelper = (
         displayType: convertTypeToReadableString(data.type),
         displayCause: data.cause,
         displayLine: -1,
-        displayModel: replaceVar(data.model),
-        displayVariable: replaceVar(data.variable),
+        displayModel: replaceVar(
+          data.model,
+          lineNumberZeroBased,
+          lines,
+          varEquals,
+          pythonCodeArr,
+        ),
+        displayVariable: replaceVar(
+          data.variable,
+          lineNumberZeroBased,
+          lines,
+          varEquals,
+          pythonCodeArr,
+        ),
         displayMethod: changeUnknown(data.method) + '()',
       };
     },
@@ -318,9 +144,7 @@ async function createLeakageAdapters(
   let pythonCode;
 
   try {
-    varEquals = await getVarEquivalences(
-      tempDir.getOutputFilePath('varEquals'),
-    );
+    varEquals = await getVarEqual(tempDir.getOutputFilePath('varEquals'));
   } catch (err) {
     console.error('varEquals failed');
     throw err;
