@@ -205,10 +205,13 @@ export class QuickFixManual implements vscode.CodeActionProvider {
       'g',
     );
 
+    let matchedFit = false;
+    let matchedTransform = false;
     for (let i = earliestTaintLine - 2; i < featureSelectionLine; i++) {
       if (documentLines[i].includes(preprocessor)) {
         const matchFit = preprocessingFit.exec(documentLines[i]);
         if (matchFit) {
+          matchedFit = true;
           edit.replace(
             document.uri,
             document.lineAt(i).range,
@@ -219,6 +222,7 @@ export class QuickFixManual implements vscode.CodeActionProvider {
 
         const matchTransform = preprocessingTransform.exec(documentLines[i]);
         if (matchTransform) {
+          matchedTransform = true;
           const updatedTransform = documentLines[i]
             .replace(matchTransform[1], `${X_train}`)
             .replace(matchTransform[2], `${temp_X_train}`);
@@ -247,6 +251,20 @@ export class QuickFixManual implements vscode.CodeActionProvider {
       new vscode.Position(earliestTaintLine - 2, 0),
       `${updatedFeatureSelectionCode}\n`,
     );
+    if (!matchedFit) {
+      edit.insert(
+        document.uri,
+        new vscode.Position(earliestTaintLine + 1, 0),
+        `fit_model.fit(${temp_X_train})\n`,
+      );
+    }
+    if (!matchedTransform) {
+      edit.insert(
+        document.uri,
+        new vscode.Position(earliestTaintLine + 1, 0),
+        `${X_train} = transform_model.transform(${temp_X_train})\n${X_test} = transform_model.transform(${temp_X_test})\n`,
+      );
+    }
   }
 
   private async tryResolveMultiTest(
