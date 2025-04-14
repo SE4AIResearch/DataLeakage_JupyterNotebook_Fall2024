@@ -39,7 +39,7 @@ export async function activate(context: vscode.ExtensionContext) {
     vscode.languages.createDiagnosticCollection(COLLECTION_NAME);
   context.subscriptions.push(notebookDiagnostics);
 
-  const quickFixManual = new QuickFixManual(context, {}, {}, {}, {}, {}, {});
+  const quickFixManual = new QuickFixManual(context, {}, {}, {}, {}, {}, {}, {});
 
   subscribeToDocumentChanges(context, notebookDiagnostics, quickFixManual);
 

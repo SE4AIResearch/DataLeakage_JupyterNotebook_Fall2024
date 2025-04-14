@@ -166,6 +166,7 @@ export class QuickFixManual implements vscode.CodeActionProvider {
   ) {
     const documentLines = document.getText().split('\n');
 
+    // Step 1: Locate the feature selection line
     let featureSelectionLine = -1;
     for (let i = 0; i < document.lineCount; i++) {
       if (documentLines[i].match(/train_test_split/g)) {
@@ -179,20 +180,34 @@ export class QuickFixManual implements vscode.CodeActionProvider {
     }
     const featureSelectionCode = documentLines[featureSelectionLine];
 
-    const earliestTaintLine = Math.min(
-      ...Object.keys(this._taintMappings).map((e) => parseInt(e)),
-    );
+    // Step 2: Validate and parse feature selection variables
+    const featureVariables = featureSelectionCode.split('=')[0].split(',');
+    if (featureVariables.length < 4) {
+      throw new Error(
+        "Invalid feature selection code. Expected format: 'X_train, X_test, y_train, y_test = train_test_split(...)'",
+      );
+    }
 
-    const [X_train, y_train, X_test, y_test] = featureSelectionCode
-      .split('=')[0]
-      .split(',')
-      .map((e) => e.trim());
+    const [X_train, X_test, y_train, y_test] = featureVariables.map((e) =>
+      e.trim(),
+    );
     const temp_X_train = `${X_train}_0`;
     const temp_X_test = `${X_test}_0`;
     const updatedFeatureSelectionCode = featureSelectionCode
       .replace(X_train, temp_X_train)
       .replace(X_test, temp_X_test);
 
+    // Step 3: Find the earliest taint line
+    const taintLines = Object.keys(this._taintMappings).map((e) => parseInt(e));
+    if (taintLines.length === 0) {
+      throw new Error('No taint mappings found for preprocessing.');
+    }
+    const earliestTaintLine = Math.min(...taintLines);
+    if (earliestTaintLine > featureSelectionLine) {
+      throw new Error(
+        'No taint mappings found before the feature selection line.',
+      );
+    }
     const taint = this._taintMappings[earliestTaintLine];
     const regexMatch = /(.*)_\d+/g.exec(taint.destVariable);
     const preprocessor = regexMatch ? regexMatch[1] : taint.destVariable;
@@ -205,6 +220,7 @@ export class QuickFixManual implements vscode.CodeActionProvider {
       'g',
     );
 
+    // Step 4: Update the code related to preprocessing leakage
     let matchedFit = false;
     let matchedTransform = false;
     for (let i = earliestTaintLine - 2; i < featureSelectionLine; i++) {
