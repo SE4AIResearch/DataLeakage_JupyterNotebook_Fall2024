@@ -324,7 +324,7 @@ export default class Leakages {
   /**
    * @param internalLineMappings All the mappings from internal program line number to external user line number.
    * @param invocationLineMappings All the mappings from internal invocation to internal program line number.
-   * @returns All the mappings from taint (external user line number) to their info.w
+   * @returns All the mappings from taint (external user line number) to their info.
    */
   public async getTaintMappings(
     internalLineMappings: Record<number, number>,
@@ -366,9 +366,9 @@ export default class Leakages {
    * @returns Variable equivalence mappings.
    */
   public async getVariableEquivalenceMappings(): Promise<
-    Record<string, string>
+    Record<string, Set<string>>
   > {
-    const variableEquivalenceMappings: Record<string, string> = {};
+    const variableEquivalenceMappings: Record<string, Set<string>> = {};
 
     const file = await this.readFile(
       path.join(`${this.filename}-fact`, 'VarEquals.csv'),
@@ -379,7 +379,11 @@ export default class Leakages {
       .forEach((line) => {
         const [lhs, rhs] = line.split('\t');
 
-        variableEquivalenceMappings[lhs] = rhs;
+        if (!(lhs in variableEquivalenceMappings)) {
+          variableEquivalenceMappings[lhs] = new Set([rhs]);
+        } else {
+          variableEquivalenceMappings[lhs].add(rhs);
+        }
       });
 
     return variableEquivalenceMappings;
@@ -388,7 +392,9 @@ export default class Leakages {
   /**
    * @returns Data flow mappings.
    */
-  public async getDataFlowMappings(): Promise<Record<string, Set<string>>> {
+  public async getDataFlowMappings(
+    varEquivMappings: Record<string, Set<string>>,
+  ): Promise<Record<string, Set<string>>> {
     const dataFlowMappings: Record<string, Set<string>> = {};
 
     const file = await this.readFile(
@@ -400,16 +406,18 @@ export default class Leakages {
       .forEach((line) => {
         const [dest, destCtxt, source, sourceCtxt, tag] = line.split('\t');
 
-        if (!(dest in dataFlowMappings)) {
-          dataFlowMappings[dest] = new Set([source]);
+        if (!(source in dataFlowMappings)) {
+          dataFlowMappings[source] = new Set([dest]);
         } else {
-          dataFlowMappings[dest].add(source);
+          // Only adds to the set if it is a new variable, not an equivalent one.
+          const existing = dataFlowMappings[source];
+          const toBeAdded = varEquivMappings[dest];
+          if (existing.intersection(toBeAdded).size === 0) {
+            dataFlowMappings[source].add(dest);
+          }
         }
       });
 
     return dataFlowMappings;
   }
-
-  // InvokeEdge.csv?
-  // FlowFromExtended.csv?
 }

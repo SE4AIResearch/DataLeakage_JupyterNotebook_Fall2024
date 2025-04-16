@@ -159,21 +159,24 @@ export async function analyzeNotebookWithProgress(
   changeView: () => Promise<void>,
   method: string,
 ) {
-  vscode.window.withProgress(
-    {
-      location: vscode.ProgressLocation.Window,
-      title: 'Analyzing Notebook',
-    },
-    async (progress) => {
-      return (async () => {
-        progress.report({ increment: 0 });
-        try {
-          await analyzeNotebook(view, context, changeView, method);
-        } catch (err) {
-          console.error(err);
-        }
-        progress.report({ increment: 100 });
-      })();
-    },
-  );
+  await new Promise((resolve, reject) => {
+    vscode.window.withProgress(
+      {
+        location: vscode.ProgressLocation.Window,
+        title: 'Analyzing Notebook',
+      },
+      async (progress) => {
+        return (async () => {
+          progress.report({ increment: 0 });
+          try {
+            await analyzeNotebook(view, context, changeView, method);
+          } catch (err) {
+            console.error(err);
+          }
+          progress.report({ increment: 100 });
+          resolve(true);
+        })();
+      },
+    );
+  });
 }

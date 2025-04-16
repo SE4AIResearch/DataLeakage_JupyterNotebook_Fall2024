@@ -84,7 +84,7 @@ async function runCommandWithPythonInterpreter(command: string) {
 ${
   isConda(pythonPath)
     ? `
-conda init ${process.platform === 'win32' ? 'powershell.exe' : process.platform === 'darwin' ? 'zsh' : 'bash'}
+conda init ${process.platform === 'win32' ? 'powershell' : process.platform === 'darwin' ? 'zsh' : 'bash'}
 ${process.platform === 'win32' ? `conda activate ${envPath}` : `source activate ${envPath}`}
       `
     : process.platform === 'win32'
@@ -100,7 +100,7 @@ ${command}
       shellCommand,
     );
     await new Promise((resolve, reject) => {
-      const shell = process.platform === 'win32' ? 'powershell.exe' : 'bash';
+      const shell = process.platform === 'win32' ? 'powershell' : 'bash';
       const shellFlag = process.platform === 'win32' ? '/c' : '-c';
       console.log(shell, shellFlag);
       const child = spawn(shell, [
