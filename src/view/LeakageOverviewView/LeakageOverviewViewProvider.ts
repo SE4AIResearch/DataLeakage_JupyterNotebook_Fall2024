@@ -1,14 +1,17 @@
 import * as vscode from 'vscode';
 
-import { getNonce, getWebviewOptions } from '../helpers/utils';
+import { getNonce, getWebviewOptions } from '../../helpers/utils';
 import {
   getAdaptersFromFile,
   getCounts,
   LeakageAdapterCell,
-} from '../helpers/Leakages/createLeakageAdapters';
-import { goToLeakageLine } from '../data/Table/table';
-import { isRow, Row } from '../validation/table';
-import { LeakageType } from '../data/Leakages/types';
+} from '../../helpers/Leakages/createLeakageAdapters';
+import { goToLeakageLine } from '../../data/Table/table';
+import { isRow, Row } from '../../validation/table';
+import { LeakageType } from '../../data/Leakages/types';
+import { createMainPage } from './page/main/content';
+
+// TODO: Convert into content.ts and layout.ts like ButtonViewProvider
 
 /**
  * Manages Leakage Overview Webview
@@ -46,7 +49,7 @@ export class LeakageOverviewViewProvider {
           console.log('Clicked', isRow(data.row), data.row);
           isRow(data.row) && goToLeakageLine(data.row);
         default:
-          throw 'Error: unrecognized data type';
+          throw new Error('Error: unrecognized data type');
       }
     });
   }
@@ -125,110 +128,12 @@ export class LeakageOverviewViewProvider {
   }
 
   private _getHtmlForWebview(webview: vscode.Webview) {
-    // Get the local path to main script run in the webview, then convert it to a uri we can use in the webview.
-    const scriptUri = webview.asWebviewUri(
-      vscode.Uri.joinPath(
-        this._extensionUri,
-        'media',
-        'leakage_overview',
-        'main.js',
-      ),
-    );
+    const isLightMode =
+      vscode.window.activeColorTheme.kind !== 2 &&
+      vscode.window.activeColorTheme.kind !== 3;
 
-    // Do the same for the stylesheet.
-    const styleResetUri = webview.asWebviewUri(
-      vscode.Uri.joinPath(
-        this._extensionUri,
-        'media',
-        'leakage_overview',
-        'reset.css',
-      ),
-    );
-    const styleVSCodeUri = webview.asWebviewUri(
-      vscode.Uri.joinPath(
-        this._extensionUri,
-        'media',
-        'leakage_overview',
-        'vscode.css',
-      ),
-    );
-    const styleMainUri = webview.asWebviewUri(
-      vscode.Uri.joinPath(
-        this._extensionUri,
-        'media',
-        'leakage_overview',
-        'main.css',
-      ),
-    );
+    const colorMode: 'light' | 'dark' = isLightMode ? 'light' : 'dark';
 
-    const stylePriorityUri = webview.asWebviewUri(
-      vscode.Uri.joinPath(
-        this._extensionUri,
-        'media',
-        'leakage_overview',
-        'prio.css',
-      ),
-    );
-
-    const nonce = getNonce();
-    return `<!DOCTYPE html>
-			<html lang="en">
-			<head>
-				<meta charset="UTF-8">
-
-				<!--
-					Use a content security policy to only allow loading styles from our extension directory,
-					and only allow scripts that have a specific nonce.
-					(See the 'webview-sample' extension sample for img-src content security policy examples)
-				-->
-				<meta http-equiv="Content-Security-Policy" content="default-src 'none';
-				style-src ${webview.cspSource}; script-src 'nonce-${nonce}';">
-
-				<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-				<link href="${styleResetUri}" rel="stylesheet">
-				<link href="${styleVSCodeUri}" rel="stylesheet">
-				<link href="${styleMainUri}" rel="stylesheet">
-				<link href="${stylePriorityUri}" rel="stylesheet">
-
-				<title>Data Overview</title>
-			</head>
-			<body>
-				<h1>Leakage Summary</h1>
-      <table>
-        <tr>
-          <th>Type</th>
-          <th>Unique Leakage Count</th>
-        </tr>
-        <tr>
-          <td>Pre-Processing</td>
-          <td id='preprocess'>0</td>
-        </tr>
-        <tr>
-          <td>Overlap</td>
-          <td id='overlap'>0</td>
-        </tr>
-        <tr>
-          <td>Multi-Test</td>
-          <td id='multitest'>0</td>
-        </tr>
-      </table>
-
-      <h1>Leakage Instances</h1>
-      <table id="leakage-instances-table">
-        <tr>
-          <th>Type</th>
-          <th>Cell</th>
-          <th>Line</th>
-          <th>Model Variable Name</th>
-          <th>Data Variable Name</th>
-          <th>Method</th>
-        </tr>
-        <!-- Rows will be added here dynamically -->
-      </table>
-        
-				<script nonce="${nonce}" src="${scriptUri}"></script>
-			</body>
-			</html>`;
+    return createMainPage(webview, this._extensionUri, colorMode);
   }
 }

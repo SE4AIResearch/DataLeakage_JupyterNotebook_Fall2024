@@ -21,7 +21,7 @@ export function createLayout(
           extensionUri,
           'media',
           'view',
-          'ButtonView',
+          'LeakageOverviewView',
           'js',
           'main.js',
         ),
@@ -32,7 +32,16 @@ export function createLayout(
       webview.asWebviewUri(
         vscode.Uri.joinPath(extensionUri, 'media', 'view', 'index.css'),
       ),
-      'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css',
+      webview.asWebviewUri(
+        vscode.Uri.joinPath(
+          extensionUri,
+          'media',
+          'view',
+          'LeakageOverviewView',
+          'css',
+          'main.css',
+        ),
+      ),
     ],
   };
 
@@ -42,10 +51,10 @@ export function createLayout(
         <meta charset="UTF-8" />
 
         <!--
-					Use a content security policy to only allow loading styles from our extension directory,
-					and only allow scripts that have a specific nonce.
-					(See the 'webview-sample' extension sample for img-src content security policy examples)
-				-->
+          Use a content security policy to only allow loading styles from our extension directory,
+          and only allow scripts that have a specific nonce.
+          (See the 'webview-sample' extension sample for img-src content security policy examples)
+        -->
         <meta
           http-equiv="Content-Security-Policy"
           content="default-src 'none'; style-src ${webview.cspSource}; img-src ${webview.cspSource} https:; script-src 'nonce-${data.nonce}';"

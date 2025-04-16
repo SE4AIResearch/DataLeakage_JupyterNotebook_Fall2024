@@ -1,9 +1,3 @@
-body {
-  background-color: var(
-    --vscode-editor-background
-  ); /* Match VS Code's dark theme background */
-  color: white; /* Set the default text color to white */
-}
 table {
   width: 100%;
   border-collapse: collapse;

@@ -29,7 +29,7 @@
         {
           "id": "data-leakage",
           "title": "Data Leakage",
-          "icon": "media/images/Logo64.png"
+          "icon": "media/assets/Logo64.png"
         }
       ],
       "panel": [
@@ -109,7 +109,9 @@
     "test": "vscode-test",
     "prettier:check": "prettier --list-different 'src/**/*.{js,jsx,ts,tsx}'",
     "prettier:fix": "prettier --write 'src/**/*.{js,jsx,ts,tsx}'",
-    "deploy": "vsce publish"
+    "deploy": "vsce publish",
+    "tailwind": "tailwindcss -i ./media/assets/reference.css -o ./media/view/index.css",
+    "tailwind:watch": "tailwindcss -i ./media/assets/reference.css -o ./media/view/index.css --watch"
   },
   "devDependencies": {
     "@types/cheerio": "^0.22.35",
@@ -131,17 +133,19 @@
     "webpack-cli": "^5.1.4"
   },
   "dependencies": {
+    "@tailwindcss/cli": "^4.0.14",
     "axios": "^1.7.7",
     "cheerio": "^1.0.0",
     "dockerode": "^4.0.2",
     "fs-extra": "^11.2.0",
     "js-xxhash": "^4.0.0",
     "prettier": "^3.3.3",
+    "tailwindcss": "^4.0.14",
     "tmp": "^0.2.3",
     "zod": "^3.23.8"
   },
   "publisher": "leakage-detector",
   "repository": "https://github.com/SE4AIResearch/DataLeakage_JupyterNotebook_Fall2024",
-  "icon": "/media/images/Logo64.png",
-  "license": "ISC"
+  "icon": "/media/assets/Logo64.png",
+  "license": "MIT"
 }
