@@ -123,7 +123,7 @@ export class QuickFixManual implements vscode.CodeActionProvider {
         break;
       case LeakageType.MultiTestLeakage:
         action.title = 'Use independent test data for evaluation.';
-        this.tryResolvePreprocessing(
+        this.tryResolveMultiTest(
           action.edit,
           document,
           diagnostic.range.start.line + 1,
@@ -225,32 +225,39 @@ export class QuickFixManual implements vscode.CodeActionProvider {
     const taint = this._taintMappings[earliestTaintLine];
     const regexMatch = /(.*)_\d+/g.exec(taint.destVariable);
     const preprocessor = regexMatch ? regexMatch[1] : taint.destVariable;
-    const preprocessingFit = new RegExp(`${preprocessor}.fit\(.*\)`, 'g');
+    const preprocessingFit = new RegExp(
+      `(?:^|\\s*)${preprocessor}\\s*\\.\\s*fit\\s*\\(\\s*([^\\s)]+)\\s*\\)`,
+      'g',
+    );
     const preprocessingTransform = new RegExp(
-      `(.*)=.*${preprocessor}.transform\(.*\)`,
+      `^\\s*(\\w+)\\s*=\\s*${preprocessor}\\s*\\.\\s*transform\\s*\\(\\s*(\\w+)\\s*\\)`,
       'g',
     );
 
+    let matchedFit = false;
+    let matchedTransform = false;
     for (let i = earliestTaintLine - 2; i < featureSelectionLine; i++) {
       if (documentLines[i].includes(preprocessor)) {
         const matchFit = preprocessingFit.exec(documentLines[i]);
         if (matchFit) {
+          matchedFit = true;
           edit.replace(
             document.uri,
             document.lineAt(i).range,
-            documentLines[i].replace(matchFit[1], `(${temp_X_train})`),
+            documentLines[i].replace(matchFit[1], `${temp_X_train}`),
           );
           continue;
         }
 
         const matchTransform = preprocessingTransform.exec(documentLines[i]);
         if (matchTransform) {
+          matchedTransform = true;
           const updatedTransform = documentLines[i]
-            .replace(matchTransform[1], `${X_train} `)
-            .replace(matchTransform[2], `(${temp_X_train})`);
+            .replace(matchTransform[1], `${X_train}`)
+            .replace(matchTransform[2], `${temp_X_train}`);
           const newTransform = documentLines[i]
-            .replace(matchTransform[1], `${X_test} `)
-            .replace(matchTransform[2], `(${temp_X_test})`);
+            .replace(matchTransform[1], `${X_test}`)
+            .replace(matchTransform[2], `${temp_X_test}`);
 
           edit.replace(
             document.uri,
@@ -279,6 +286,20 @@ export class QuickFixManual implements vscode.CodeActionProvider {
       new vscode.Position(earliestTaintLine - 2, 0),
       `${updatedFeatureSelectionCode}\n`,
     );
+    if (!matchedFit) {
+      edit.insert(
+        document.uri,
+        new vscode.Position(earliestTaintLine + 1, 0),
+        `fit_model.fit(${temp_X_train})\n`,
+      );
+    }
+    if (!matchedTransform) {
+      edit.insert(
+        document.uri,
+        new vscode.Position(earliestTaintLine + 1, 0),
+        `${X_train} = transform_model.transform(${temp_X_train})\n${X_test} = transform_model.transform(${temp_X_test})\n`,
+      );
+    }
   }
 
   private async tryResolveMultiTest(
@@ -286,23 +307,38 @@ export class QuickFixManual implements vscode.CodeActionProvider {
     document: vscode.TextDocument,
     line: number,
   ) {
+    const documentLines = document.getText().split('\n');
+
     const testingVariable = this._lineMetadataMappings[line].variable;
     const testingModel = this._lineMetadataMappings[line].model;
+    const equivalentModels = Array.from(
+      this._variableEquivalenceMappings[testingModel],
+    );
+    const lastEquivalentModel = equivalentModels[equivalentModels.length - 1];
 
     const newX = `X_${testingVariable}_new`;
     const newY = `y_${testingVariable}_new`;
-    const scoringModel = `${this._variableEquivalenceMappings[testingModel]}`;
+    let transformingModel = 'transform_model';
+    for (let i = 0; i < document.lineCount; i++) {
+      const regex = /\bselect(?=\s*\.\s*transform\s*\()/g;
+      const regexMatch = regex.exec(documentLines[i]);
+      if (regexMatch) {
+        transformingModel = regexMatch[0];
+        break;
+      }
+    }
+    const scoringModel = `${lastEquivalentModel}`;
 
-    const newLoad = `${newX}, ${newY} = load_test_data()\n`;
-    const newTransform = `${newX}_0 = transform_model.transform(${newX})\n`;
+    const newLoad = `${newX}_0, ${newY} = load_test_data()\n`;
+    const newTransform = `${newX} = ${transformingModel}.transform(${newX}_0)\n`;
     const newScore = `${scoringModel}.score(${newX}_0, ${newY})`;
 
-    const insert = `\n${newLoad}${newTransform}${newScore}`;
+    const independentTestData = `\n${newLoad}${newTransform}${newScore}`;
 
     edit.insert(
       document.uri,
       new vscode.Position(document.lineCount, 0),
-      insert,
+      independentTestData,
     );
   }
 }
