@@ -1,10 +1,10 @@
 import * as vscode from 'vscode';
-import {
-  getAdaptersFromFile,
-  INTERNAL_VARIABLE_NAME,
-  LeakageAdapterCell,
-  NotAnalyzedError,
-} from '../../helpers/Leakages/createLeakageAdapters';
+import { getAdaptersFromFile } from '../../helpers/Leakages/createLeakageAdapters';
+import { LeakageAdapterCell } from '../../helpers/Leakages/types/types';
+import { INTERNAL_VARIABLE_NAME } from '../../helpers/Leakages/constants';
+
+import { NotAnalyzedError } from '../../helpers/CustomError';
+
 import { findRows } from './_findRows';
 import { QuickFixManual } from './quickFixManual';
 
@@ -21,7 +21,7 @@ function createNotebookDiagnostic(
   const endOfCharacterAtLine = doc.lineAt(adapterCell.line).range.end.character;
 
   const range =
-    adapterCell.variable === INTERNAL_VARIABLE_NAME
+    adapterCell.displayVariable === INTERNAL_VARIABLE_NAME
       ? new vscode.Range(
           adapterCell.line,
           0,
@@ -45,15 +45,15 @@ function createNotebookDiagnostic(
   diagnostic.relatedInformation = [
     new vscode.DiagnosticRelatedInformation(
       new vscode.Location(doc.uri, range),
-      `Variable: ${adapterCell.variable}`,
+      `Variable: ${adapterCell.displayVariable}`,
     ),
     new vscode.DiagnosticRelatedInformation(
       new vscode.Location(doc.uri, range),
-      `Model: ${adapterCell.model}`,
+      `Model: ${adapterCell.displayModel}`,
     ),
     new vscode.DiagnosticRelatedInformation(
       new vscode.Location(doc.uri, range),
-      `Method: ${adapterCell.method}`,
+      `Method: ${adapterCell.displayMethod}`,
     ),
   ];
 
@@ -70,18 +70,18 @@ function refreshNotebookDiagnostics(
 
   for (const adapterCell of adapterCells) {
     const lineData = cellText.split('\n')[adapterCell.line];
-    const index =
-      adapterCell.variable === INTERNAL_VARIABLE_NAME
+    let index =
+      adapterCell.displayVariable === INTERNAL_VARIABLE_NAME
         ? 0
-        : lineData.indexOf(adapterCell.variable);
+        : lineData.indexOf(adapterCell.displayVariable);
 
     if (index === -1) {
-      console.error(
-        'Error: Variable not found in line.',
-        adapterCell,
+      console.warn(
+        'Warning: Variable not found in line.',
+        adapterCell.displayVariable,
         lineData,
       );
-      continue;
+      index = 0;
     }
     const diagnostic = createNotebookDiagnostic(doc, index, adapterCell);
     diagnostics.push(diagnostic);

@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { LeakageType, Metadata, Taint } from '../Leakages/types';
 import { LEAKAGE_ERROR } from './notebookDiagnostics';
-import { NotAnalyzedError } from '../../helpers/Leakages/createLeakageAdapters';
+import { NotAnalyzedError } from '../../helpers/CustomError';
 import Leakages from '../Leakages/Leakages';
 import { TempDir } from '../../helpers/TempDir';
 import {
@@ -207,11 +207,11 @@ export class QuickFixManual implements vscode.CodeActionProvider {
 
     // Step 2: Validate and parse feature selection variables
     const featureVariables = featureSelectionCode.split('=')[0].split(',');
-    if (featureVariables.length < 4) {
-      throw new Error(
-        "Invalid feature selection code. Expected format: 'X_train, X_test, y_train, y_test = train_test_split(...)'",
-      );
-    }
+    // if (featureVariables.length < 4) {
+    //   throw new Error(
+    //     "Invalid feature selection code. Expected format: 'X_train, X_test, y_train, y_test = train_test_split(...)'",
+    //   );
+    // }
 
     const [X_train, X_test, y_train, y_test] = featureVariables.map((e) =>
       e.trim(),

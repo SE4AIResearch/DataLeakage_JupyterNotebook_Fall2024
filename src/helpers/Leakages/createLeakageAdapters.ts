@@ -2,6 +2,9 @@
  * Imports
  */
 
+// Import System Modules
+import fs from 'fs';
+
 // Import Node Modules
 import * as vscode from 'vscode';
 
@@ -16,68 +19,25 @@ import {
 
 // Import /src/helpers
 import { TempDir } from '../TempDir';
+import { NotAnalyzedError } from '../CustomError';
 import {
   ConversionToJupyter,
   ConversionToPython,
 } from '../conversion/LineConversion';
 
-/**
- * Types
- */
-
-export type LeakageAdapter = {
-  id: number;
-  relationId: number;
-  type: LeakageType;
-  displayType:
-    | 'Overlap Leakage'
-    | 'Pre-Processing Leakage'
-    | 'Multi-Test Leakage';
-  cause: string;
-  line: number;
-  model: string;
-  variable: string;
-  method: string;
-};
-
-export type LeakageAdapterCell = {
-  id: number;
-  relationId: number;
-  type: LeakageType;
-  displayType:
-    | 'Overlap Leakage'
-    | 'Pre-Processing Leakage'
-    | 'Multi-Test Leakage';
-  cause: string;
-  line: number;
-  cell: number;
-  model: string;
-  variable: string;
-  method: string;
-};
-
-export type LeakageAdapterExtra = {
-  leakageAdapters: LeakageAdapter[];
-};
-
-/**
- * Custom Error
- */
-
-export class NotAnalyzedError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'NotAnalyzedError';
-  }
-}
+// Import self
+import { getVarEquals } from './helpers/getVarEquals';
+import { LeakageAdapter, LeakageAdapterCell, VarEquals } from './types/types';
+import { createCause } from './helpers/createCause';
+import { convertTypeToReadableString } from './helpers/convertTypeToReadableString';
+import { replaceVar } from './helpers/replaceVar';
+import { changeUnknown } from './helpers/changeUnknown';
 
 /**
  * Variable
  */
 
 let _relationIdIndex = 1;
-
-export const INTERNAL_VARIABLE_NAME = 'Name Not Found';
 
 /**
  * Helper Functions
@@ -86,79 +46,50 @@ export const INTERNAL_VARIABLE_NAME = 'Name Not Found';
 const leakageAdapterHelper = (
   type: LeakageType,
   lines: LeakageLines,
+  varEquals: VarEquals,
+  pythonCode: string,
 ): LeakageAdapter[] => {
+  const pythonCodeArr = pythonCode.split('\n');
   const leakageAdapters: LeakageAdapter[] = Object.entries(lines).map(
     (leakageLine) => {
-      const convertTypeToReadableString = (type: LeakageType) =>
-        type === LeakageType.PreProcessingLeakage
-          ? 'Pre-Processing Leakage'
-          : type === LeakageType.OverlapLeakage
-            ? 'Overlap Leakage'
-            : 'Multi-Test Leakage';
+      const lineNumberZeroBased = Number(leakageLine[0]) - 1;
 
-      const createCause = (type: LeakageType) =>
-        type === LeakageType.PreProcessingLeakage
-          ? 'Vectorizer fit on train and test data together'
-          : type === LeakageType.OverlapLeakage
-            ? 'Same/Similar data in both train and test'
-            : 'Repeat data evaluation';
-
-      const renameDuplicates = (model: string) => {
-        const regex = /_(\d+)$/;
-        if (!regex.test(model)) {
-          return model;
-        }
-        const modelTrimmed = model.replace(regex, '');
-        const matched = model.match(regex);
-        if (matched === null || matched[0] === undefined) {
-          console.error(
-            'Unknown error occurred while trying to match model ending digits.',
-            matched,
-            model,
-            modelTrimmed,
-          );
-          return model;
-        }
-
-        const lineArr = Object.values(lines);
-        const models = lineArr
-          .map((line) => line.metadata?.model ?? null)
-          .filter((model) => model !== null);
-
-        if (models.includes(modelTrimmed)) {
-          return `${modelTrimmed} (${matched[1]})`;
-        } else {
-          return model;
-        }
-      };
-
-      const renamePrivateVar = (model: string) =>
-        /^_var\d+$/.test(model) ? 'Name Not Found' : model;
-
-      const changeUnknown = (method: string) => {
-        const sep = method.split('.');
-        return sep.length === 2 && sep[0] === 'Unknown'
-          ? 'AnonymousModel.' + sep[1]
-          : method;
+      const data = {
+        id: -1,
+        gid: -1,
+        type: type,
+        cause: createCause(type),
+        line: lineNumberZeroBased + 1,
+        model: leakageLine[1].metadata?.model || 'Unknown Model',
+        variable:
+          leakageLine[1].metadata?.variable.replace(/_\d$/, '') ||
+          'Unknown Variable',
+        method: leakageLine[1].metadata?.method || 'Unknown Method',
       };
 
       return {
-        id: -1,
-        relationId: -1,
-        type: type,
-        displayType: convertTypeToReadableString(type),
-        cause: createCause(type),
-        line: Number(leakageLine[0]),
-        model: renamePrivateVar(
-          renameDuplicates(leakageLine[1].metadata?.model || 'Unknown Model'),
+        ...data,
+
+        displayId: data.id,
+        displayGid: data.gid,
+        displayType: convertTypeToReadableString(data.type),
+        displayCause: data.cause,
+        displayLine: -1,
+        displayModel: replaceVar(
+          data.model,
+          lineNumberZeroBased,
+          lines,
+          varEquals,
+          pythonCodeArr,
         ),
-        variable: renamePrivateVar(
-          leakageLine[1].metadata?.variable.replace(/_\d$/, '') ||
-            'Unknown Variable',
+        displayVariable: replaceVar(
+          data.variable,
+          lineNumberZeroBased,
+          lines,
+          varEquals,
+          pythonCodeArr,
         ),
-        method:
-          changeUnknown(leakageLine[1].metadata?.method || 'Unknown Method') +
-          '()',
+        displayMethod: changeUnknown(data.method) + '()',
       };
     },
   );
@@ -182,9 +113,16 @@ const adaptLeakages = (
   leakageType: LeakageType,
   leakageInstance: LeakageInstances[LeakageType],
   leakageLines: LeakageLines,
+  varEquals: VarEquals,
+  pythonCode: string,
 ): LeakageAdapter[] => {
   const lines = getLines(leakageInstance, leakageLines);
-  const leakageAdapters = leakageAdapterHelper(leakageType, lines);
+  const leakageAdapters = leakageAdapterHelper(
+    leakageType,
+    lines,
+    varEquals,
+    pythonCode,
+  );
   return leakageAdapters;
 };
 
@@ -197,10 +135,27 @@ const adaptLeakages = (
  * @param leakages
  * @returns
  */
-export function createLeakageAdapters(
+async function createLeakageAdapters(
   leakages: LeakageOutput,
-): LeakageAdapter[] {
+  tempDir: TempDir,
+): Promise<LeakageAdapter[]> {
   const leakageAdapters: LeakageAdapter[] = [];
+  let varEquals;
+  let pythonCode;
+
+  try {
+    varEquals = await getVarEquals(tempDir.getOutputFilePath('varEquals'));
+  } catch (err) {
+    console.error('varEquals failed');
+    throw err;
+  }
+
+  try {
+    pythonCode = fs.readFileSync(tempDir.getAlgoInputFilePath(), 'utf-8');
+  } catch (err) {
+    console.error('Failed to read python code file');
+    throw err;
+  }
 
   let idIndex = 1;
 
@@ -211,9 +166,12 @@ export function createLeakageAdapters(
           type,
           leakages.leakageInstances[type],
           leakages.leakageLines,
+          varEquals,
+          pythonCode,
         ).map((adapter) => ({
           ...adapter,
-          id: idIndex++,
+          id: idIndex,
+          displayId: idIndex++,
         })),
       );
     }
@@ -259,13 +217,17 @@ export async function getAdaptersFromFile(
     pythonFileTotalLines, // Assuming fileLines is not needed here
   ).getLeakages();
 
-  const leakageAdapters = createLeakageAdapters(leakages);
+  const leakageAdapters = await createLeakageAdapters(leakages, tempDir);
   const rows: LeakageAdapterCell[] = leakageAdapters.map((adapter) => {
     const jupyCellLine = manager.convertPythonLineToJupyCellLine(adapter.line);
+
+    console.log('Jupy Cell Line: ', jupyCellLine);
     return {
       ...adapter,
       line: jupyCellLine.lineIndex,
       cell: jupyCellLine.cellIndex,
+      displayLine: jupyCellLine.lineIndex + 1,
+      displayCell: jupyCellLine.cellIndex + 1,
     };
   });
 
