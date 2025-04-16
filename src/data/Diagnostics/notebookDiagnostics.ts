@@ -90,7 +90,7 @@ function refreshNotebookDiagnostics(
   diagnosticCollection.set(doc.uri, diagnostics);
 }
 
-const configureNotebookDiagnostics = async (
+export const configureNotebookDiagnostics = async (
   context: vscode.ExtensionContext,
   editor: vscode.TextEditor,
   diagnosticCollection: vscode.DiagnosticCollection,
@@ -145,6 +145,12 @@ export function subscribeToDocumentChanges(
         );
       }
     }),
+  );
+
+  context.subscriptions.push(
+    vscode.workspace.onDidChangeTextDocument((_) => 
+      diagnosticCollection.clear()
+    )
   );
 
   context.subscriptions.push(

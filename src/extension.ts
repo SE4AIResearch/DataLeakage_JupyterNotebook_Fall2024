@@ -7,15 +7,39 @@ import {
   subscribeToDocumentChanges,
 } from './data/Diagnostics/notebookDiagnostics';
 import { QuickFixManual } from './data/Diagnostics/quickFixManual';
+import Leakages from './data/Leakages/Leakages';
 
 export async function activate(context: vscode.ExtensionContext) {
+  const disposable = vscode.commands.registerCommand(
+    'dataleakage-jupyternotebook-fall2024.runLeakageDetector',
+    async () => {
+      try {
+        const leakages = new Leakages(
+          '/home/arnav/Documents/Classes/CS423/Projects/leakage-analysis-docker-free/tests/inputs',
+          'quick_fix',
+          22,
+        );
+        console.log(
+          await leakages.getDataFlowMappings(
+            await leakages.getVariableEquivalenceMappings(),
+          ),
+        );
+      } catch (error) {
+        console.log(error);
+      }
+      vscode.window.showInformationMessage(
+        'Hello World from DataLeakage_JupyterNotebook_Fall2024!',
+      );
+    },
+  );
+
   /* Diagnostics */
 
   const notebookDiagnostics =
     vscode.languages.createDiagnosticCollection(COLLECTION_NAME);
   context.subscriptions.push(notebookDiagnostics);
 
-  const quickFixManual = new QuickFixManual(context, {}, {}, {}, {}, {}, {});
+  const quickFixManual = new QuickFixManual(context, {}, {}, {}, {}, {}, {}, {});
 
   subscribeToDocumentChanges(context, notebookDiagnostics, quickFixManual);
 
@@ -62,6 +86,8 @@ export async function activate(context: vscode.ExtensionContext) {
     context,
     changeView,
     'buttons',
+    notebookDiagnostics,
+    quickFixManual
   );
 
   context.subscriptions.push(
