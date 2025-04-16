@@ -177,7 +177,27 @@ export class QuickFixManual implements vscode.CodeActionProvider {
         "Feature selection method not found. Looking for 'train_test_split' method.",
       );
     }
-    const featureSelectionCode = documentLines[featureSelectionLine];
+    
+    let featureSelectionCode = documentLines[featureSelectionLine];
+    let endLine = featureSelectionLine;
+
+    const getParenthesesCount = (str: string) => {
+      let count = 0;
+      let inQuote = false;
+      for (const char of str) {
+        if (char === '"' || char === "'") inQuote = !inQuote;
+        if (char === '(' && !inQuote) count++;
+        else if (char === ')' && !inQuote) count--;
+      }
+      return count;
+    };
+    
+    let runningCount = getParenthesesCount(featureSelectionCode.trim());
+    while (runningCount != 0) {
+      endLine++;
+      featureSelectionCode += '\n' + documentLines[endLine];
+      runningCount += getParenthesesCount(documentLines[endLine].trim());
+    }
 
     const earliestTaintLine = Math.min(
       ...Object.keys(this._taintMappings).map((e) => parseInt(e)),
@@ -187,8 +207,17 @@ export class QuickFixManual implements vscode.CodeActionProvider {
       .split('=')[0]
       .split(',')
       .map((e) => e.trim());
-    const temp_X_train = `${X_train}_0`;
-    const temp_X_test = `${X_test}_0`;
+
+    const genTempVarName = (varName: string) => {
+      let temp_name = `${X_train}_0`;
+      while (temp_name in this._dataFlowMappings) {
+        temp_name += '0';
+      }
+      return temp_name;
+    }
+
+    const temp_X_train = genTempVarName(X_train);
+    const temp_X_test = genTempVarName(X_test);
     const updatedFeatureSelectionCode = featureSelectionCode
       .replace(X_train, temp_X_train)
       .replace(X_test, temp_X_test);
@@ -245,7 +274,13 @@ export class QuickFixManual implements vscode.CodeActionProvider {
       }
     }
 
-    edit.delete(document.uri, document.lineAt(featureSelectionLine).range);
+    edit.delete(
+      document.uri,
+      new vscode.Range(
+        document.lineAt(featureSelectionLine).range.start,
+        document.lineAt(endLine).range.end,
+      ),
+    );
     edit.insert(
       document.uri,
       new vscode.Position(earliestTaintLine - 2, 0),

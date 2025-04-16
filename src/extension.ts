@@ -15,8 +15,8 @@ export async function activate(context: vscode.ExtensionContext) {
     async () => {
       try {
         const leakages = new Leakages(
-          '/home/terrence/Projects/stevens/stevens_senior_design/DataLeakage_JupyterNotebook_Fall2024/src/_output/',
-          'quick-fix',
+          '/home/arnav/Documents/Classes/CS423/Projects/leakage-analysis-docker-free/tests/inputs',
+          'quick_fix',
           22,
         );
         console.log(
