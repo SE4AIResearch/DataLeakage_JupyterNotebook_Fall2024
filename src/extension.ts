@@ -62,6 +62,8 @@ export async function activate(context: vscode.ExtensionContext) {
     context,
     changeView,
     'buttons',
+    notebookDiagnostics,
+    quickFixManual
   );
 
   context.subscriptions.push(
