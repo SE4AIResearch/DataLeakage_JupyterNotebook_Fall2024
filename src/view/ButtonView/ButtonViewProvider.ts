@@ -9,6 +9,8 @@ import { installLeakageFolder } from '../../data/Button/LeakageProgramInstaller'
 
 import { createMainPage } from './page/main/content';
 import { createSettingsPage } from './page/settings/content';
+import { QuickFixManual } from '../../data/Diagnostics/quickFixManual';
+import { configureNotebookDiagnostics } from '../../data/Diagnostics/notebookDiagnostics';
 
 /**
  * Manages Button Webview
@@ -23,6 +25,8 @@ export class ButtonViewProvider {
     private readonly _context: vscode.ExtensionContext,
     private readonly _changeView: () => Promise<void>,
     private readonly _output: 'buttons' | 'settings',
+    private readonly _notebookDiagnostics: vscode.DiagnosticCollection,
+    private readonly _quickFixManual: QuickFixManual
   ) {}
 
   public resolveWebviewView(
@@ -43,10 +47,28 @@ export class ButtonViewProvider {
       console.log('Message Received From View: ', data.type);
       switch (data.type) {
         case 'analyzeNotebookNative':
+          this._notebookDiagnostics.clear();
           await this.analyzeNotebookNative();
+          if (vscode.window.activeTextEditor) {
+            await configureNotebookDiagnostics(
+              this._context,
+              vscode.window.activeTextEditor,
+              this._notebookDiagnostics,
+              this._quickFixManual,
+            );
+          }
           break;
         case 'analyzeNotebookDocker':
+          this._notebookDiagnostics.clear();
           await this.analyzeNotebookDocker();
+          if (vscode.window.activeTextEditor) {
+            await configureNotebookDiagnostics(
+              this._context,
+              vscode.window.activeTextEditor,
+              this._notebookDiagnostics,
+              this._quickFixManual,
+            );
+          }
           break;
         case 'goToSettingsPage':
           this.refresh('settings');
