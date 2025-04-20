@@ -185,9 +185,9 @@ export class ButtonViewProvider {
       : 'https://i.imgur.com/TKs7dc2.png';
     const colorMode: 'light' | 'dark' = isLightMode ? 'light' : 'dark';
 
-    const method = StateManager.loadData(this._context, 'method') ?? 'docker';
+    const method = StateManager.loadData(this._context, 'method') ?? 'native';
     if (method === undefined) {
-      StateManager.saveData(this._context, 'method', 'docker');
+      StateManager.saveData(this._context, 'method', 'native');
     }
     console.log('Method: ', method);
 
