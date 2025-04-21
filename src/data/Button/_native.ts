@@ -4,6 +4,7 @@ import fs from 'fs';
 import { exec, spawn } from 'child_process';
 
 import { TempDir } from '../../helpers/TempDir';
+import { ButtonViewProvider } from '../../view/ButtonView/ButtonViewProvider';
 
 async function getPathToAlgoProgramDir(
   context: vscode.ExtensionContext,
@@ -130,6 +131,36 @@ ${command}
       // Handle process completion
       child.on('close', (code) => {
         console.log(`Child process exited with code ${code}`);
+        // Enhanced error message with syntax error details
+        // Note: code can be 0 with syntax errors or similar
+        if (
+          stdout.includes('SyntaxError') ||
+          stdout.includes('IndentationError') ||
+          stderr.includes('SyntaxError') ||
+          stderr.includes('IndentationError') ||
+          stdout.includes('Failed to parse') ||
+          stderr.includes('Failed to parse')
+        ) {
+          // Get the output channel using the static method
+          const outputChannel = ButtonViewProvider.getOutputDebugChannel();
+          // Clear and populate the output channel
+          outputChannel.clear();
+          outputChannel.appendLine('Syntax Error in notebook:');
+          outputChannel.appendLine(`${stdout}\n${stderr}`);
+          outputChannel.show();
+          vscode.window
+            .showErrorMessage(
+              'Syntax error in notebook. Please fix before analyzing for data leakage.',
+              'Show Details',
+            )
+            .then((selection) => {
+              if (selection === 'Show Details') {
+                outputChannel.show();
+              }
+            });
+          // User error, rather resolve than reject for other unknown errors
+          resolve({ stdout, stderr });
+        }
         if (code === 0) {
           resolve({ stdout, stderr });
         } else {

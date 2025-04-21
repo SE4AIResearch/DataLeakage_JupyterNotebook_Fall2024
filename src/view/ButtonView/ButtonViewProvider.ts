@@ -18,6 +18,8 @@ import { configureNotebookDiagnostics } from '../../data/Diagnostics/notebookDia
 export class ButtonViewProvider {
   public static readonly viewType = 'data-leakage.buttonView';
 
+  // Using this to show Quick Fix debug info (due to syntax error)
+  private static _outputDebugChannel: vscode.OutputChannel | undefined;
   private _view?: vscode.WebviewView;
 
   constructor(
@@ -26,8 +28,30 @@ export class ButtonViewProvider {
     private readonly _changeView: () => Promise<void>,
     private readonly _output: 'buttons' | 'settings',
     private readonly _notebookDiagnostics: vscode.DiagnosticCollection,
-    private readonly _quickFixManual: QuickFixManual
-  ) {}
+    private readonly _quickFixManual: QuickFixManual,
+  ) {
+    if (!ButtonViewProvider._outputDebugChannel) {
+      ButtonViewProvider._outputDebugChannel =
+        vscode.window.createOutputChannel('Data Analysis Debug');
+    }
+  }
+
+  // Static getter for the output channel
+  public static getOutputDebugChannel(): vscode.OutputChannel {
+    if (!ButtonViewProvider._outputDebugChannel) {
+      ButtonViewProvider._outputDebugChannel =
+        vscode.window.createOutputChannel('Data Analysis Debug');
+    }
+    return ButtonViewProvider._outputDebugChannel;
+  }
+
+  // Static method to clear the output channel
+  public static clearOutputDebugChannel(): void {
+    if (ButtonViewProvider._outputDebugChannel) {
+      ButtonViewProvider._outputDebugChannel.clear();
+      ButtonViewProvider._outputDebugChannel.hide();
+    }
+  }
 
   public resolveWebviewView(
     webviewView: vscode.WebviewView,
