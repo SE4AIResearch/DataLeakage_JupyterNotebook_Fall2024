@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import Docker, { ContainerCreateOptions, ImageInfo } from 'dockerode';
-
+import { ButtonViewProvider } from '../../view/ButtonView/ButtonViewProvider';
 import { DockerTemp, TempDir } from '../../helpers/TempDir';
 
 async function downloadImage(docker: Docker) {
@@ -121,9 +121,15 @@ export async function runDocker(tempDir: TempDir) {
     await downloadImage(docker);
     const container = await createContainer(docker, tempDir);
 
+    // Get debug output channel
+    const outputChannel = ButtonViewProvider.getOutputDebugChannel();
+    // Clear existing output
+    ButtonViewProvider.clearOutputDebugChannel();
+
     // Start the container first
     await container.start();
     console.log('Container started successfully');
+    outputChannel.appendLine('Container started successfully');
 
     // Set up a stream to capture output after container is started
     const stream = await container.attach({
@@ -132,32 +138,102 @@ export async function runDocker(tempDir: TempDir) {
       stderr: true,
     });
 
-    // Properly handle the stream output
-    stream.pipe(process.stdout);
+    // Initialize variables to store container output
+    let stdoutData = '';
+    let stderrData = '';
 
-    // Set up a timeout
-    const timeoutDuration = 1000 * 60 * 60;
-    const timeoutPromise = new Promise<string>((resolve) => {
-      setTimeout(
-        () => resolve('Container execution timed out'),
-        timeoutDuration,
-      );
+    // Handle the container output stream
+    return new Promise<any>((resolve, reject) => {
+      // Process container output
+      stream.on('data', (chunk) => {
+        const output = chunk.toString();
+        stdoutData += output;
+        // Show output in debug channel
+        outputChannel.appendLine(output);
+        // Also log to console
+        console.log(output);
+      });
+
+      stream.on('error', (error) => {
+        stderrData += error.toString();
+        outputChannel.appendLine(`ERROR: ${error.toString()}`);
+        console.error(`Stream error: ${error}`);
+      });
+
+      // Set up a timeout
+      const timeoutDuration = 1000 * 60 * 60;
+      const timeout = setTimeout(() => {
+        outputChannel.appendLine('Container execution timed out');
+        container.stop({ t: 10 }).then(() => {
+          resolve({ StatusCode: -1, reason: 'timeout' });
+        });
+      }, timeoutDuration);
+
+      // Wait for container to finish
+      container.wait((err, result) => {
+        clearTimeout(timeout);
+
+        if (err) {
+          outputChannel.appendLine(`Container error: ${err.message}`);
+          console.error(`Container error: ${err}`);
+          reject(err);
+          return;
+        }
+
+        outputChannel.appendLine(
+          `Container exited with status code: ${result.StatusCode}`,
+        );
+        console.log(`Container exited with status code: ${result.StatusCode}`);
+
+        // Check for common Python errors in the output
+        const hasSyntaxError =
+          stdoutData.includes('SyntaxError') ||
+          stderrData.includes('SyntaxError');
+        const hasIndentationError =
+          stdoutData.includes('IndentationError') ||
+          stderrData.includes('IndentationError');
+        const hasParseError =
+          stdoutData.includes('Failed to parse') ||
+          stderrData.includes('Failed to parse');
+
+        if (hasSyntaxError || hasIndentationError || hasParseError) {
+          // Show the Quick Fix dialog if Python syntax error is detected
+          outputChannel.show();
+
+          // Log specific error type for debugging
+          if (hasSyntaxError) {
+            outputChannel.appendLine('Python syntax error detected.');
+          }
+          if (hasIndentationError) {
+            outputChannel.appendLine('Python indentation error detected.');
+          }
+          if (hasParseError) {
+            outputChannel.appendLine('Failed to parse notebook.');
+          }
+
+          // Add a structured error response
+          resolve({
+            StatusCode: result.StatusCode,
+            error: true,
+            errorType: hasSyntaxError
+              ? 'SyntaxError'
+              : hasIndentationError
+                ? 'IndentationError'
+                : 'ParseError',
+            stdout: stdoutData,
+            stderr: stderrData,
+          });
+        } else {
+          resolve(result);
+        }
+      });
     });
-
-    // Wait for container to finish or timeout
-    const waitPromise = container.wait();
-
-    const result = await Promise.race([waitPromise, timeoutPromise]);
-
-    if (typeof result === 'string') {
-      console.log(result); // This is the timeout message
-      await container.stop({ t: 10 });
-    } else {
-      console.log(`Container exited with status code: ${result.StatusCode}`);
-    }
-
-    return result;
   } catch (error) {
+    // Get debug output channel for error reporting
+    const outputChannel = ButtonViewProvider.getOutputDebugChannel();
+    outputChannel.appendLine(`Error running Docker container: ${error}`);
+    outputChannel.show();
+
     console.error('Error running Docker container:', error);
     throw error;
   }

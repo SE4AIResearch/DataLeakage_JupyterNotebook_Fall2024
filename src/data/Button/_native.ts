@@ -144,7 +144,7 @@ ${command}
           // Get the output channel using the static method
           const outputChannel = ButtonViewProvider.getOutputDebugChannel();
           // Clear and populate the output channel
-          outputChannel.clear();
+          ButtonViewProvider.clearOutputDebugChannel();
           outputChannel.appendLine('Syntax Error in notebook:');
           outputChannel.appendLine(`${stdout}\n${stderr}`);
           outputChannel.show();
