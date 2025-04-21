@@ -63,28 +63,18 @@ export async function activate(context: vscode.ExtensionContext) {
   // Quick Fix action for data leakage
   context.subscriptions.push(
     vscode.commands.registerCommand(
-      'data-leakage.applyAndPreviewFix',
-      async (documentUri: vscode.Uri, leakageType: string, line: number) => {
+      'data-leakage.showFixDiff',
+      async (
+        documentUri: vscode.Uri,
+        originalContent: string,
+        leakageType: string,
+      ) => {
         try {
-          // 1. Save the original content
-          const document = await vscode.workspace.openTextDocument(documentUri);
-          const originalContent = document.getText();
-
-          // 2. Create the edit
-          const edit = await quickFixManual.generateFixEdit(
-            documentUri,
-            leakageType,
-            line,
-          );
-
-          // 3. Find notebook cell info
+          // Find notebook cell info
           const cellInfo =
             await quickFixManual.findNotebookCellInfo(documentUri);
 
-          // 4. Apply the edit
-          await vscode.workspace.applyEdit(edit);
-
-          // 5. Create temporary files for diff view
+          // Create temporary files for diff view
           const tempDir = await TempDir.getTempDir(
             cellInfo ? cellInfo.notebook.uri.fsPath : documentUri.fsPath,
           );
@@ -95,19 +85,23 @@ export async function activate(context: vscode.ExtensionContext) {
             path.join(tempDir.getAlgoDirPath(), 'modified.py'),
           );
 
-          // 6. Write files for comparison
+          // Get current document content (after edit was applied)
+          const document = await vscode.workspace.openTextDocument(documentUri);
+          const modifiedContent = document.getText();
+
+          // Write files for comparison
           await vscode.workspace.fs.writeFile(
             originalFile,
             Buffer.from(originalContent),
           );
           await vscode.workspace.fs.writeFile(
             modifiedFile,
-            Buffer.from(document.getText()),
+            Buffer.from(modifiedContent),
           );
 
-          // 7. Show diff view
+          // Show diff view
           const title = cellInfo
-            ? `Fix for ${leakageType} in Cell #${cellInfo.cellIndex + 1}`
+            ? `Fix for ${leakageType} in Cell #${cellInfo.cellIndex}`
             : `Fix for ${leakageType}`;
 
           await vscode.commands.executeCommand(
@@ -117,15 +111,14 @@ export async function activate(context: vscode.ExtensionContext) {
             title,
           );
 
-          // 8. Ask user to keep or revert Quick Fix changes
+          // Show a modal dialog to ask the user if they want to keep or revert changes
           const choice = await vscode.window.showInformationMessage(
             'Do you want to keep these changes?',
-            { modal: true },
             'Keep Changes',
+            'Revert Changes',
           );
 
-          // 9. Revert if requested
-          // Cancel is a default choice
+          // Revert changes if requested
           if (choice !== 'Keep Changes') {
             const revertEdit = new vscode.WorkspaceEdit();
             revertEdit.replace(
@@ -136,10 +129,7 @@ export async function activate(context: vscode.ExtensionContext) {
             await vscode.workspace.applyEdit(revertEdit);
             vscode.window.showInformationMessage('Changes reverted.');
           } else {
-            vscode.window.showInformationMessage(
-              'Data leakage fix applied successfully.',
-            );
-            // Add a detailed message about what was fixed
+            // Keep changes
             let fixMessage = '';
             switch (leakageType) {
               case 'OverlapLeakage':
@@ -152,7 +142,7 @@ export async function activate(context: vscode.ExtensionContext) {
                 break;
               case 'MultiTestLeakage':
                 fixMessage =
-                  'Fixed multi-test leakage by using independent test data.';
+                  'Fixed multi-test leakage by using independent test data for evaluation.';
                 break;
               default:
                 throw new Error(
@@ -163,10 +153,18 @@ export async function activate(context: vscode.ExtensionContext) {
               vscode.window.showInformationMessage(fixMessage);
             }
           }
+
+          // Clean up temporary files
+          try {
+            await vscode.workspace.fs.delete(originalFile);
+            await vscode.workspace.fs.delete(modifiedFile);
+          } catch (err) {
+            console.error('Failed to clean up temp files:', err);
+          }
         } catch (error) {
           console.error(error);
           vscode.window.showErrorMessage(
-            `Error applying fix: ${error instanceof Error ? error.message : String(error)}`,
+            `Error showing fix diff: ${error instanceof Error ? error.message : String(error)}`,
           );
         }
       },
