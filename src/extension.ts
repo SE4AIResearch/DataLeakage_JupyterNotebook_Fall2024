@@ -11,6 +11,8 @@ import {
 import { QuickFixManual } from './data/Diagnostics/quickFixManual';
 import Leakages from './data/Leakages/Leakages';
 
+let pendingQuickFixPromiseResolve: ((value: string) => void) | null = null;
+
 export async function activate(context: vscode.ExtensionContext) {
   const disposable = vscode.commands.registerCommand(
     'dataleakage-jupyternotebook-fall2024.runLeakageDetector',
@@ -60,6 +62,22 @@ export async function activate(context: vscode.ExtensionContext) {
     }),
   );
 
+  // Command to handle quick fix decisions
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      'data-leakage.handleQuickFixDecision',
+      async (decision: string) => {
+        // Resolve the pending promise when user makes a decision
+        if (pendingQuickFixPromiseResolve) {
+          pendingQuickFixPromiseResolve(
+            decision === 'keep' ? 'Keep Changes' : 'Revert Changes',
+          );
+          pendingQuickFixPromiseResolve = null;
+        }
+      },
+    ),
+  );
+
   // Quick Fix action for data leakage
   context.subscriptions.push(
     vscode.commands.registerCommand(
@@ -74,10 +92,11 @@ export async function activate(context: vscode.ExtensionContext) {
           const cellInfo =
             await quickFixManual.findNotebookCellInfo(documentUri);
 
-          // Create temporary files for diff view
+          // Fetch original file's directory
           const tempDir = await TempDir.getTempDir(
             cellInfo ? cellInfo.notebook.uri.fsPath : documentUri.fsPath,
           );
+          // Create both original and modified files for diff view
           const originalFile = vscode.Uri.file(
             path.join(tempDir.getAlgoDirPath(), 'original.py'),
           );
@@ -89,7 +108,7 @@ export async function activate(context: vscode.ExtensionContext) {
           const document = await vscode.workspace.openTextDocument(documentUri);
           const modifiedContent = document.getText();
 
-          // Write files for comparison
+          // Write both files for the diff view
           await vscode.workspace.fs.writeFile(
             originalFile,
             Buffer.from(originalContent),
@@ -99,11 +118,22 @@ export async function activate(context: vscode.ExtensionContext) {
             Buffer.from(modifiedContent),
           );
 
-          // Show diff view
+          // Create descriptive title for Quick Fix
           const title = cellInfo
             ? `Fix for ${leakageType} in Cell #${cellInfo.cellIndex}`
             : `Fix for ${leakageType}`;
 
+          // Show notification to user about using the extension panel
+          // to accept or reject Quick Fix changes.
+          vscode.window.showInformationMessage(
+            'Use the left extension sidebar to accept or reject changes.',
+          );
+
+          // Need ButtonView visible to properly show the Quick Fix dialog
+          // before showing the diff.
+          await vscode.commands.executeCommand(
+            'data-leakage.buttonViewProvider.focus',
+          );
           await vscode.commands.executeCommand(
             'vscode.diff',
             originalFile,
@@ -111,14 +141,27 @@ export async function activate(context: vscode.ExtensionContext) {
             title,
           );
 
-          // Show a modal dialog to ask the user if they want to keep or revert changes
-          const choice = await vscode.window.showInformationMessage(
-            'Do you want to keep these changes?',
-            'Keep Changes',
-            'Revert Changes',
-          );
+          // Tell ButtonView to show the quick fix dialog
+          if (buttonProvider.webview) {
+            buttonProvider.showQuickFixDialog();
+          } else {
+            // The webview is not ready yet, you could show an error or retry
+            console.warn(
+              'ButtonView webview is not ready for quick fix dialog.',
+            );
+          }
 
-          // Revert changes if requested
+          // Create a promise that will be resolved when the user makes a decision
+          const choice = await new Promise<string>((resolve) => {
+            pendingQuickFixPromiseResolve = resolve;
+          });
+
+          // Hide the dialog once a decision is made
+          if (buttonProvider.webview) {
+            buttonProvider.hideQuickFixDialog();
+          }
+
+          // User chose to revert changes
           if (choice !== 'Keep Changes') {
             const revertEdit = new vscode.WorkspaceEdit();
             revertEdit.replace(
@@ -129,7 +172,7 @@ export async function activate(context: vscode.ExtensionContext) {
             await vscode.workspace.applyEdit(revertEdit);
             vscode.window.showInformationMessage('Changes reverted.');
           } else {
-            // Keep changes
+            // User chose to keep changes
             let fixMessage = '';
             switch (leakageType) {
               case 'OverlapLeakage':
@@ -154,6 +197,9 @@ export async function activate(context: vscode.ExtensionContext) {
             }
           }
 
+          // Clear the flag after the decision is made
+          pendingQuickFixPromiseResolve = null;
+
           // Clean up temporary files
           try {
             await vscode.workspace.fs.delete(originalFile);
@@ -162,6 +208,12 @@ export async function activate(context: vscode.ExtensionContext) {
             console.error('Failed to clean up temp files:', err);
           }
         } catch (error) {
+          // Clear the flag in case of error
+          pendingQuickFixPromiseResolve = null;
+          // Hide Quick Fix dialog in case of error
+          if (buttonProvider.webview) {
+            buttonProvider.hideQuickFixDialog();
+          }
           console.error(error);
           vscode.window.showErrorMessage(
             `Error showing fix diff: ${error instanceof Error ? error.message : String(error)}`,
