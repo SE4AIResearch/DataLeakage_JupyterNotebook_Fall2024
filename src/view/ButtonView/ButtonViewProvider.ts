@@ -16,7 +16,7 @@ import { configureNotebookDiagnostics } from '../../data/Diagnostics/notebookDia
  * Manages Button Webview
  */
 export class ButtonViewProvider {
-  public static readonly viewType = 'data-leakage.buttonView';
+  public static readonly viewType = 'data-leakage.buttonViewProvider';
 
   // Using this to show Quick Fix debug info (due to syntax error)
   private static _outputDebugChannel: vscode.OutputChannel | undefined;
@@ -51,6 +51,29 @@ export class ButtonViewProvider {
       ButtonViewProvider._outputDebugChannel.clear();
       ButtonViewProvider._outputDebugChannel.hide();
     }
+  }
+
+  public showQuickFixDialog() {
+    if (this._view) {
+      // Show the dialog and disable the run buttons
+      this._view.webview.postMessage({
+        type: 'showQuickFixDialog',
+      });
+    }
+  }
+
+  public hideQuickFixDialog() {
+    if (this._view) {
+      // Hide the dialog and enable the run buttons
+      this._view.webview.postMessage({
+        type: 'hideQuickFixDialog',
+      });
+    }
+  }
+
+  // Add this getter to access the webview
+  public get webview(): vscode.Webview | undefined {
+    return this._view?.webview;
   }
 
   public resolveWebviewView(
@@ -94,11 +117,22 @@ export class ButtonViewProvider {
             );
           }
           break;
+        case 'quickFixDecision':
+          // Forward the decision to the extension
+          vscode.commands.executeCommand(
+            'data-leakage.handleQuickFixDecision',
+            data.decision,
+          );
+          break;
         case 'goToSettingsPage':
           this.refresh('settings');
           break;
         case 'webviewLoaded':
           try {
+            // First check if a quick fix is in progress
+            // if (isQuickFixInProgress) {
+            //   this.showQuickFixDialog();
+            // }
             const data = {
               type: 'webviewLoaded',
               isRunning: StateManager.loadIsRunning(this._context),

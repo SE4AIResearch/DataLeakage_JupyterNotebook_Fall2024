@@ -10,27 +10,66 @@
   );
   //const installLeakageBtn = document.getElementById('install-leakage');
 
-  // Handle messages sent from the extension to the webview
-  window.addEventListener('message', (event) => {
-    const message = event.data; // The json data that the extension sent
-    switch (message.type) {
-      case 'analysisCompleted': {
-        native_button.disabled = false;
-        docker_button.disabled = false;
-        break;
-      }
-      case 'webviewLoaded': {
-        native_button.disabled = message.isRunning ?? false;
-        docker_button.disabled = message.isRunning ?? false;
-        break;
-      }
-      case 'filePickerDone': {
-        installLeakageBtn.disabled = false;
-        break;
-      }
-    }
-  });
+  // Get webview state to persist
+  // https://code.visualstudio.com/api/extension-guides/webview
 
+  // Get quick fix buttons
+  const runBtnDiv = document.getElementById('run-leakage');
+  const quickFixDialog = document.getElementById('quick-fix-dialog');
+  const keepChangesBtn = document.getElementById('keep-changes');
+  const revertChangesBtn = document.getElementById('revert-changes');
+
+  // Initialize state
+  const previousState = vscode.getState() || {
+    isQuickFixActive: false,
+  };
+
+  // Initial UI setup based on state
+  updateUIDisplay(previousState.isQuickFixActive);
+
+  // Helper function to toggle between run button and quick fix dialog
+  function updateUIDisplay(showQuickFix) {
+    if (runBtnDiv && quickFixDialog) {
+      runBtnDiv.style.display = showQuickFix ? 'none' : 'block';
+      quickFixDialog.style.display = showQuickFix ? 'block' : 'none';
+    }
+
+    // Update button states
+    if (keepChangesBtn && revertChangesBtn) {
+      keepChangesBtn.disabled = !showQuickFix;
+      revertChangesBtn.disabled = !showQuickFix;
+    }
+    // Save state
+    vscode.setState({
+      isQuickFixActive: showQuickFix,
+    });
+  }
+
+  // We'll make the quick fix buttons invisible at start
+  if (keepChangesBtn) {
+    keepChangesBtn.addEventListener('click', () => {
+      vscode.postMessage({
+        type: 'quickFixDecision',
+        decision: 'keep',
+      });
+
+      // Update UI
+      updateUIDisplay(false);
+    });
+  }
+  if (revertChangesBtn) {
+    revertChangesBtn.addEventListener('click', () => {
+      vscode.postMessage({
+        type: 'quickFixDecision',
+        decision: 'revert',
+      });
+
+      // Update UI
+      updateUIDisplay(false);
+    });
+  }
+
+  // Regular button handlers
   native_button.addEventListener('click', (e) => {
     vscode.postMessage({ type: 'analyzeNotebookNative' });
     native_button.disabled = true;
@@ -46,6 +85,40 @@
 
   popupSettingsAnchor.addEventListener('click', (e) => {
     vscode.postMessage({ type: 'goToSettingsPage' });
+  });
+
+  // Handle messages sent from the extension to the webview
+  window.addEventListener('message', (event) => {
+    const message = event.data; // The json data that the extension sent
+    switch (message.type) {
+      case 'analysisCompleted': {
+        native_button.disabled = false;
+        docker_button.disabled = false;
+        break;
+      }
+      case 'webviewLoaded': {
+        native_button.disabled = message.isRunning ?? false;
+        docker_button.disabled = message.isRunning ?? false;
+        // Restore UI state based on persisted state
+        const state = vscode.getState() || { isQuickFixActive: false };
+        updateUIDisplay(state.isQuickFixActive);
+        break;
+      }
+      case 'filePickerDone': {
+        installLeakageBtn.disabled = false;
+        break;
+      }
+      case 'showQuickFixDialog': {
+        // Activate the buttons
+        updateUIDisplay(true);
+        break;
+      }
+      case 'hideQuickFixDialog': {
+        // Deactivate the buttons
+        updateUIDisplay(false);
+        break;
+      }
+    }
   });
 
   vscode.postMessage({ type: 'webviewLoaded' });
