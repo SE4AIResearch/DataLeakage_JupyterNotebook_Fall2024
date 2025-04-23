@@ -88,6 +88,7 @@ export class ButtonViewProvider {
           break;
         case 'dockerChosen':
           StateManager.saveData(this._context, 'method', 'docker');
+          this.refresh('settings');
           break;
         case 'nativeChosen':
           StateManager.saveData(this._context, 'method', 'native');
@@ -95,6 +96,7 @@ export class ButtonViewProvider {
             'Native state should have been loaded: ',
             StateManager.loadData(this._context, 'method'),
           );
+          this.refresh('settings');
           break;
       }
     });
