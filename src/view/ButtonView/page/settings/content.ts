@@ -103,7 +103,11 @@ export function createSettingsPage(
           </a>
         </div>
 
-        ${createPrimaryButton('Install', 'install-leakage')}
+        ${createPrimaryButton(
+          'Install',
+          'install-leakage',
+          method === 'docker',
+        )}
       </div>
 
       <div class="help mb-2">
