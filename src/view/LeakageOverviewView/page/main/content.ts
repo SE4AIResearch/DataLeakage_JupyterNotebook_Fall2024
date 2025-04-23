@@ -21,7 +21,7 @@ export function createMainPage(
     { nonce, colorMode },
     html`
       <div class="">
-        <h1>Leakage Summary</h1>
+        <h1 class="text-2xl">Leakage Summary</h1>
         <table>
           <tr>
             <th>Type</th>
@@ -41,7 +41,7 @@ export function createMainPage(
           </tr>
         </table>
 
-        <h1>Leakage Instances</h1>
+        <h1 class="text-2xl">Leakage Instances</h1>
         <table id="leakage-instances-table">
           <tr>
             <th>Type</th>

@@ -41,7 +41,7 @@ export function createMainPage(
             />
           </div>
 
-          <div class="mb-6">
+          <div class="mb-6" id="run-leakage">
             <div ${method === 'native' ? 'hidden' : ''}>
               ${createPrimaryButton(
                 'Run Data Leakage Analysis',
@@ -53,6 +53,33 @@ export function createMainPage(
                 'Run Data Leakage Analysis',
                 'run-leakage-native',
               )}
+            </div>
+          </div>
+
+          <!-- Quick Fix Dialog - Hidden by default -->
+          <div id="quick-fix-dialog" class="mb-6 hidden">
+            <div
+              class="bg-neutral-600/20 dark:bg-neutral-800/50 rounded-md p-4 flex flex-col items-center"
+            >
+              <h3
+                class="text-neutral-700 dark:text-neutral-300 text-lg font-semibold mb-4"
+              >
+                Do you want to keep these changes?
+              </h3>
+              <div class="flex gap-3">
+                <button
+                  id="keep-changes"
+                  class="cursor-pointer bg-[var(--vscode-button-background)] hover:bg-[var(--vscode-button-hoverBackground)] text-[var(--vscode-button-foreground)] px-4 py-2 rounded-sm"
+                >
+                  Keep Changes
+                </button>
+                <button
+                  id="revert-changes"
+                  class="cursor-pointer bg-[var(--vscode-button-secondaryBackground)] hover:bg-[var(--vscode-errorForeground)] text-[var(--vscode-button-secondaryForeground)] px-4 py-2 rounded-sm"
+                >
+                  Revert Changes
+                </button>
+              </div>
             </div>
           </div>
 

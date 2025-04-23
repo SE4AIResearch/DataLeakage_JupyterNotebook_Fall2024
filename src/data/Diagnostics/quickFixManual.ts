@@ -87,51 +87,95 @@ export class QuickFixManual implements vscode.CodeActionProvider {
   ): vscode.CodeAction[] {
     const actions = context.diagnostics
       .filter((diagnostic) => diagnostic.code === LEAKAGE_ERROR)
-      .flatMap((diagnostic) => [this.createFix(diagnostic, document)])
+      .flatMap((diagnostic) => [this.createDiffBasedFix(diagnostic, document)])
       .filter((fix) => !!fix);
     return actions;
   }
 
-  private createFix(
+  // Creates a code action that shows a diff before applying changes.
+  private createDiffBasedFix(
     diagnostic: vscode.Diagnostic,
     document: vscode.TextDocument,
   ): vscode.CodeAction | null {
-    const action = new vscode.CodeAction(
-      'Leakage Quickfix Suggestion',
-      vscode.CodeActionKind.QuickFix,
-    );
+    // Use more specific titles based on leakage type
+    let title = 'Leakage Fix';
+    switch (diagnostic.source) {
+      case 'OverlapLeakage':
+        title = 'Use independent test data for evaluation';
+        break;
+      case 'PreProcessingLeakage':
+        title = 'Move feature selection after train/test split';
+        break;
+      case 'MultiTestLeakage':
+        title = 'Use independent test data for evaluation';
+        break;
+      default:
+        throw new Error(
+          `Unknown leakage type: ${diagnostic.source}. Expected 'OverlapLeakage', 'PreProcessingLeakage', or 'MultiTestLeakage'.`,
+        );
+    }
 
+    const action = new vscode.CodeAction(title, vscode.CodeActionKind.QuickFix);
     action.diagnostics = [diagnostic];
     action.isPreferred = true;
+
+    // Directly provide an edit that will be applied when the user selects the quick fix
     action.edit = new vscode.WorkspaceEdit();
+
+    // Apply the appropriate fix based on leakage type
     switch (diagnostic.source) {
-      case LeakageType.OverlapLeakage:
-        action.title = 'Use independent test data for evaluation.';
+      case 'OverlapLeakage':
         this.tryResolveOverlap(
           action.edit,
           document,
           diagnostic.range.start.line + 1,
         );
         break;
-      case LeakageType.PreProcessingLeakage:
-        action.title = 'Move feature selection later.';
+      case 'PreProcessingLeakage':
         this.tryResolvePreprocessing(
           action.edit,
           document,
           diagnostic.range.start.line + 1,
         );
         break;
-      case LeakageType.MultiTestLeakage:
-        action.title = 'Use independent test data for evaluation.';
+      case 'MultiTestLeakage':
         this.tryResolveMultiTest(
           action.edit,
           document,
           diagnostic.range.start.line + 1,
         );
         break;
+      default:
+        throw new Error(
+          `Unknown leakage type: ${diagnostic.source}. Expected 'OverlapLeakage', 'PreProcessingLeakage', or 'MultiTestLeakage'.`,
+        );
     }
 
+    // Create a command that will show a diff before applying changes
+    action.command = {
+      title: 'Show Quick Fix Changes',
+      command: 'data-leakage.showFixDiff',
+      arguments: [document.uri, document.getText(), diagnostic.source],
+    };
+
     return action;
+  }
+
+  // Helper method to find the notebook and cell for a given URI
+  public async findNotebookCellInfo(
+    uri: vscode.Uri,
+  ): Promise<{ notebook: vscode.NotebookDocument; cellIndex: number } | null> {
+    for (const notebook of vscode.workspace.notebookDocuments) {
+      const cellIndex = notebook
+        .getCells()
+        .findIndex((cell) => cell.document.uri.toString() === uri.toString());
+
+      if (cellIndex !== -1) {
+        return { notebook, cellIndex };
+      }
+    }
+
+    return null;
   }
 
   private async tryResolveOverlap(
