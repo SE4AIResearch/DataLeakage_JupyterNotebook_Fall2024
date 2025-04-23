@@ -126,7 +126,7 @@ export async function activate(context: vscode.ExtensionContext) {
           // Show notification to user about using the extension panel
           // to accept or reject Quick Fix changes.
           vscode.window.showInformationMessage(
-            'Use the left extension sidebar to accept or reject changes.',
+            'Open our extension on the sidebar to accept or reject changes.',
           );
 
           // Need ButtonView visible to properly show the Quick Fix dialog
@@ -139,6 +139,9 @@ export async function activate(context: vscode.ExtensionContext) {
             originalFile,
             modifiedFile,
             title,
+            {
+              preview: true,
+            },
           );
 
           // Tell ButtonView to show the quick fix dialog
