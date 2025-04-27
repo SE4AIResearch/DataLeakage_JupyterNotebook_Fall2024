@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.4
+- Improved Quick Fix solution
+- Quality of life improvements
+- Bugfixes
+
 ## 1.0.3
 
 - 2nd test build with automated CI/CD GitHub Actions
