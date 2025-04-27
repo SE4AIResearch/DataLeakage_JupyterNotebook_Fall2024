@@ -203,6 +203,14 @@ export class QuickFixManual implements vscode.CodeActionProvider {
     );
   }
 
+  private genTempVarName(varName: string) {
+    let temp_name = `${varName}_0`;
+    while (temp_name in this._dataFlowMappings) {
+      temp_name += '0';
+    }
+    return temp_name;
+  }
+
   private async tryResolvePreprocessing(
     edit: vscode.WorkspaceEdit,
     document: vscode.TextDocument,
@@ -261,16 +269,8 @@ export class QuickFixManual implements vscode.CodeActionProvider {
       e.trim(),
     );
 
-    const genTempVarName = (varName: string) => {
-      let temp_name = `${X_train}_0`;
-      while (temp_name in this._dataFlowMappings) {
-        temp_name += '0';
-      }
-      return temp_name;
-    };
-
-    const temp_X_train = genTempVarName(X_train);
-    const temp_X_test = genTempVarName(X_test);
+    const temp_X_train = this.genTempVarName(X_train);
+    const temp_X_test = this.genTempVarName(X_test);
     const updatedFeatureSelectionCode = featureSelectionCode
       .replace(X_train, temp_X_train)
       .replace(X_test, temp_X_test);
@@ -374,15 +374,29 @@ export class QuickFixManual implements vscode.CodeActionProvider {
   ) {
     const documentLines = document.getText().split('\n');
 
+    if (!documentLines)
+      throw new Error('Document lines are not available');
+
     const testingVariable = this._lineMetadataMappings[line].variable;
     const testingModel = this._lineMetadataMappings[line].model;
+
+    if (!testingVariable)
+      throw new Error(
+        'Testing variable not found in line metadata mappings',
+      );
+    
+    if (!testingModel)
+      throw new Error(
+        'Testing model not found in line metadata mappings'
+      );
+
     const equivalentModels = Array.from(
       this._variableEquivalenceMappings[testingModel],
     );
     const lastEquivalentModel = equivalentModels[equivalentModels.length - 1];
 
-    const newX = `X_${testingVariable}_new`;
-    const newY = `y_${testingVariable}_new`;
+    const newX = this.genTempVarName(`X_${testingVariable}_new`);
+    const newY = this.genTempVarName(`y_${testingVariable}_new`);
     let transformingModel = 'transform_model';
     for (let i = 0; i < document.lineCount; i++) {
       const regex = /\bselect(?=\s*\.\s*transform\s*\()/g;
