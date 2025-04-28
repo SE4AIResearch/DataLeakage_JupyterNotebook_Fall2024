@@ -57,7 +57,7 @@ jobs:
       - name: Publish Extension
         run: npm run deploy
         env:
-          # This is the Personal Access Token (PAT) created in Michael Soca's Azure DevOps account
+          # This is the Personal Access Token (PAT) created by Dr. Eman Alomar
           # And saved in the extension's repository as a secret named VSCE_PAT
-          # Will expire 07/01/2025
+          # Max 1 year expiration date on creation
           VSCE_PAT: ${{ secrets.VSCE_PAT }}
