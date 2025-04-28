@@ -106,27 +106,23 @@ export class QuickFixManual implements vscode.CodeActionProvider {
     action.edit = new vscode.WorkspaceEdit();
     switch (diagnostic.source) {
       case LeakageType.OverlapLeakage:
-        action.title = 'Use independent test data for evaluation.';
+        action.title = 'Separate training and test data.';
         this.tryResolveOverlap(
           action.edit,
           document,
-          diagnostic.range.start.line + 1,
+          diagnostic.range.start.line,
         );
         break;
       case LeakageType.PreProcessingLeakage:
         action.title = 'Move feature selection later.';
-        this.tryResolvePreprocessing(
-          action.edit,
-          document,
-          diagnostic.range.start.line + 1,
-        );
+        this.tryResolvePreprocessing(action.edit, document);
         break;
       case LeakageType.MultiTestLeakage:
         action.title = 'Use independent test data for evaluation.';
         this.tryResolveMultiTest(
           action.edit,
           document,
-          diagnostic.range.start.line + 1,
+          diagnostic.range.start.line,
         );
         break;
     }
@@ -139,30 +135,107 @@ export class QuickFixManual implements vscode.CodeActionProvider {
     document: vscode.TextDocument,
     line: number,
   ) {
-    const testingVariable = this._lineMetadataMappings[line].variable;
-    const testingModel = this._lineMetadataMappings[line].model;
+    const documentLines = document.getText().split('\n');
 
-    const newX = `X_${testingVariable}_new`;
-    const newY = `y_${testingVariable}_new`;
-    const scoringModel = `${this._variableEquivalenceMappings[testingModel]}`;
+    let featureSelectionLine = -1;
+    for (let i = 0; i < document.lineCount; i++) {
+      if (documentLines[i].match(/train_test_split/g)) {
+        featureSelectionLine = i;
+      }
+    }
+    if (featureSelectionLine === -1) {
+      throw new Error(
+        "Feature selection method not found. Looking for 'train_test_split' method.",
+      );
+    }
 
-    const newLoad = `${newX}, ${newY} = load_test_data()\n`;
-    const newTransform = `${newX}_0 = transform_model.transform(${newX})\n`;
-    const newScore = `${scoringModel}.score(${newX}_0, ${newY})`;
+    let featureSelectionCode = documentLines[featureSelectionLine];
+    let endLine = featureSelectionLine;
 
-    const insert = `\n${newLoad}${newTransform}${newScore}`;
+    const getParenthesesCount = (str: string) => {
+      let count = 0;
+      let inQuote = false;
+      for (const char of str) {
+        if (char === '"' || char === "'") {
+          inQuote = !inQuote;
+        }
+        if (char === '(' && !inQuote) {
+          count++;
+        } else if (char === ')' && !inQuote) {
+          count--;
+        }
+      }
+      return count;
+    };
 
-    edit.insert(
-      document.uri,
-      new vscode.Position(document.lineCount, 0),
-      insert,
+    let runningCount = getParenthesesCount(featureSelectionCode.trim());
+    while (runningCount !== 0) {
+      endLine++;
+      featureSelectionCode += '\n' + documentLines[endLine];
+      runningCount += getParenthesesCount(documentLines[endLine].trim());
+    }
+
+    const featureVariables = featureSelectionCode.split('=')[0].split(',');
+
+    let [X_train, X_test, y_train, y_test] = featureVariables.map((e) =>
+      e.trim(),
     );
+
+    const dupTaints = Object.keys(this._taintMappings)
+      .filter((key) => this._taintMappings[parseInt(key)].label === 'dup')
+      .map(parseInt);
+    if (dupTaints.length > 0) {
+      const taintLineNumber = dupTaints[0];
+      const taintLine = documentLines[taintLineNumber - 1];
+      const resamplerRegex =
+        /(\w+)\s*,\s*(\w+)\s*=\s*(\w+)\.fit_resample\(\s*(\w+)\s*,\s*(\w+)\s*\)/g;
+      const match = resamplerRegex.exec(taintLine);
+      if (!match) {
+        throw new Error('Unable to match fit_resample.');
+      }
+
+      const [_, X_resampled, y_resampled, __, X, y] = match;
+
+      const updatedTrainTest = featureSelectionCode
+        .replace(X_resampled, X)
+        .replace(y_resampled, y);
+      const updatedTaintLine = taintLine.replace(
+        /(\.\s*fit_resample\s*\(\s*)(\w+)(\s*,\s*)(\w+)(\s*\))/,
+        (_, before, firstParam, middle, secondParam, after) =>
+          `${before}${firstParam === 'X' ? 'X_train' : firstParam}${middle}${secondParam === 'y' ? 'y_train' : secondParam}${after}`,
+      );
+
+      edit.insert(
+        document.uri,
+        new vscode.Position(taintLineNumber - 1, 0),
+        `${updatedTrainTest}\n`,
+      );
+      edit.replace(
+        document.uri,
+        document.lineAt(taintLineNumber - 1).range,
+        `${updatedTaintLine}\n`,
+      );
+      edit.delete(document.uri, document.lineAt(taintLineNumber).range);
+
+      X_train = X_resampled;
+      y_train = y_resampled;
+    }
+
+    const offendingLine = document.lineAt(line).text;
+    const regex = /\w+\s*\(\s*(\w+)\s*,\s*(\w+)\s*\)/g;
+    const regexExec = regex.exec(offendingLine);
+    if (!regexExec) {
+      throw new Error('Unable to match two parameters in the line.');
+    }
+    const [_, X, y] = regexExec;
+
+    const updatedLine = offendingLine.replace(X, X_train).replace(y, y_train);
+    edit.replace(document.uri, document.lineAt(line).range, updatedLine);
   }
 
   private async tryResolvePreprocessing(
     edit: vscode.WorkspaceEdit,
     document: vscode.TextDocument,
-    line: number,
   ) {
     const documentLines = document.getText().split('\n');
 
@@ -218,7 +291,7 @@ export class QuickFixManual implements vscode.CodeActionProvider {
     );
 
     const genTempVarName = (varName: string) => {
-      let temp_name = `${X_train}_0`;
+      let temp_name = `${varName}_0`;
       while (temp_name in this._dataFlowMappings) {
         temp_name += '0';
       }
@@ -232,7 +305,7 @@ export class QuickFixManual implements vscode.CodeActionProvider {
       .replace(X_test, temp_X_test);
 
     // Step 3: Find the earliest taint line
-    const taintLines = Object.keys(this._taintMappings).map((e) => parseInt(e));
+    const taintLines = Object.keys(this._taintMappings).map(parseInt);
     if (taintLines.length === 0) {
       throw new Error('No taint mappings found for preprocessing.');
     }
@@ -330,8 +403,8 @@ export class QuickFixManual implements vscode.CodeActionProvider {
   ) {
     const documentLines = document.getText().split('\n');
 
-    const testingVariable = this._lineMetadataMappings[line].variable;
-    const testingModel = this._lineMetadataMappings[line].model;
+    const testingVariable = this._lineMetadataMappings[line + 1].variable;
+    const testingModel = this._lineMetadataMappings[line + 1].model;
     const equivalentModels = Array.from(
       this._variableEquivalenceMappings[testingModel],
     );
