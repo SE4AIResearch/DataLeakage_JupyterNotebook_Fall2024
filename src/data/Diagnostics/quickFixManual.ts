@@ -345,14 +345,6 @@ export class QuickFixManual implements vscode.CodeActionProvider {
       e.trim(),
     );
 
-    const genTempVarName = (varName: string) => {
-      let temp_name = `${varName}_0`;
-      while (temp_name in this._dataFlowMappings) {
-        temp_name += '0';
-      }
-      return temp_name;
-    };
-
     const temp_X_train = this.genTempVarName(X_train);
     const temp_X_test = this.genTempVarName(X_test);
     const updatedFeatureSelectionCode = featureSelectionCode
@@ -360,7 +352,7 @@ export class QuickFixManual implements vscode.CodeActionProvider {
       .replace(X_test, temp_X_test);
 
     // Step 3: Find the earliest taint line
-    const taintLines = Object.keys(this._taintMappings).map(parseInt);
+    const taintLines = Object.keys(this._taintMappings).map((e) => parseInt(e));
     if (taintLines.length === 0) {
       throw new Error('No taint mappings found for preprocessing.');
     }
