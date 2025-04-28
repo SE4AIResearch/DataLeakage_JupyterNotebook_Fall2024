@@ -9,6 +9,7 @@ import { ConversionToPython } from '../../helpers/conversion/LineConversion';
 import { LineMapRecord } from '../../validation/isLineMapRecord';
 import { runDocker } from './_docker';
 import { runNative } from './_native';
+import { ButtonViewProvider } from '../../view/ButtonView/ButtonViewProvider';
 
 // TODO: Refactor analyzeNotebook & analyzeNotebookWithNotification into one
 
@@ -24,18 +25,9 @@ async function runAlgorithm(
     try {
       await runNative(context, tempDir);
     } catch (err) {
-      vscode.window.showErrorMessage(
-        'Native Implementation Failed. Falling back to Docker.',
-      );
+      vscode.window.showErrorMessage('Native Implementation Failed.');
 
-      try {
-        await runDocker(tempDir);
-      } catch (err) {
-        vscode.window.showErrorMessage(
-          'Docker Implementation Failed. Extension Exiting.',
-        );
-        throw err;
-      }
+      throw err;
     }
   }
 
@@ -86,6 +78,14 @@ async function analyzeNotebook(
     const startTime = performance.now();
     try {
       StateManager.saveIsRunning(context, true);
+
+      // Clear output channel at the beginning of analysis
+      ButtonViewProvider.clearOutputDebugChannel();
+
+      // Focus on the LeakageOverview panel on start
+      await vscode.commands.executeCommand(
+        'data-leakage.overviewViewProvider.focus',
+      );
 
       // Convert Notebook -> Python
       const [pythonStr, jsonObj] = transformInput(

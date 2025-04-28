@@ -70,7 +70,7 @@
       "data-leakage": [
         {
           "type": "webview",
-          "id": "data-leakage.buttonView",
+          "id": "data-leakage.buttonViewProvider",
           "name": "Data Leakage"
         }
       ],
@@ -86,12 +86,12 @@
       "view/title": [
         {
           "command": "data-leakage.showButton",
-          "when": "view == data-leakage.buttonView",
+          "when": "view == data-leakage.buttonViewProvider",
           "group": "navigation"
         },
         {
           "command": "data-leakage.showSettings",
-          "when": "view == data-leakage.buttonView",
+          "when": "view == data-leakage.buttonViewProvider",
           "group": "navigation"
         }
       ]

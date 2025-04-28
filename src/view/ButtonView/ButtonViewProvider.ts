@@ -16,8 +16,10 @@ import { configureNotebookDiagnostics } from '../../data/Diagnostics/notebookDia
  * Manages Button Webview
  */
 export class ButtonViewProvider {
-  public static readonly viewType = 'data-leakage.buttonView';
+  public static readonly viewType = 'data-leakage.buttonViewProvider';
 
+  // Using this to show Quick Fix debug info (due to syntax error)
+  private static _outputDebugChannel: vscode.OutputChannel | undefined;
   private _view?: vscode.WebviewView;
 
   constructor(
@@ -26,8 +28,53 @@ export class ButtonViewProvider {
     private readonly _changeView: () => Promise<void>,
     private readonly _output: 'buttons' | 'settings',
     private readonly _notebookDiagnostics: vscode.DiagnosticCollection,
-    private readonly _quickFixManual: QuickFixManual
-  ) {}
+    private readonly _quickFixManual: QuickFixManual,
+  ) {
+    if (!ButtonViewProvider._outputDebugChannel) {
+      ButtonViewProvider._outputDebugChannel =
+        vscode.window.createOutputChannel('Data Analysis Debug');
+    }
+  }
+
+  // Static getter for the output channel
+  public static getOutputDebugChannel(): vscode.OutputChannel {
+    if (!ButtonViewProvider._outputDebugChannel) {
+      ButtonViewProvider._outputDebugChannel =
+        vscode.window.createOutputChannel('Data Analysis Debug');
+    }
+    return ButtonViewProvider._outputDebugChannel;
+  }
+
+  // Static method to clear the output channel
+  public static clearOutputDebugChannel(): void {
+    if (ButtonViewProvider._outputDebugChannel) {
+      ButtonViewProvider._outputDebugChannel.clear();
+      ButtonViewProvider._outputDebugChannel.hide();
+    }
+  }
+
+  public showQuickFixDialog() {
+    if (this._view) {
+      // Show the dialog and disable the run buttons
+      this._view.webview.postMessage({
+        type: 'showQuickFixDialog',
+      });
+    }
+  }
+
+  public hideQuickFixDialog() {
+    if (this._view) {
+      // Hide the dialog and enable the run buttons
+      this._view.webview.postMessage({
+        type: 'hideQuickFixDialog',
+      });
+    }
+  }
+
+  // Add this getter to access the webview
+  public get webview(): vscode.Webview | undefined {
+    return this._view?.webview;
+  }
 
   public resolveWebviewView(
     webviewView: vscode.WebviewView,
@@ -70,11 +117,22 @@ export class ButtonViewProvider {
             );
           }
           break;
+        case 'quickFixDecision':
+          // Forward the decision to the extension
+          vscode.commands.executeCommand(
+            'data-leakage.handleQuickFixDecision',
+            data.decision,
+          );
+          break;
         case 'goToSettingsPage':
           this.refresh('settings');
           break;
         case 'webviewLoaded':
           try {
+            // First check if a quick fix is in progress
+            // if (isQuickFixInProgress) {
+            //   this.showQuickFixDialog();
+            // }
             const data = {
               type: 'webviewLoaded',
               isRunning: StateManager.loadIsRunning(this._context),
@@ -110,6 +168,7 @@ export class ButtonViewProvider {
           break;
         case 'dockerChosen':
           StateManager.saveData(this._context, 'method', 'docker');
+          this.refresh('settings');
           break;
         case 'nativeChosen':
           StateManager.saveData(this._context, 'method', 'native');
@@ -117,6 +176,7 @@ export class ButtonViewProvider {
             'Native state should have been loaded: ',
             StateManager.loadData(this._context, 'method'),
           );
+          this.refresh('settings');
           break;
       }
     });
@@ -185,9 +245,9 @@ export class ButtonViewProvider {
       : 'https://i.imgur.com/TKs7dc2.png';
     const colorMode: 'light' | 'dark' = isLightMode ? 'light' : 'dark';
 
-    const method = StateManager.loadData(this._context, 'method') ?? 'docker';
+    const method = StateManager.loadData(this._context, 'method') ?? 'native';
     if (method === undefined) {
-      StateManager.saveData(this._context, 'method', 'docker');
+      StateManager.saveData(this._context, 'method', 'native');
     }
     console.log('Method: ', method);
 

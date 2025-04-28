@@ -87,23 +87,42 @@ export class QuickFixManual implements vscode.CodeActionProvider {
   ): vscode.CodeAction[] {
     const actions = context.diagnostics
       .filter((diagnostic) => diagnostic.code === LEAKAGE_ERROR)
-      .flatMap((diagnostic) => [this.createFix(diagnostic, document)])
+      .flatMap((diagnostic) => [this.createDiffBasedFix(diagnostic, document)])
       .filter((fix) => !!fix);
     return actions;
   }
 
-  private createFix(
+  // Creates a code action that shows a diff before applying changes.
+  private createDiffBasedFix(
     diagnostic: vscode.Diagnostic,
     document: vscode.TextDocument,
   ): vscode.CodeAction | null {
-    const action = new vscode.CodeAction(
-      'Leakage Quickfix Suggestion',
-      vscode.CodeActionKind.QuickFix,
-    );
+    // Use more specific titles based on leakage type
+    let title = 'Leakage Fix';
+    switch (diagnostic.source) {
+      case LeakageType.OverlapLeakage:
+        title = 'Separate training and test data.';
+        break;
+      case LeakageType.PreProcessingLeakage:
+        title = 'Move feature selection after train/test split';
+        break;
+      case LeakageType.MultiTestLeakage:
+        title = 'Use independent test data for evaluation';
+        break;
+      default:
+        throw new Error(
+          `Unknown leakage type: ${diagnostic.source}. Expected 'OverlapLeakage', 'PreProcessingLeakage', or 'MultiTestLeakage'.`,
+        );
+    }
 
+    const action = new vscode.CodeAction(title, vscode.CodeActionKind.QuickFix);
     action.diagnostics = [diagnostic];
     action.isPreferred = true;
+
+    // Directly provide an edit that will be applied when the user selects the quick fix
     action.edit = new vscode.WorkspaceEdit();
+
+    // Apply the appropriate fix based on leakage type
     switch (diagnostic.source) {
       case LeakageType.OverlapLeakage:
         action.title = 'Separate training and test data.';
@@ -114,20 +133,48 @@ export class QuickFixManual implements vscode.CodeActionProvider {
         );
         break;
       case LeakageType.PreProcessingLeakage:
-        action.title = 'Move feature selection later.';
+        action.title = 'Move feature selection after train/test split';
         this.tryResolvePreprocessing(action.edit, document);
         break;
       case LeakageType.MultiTestLeakage:
-        action.title = 'Use independent test data for evaluation.';
+        action.title = 'Use independent test data for evaluation';
         this.tryResolveMultiTest(
           action.edit,
           document,
           diagnostic.range.start.line,
         );
         break;
+      default:
+        throw new Error(
+          `Unknown leakage type: ${diagnostic.source}. Expected 'OverlapLeakage', 'PreProcessingLeakage', or 'MultiTestLeakage'.`,
+        );
     }
 
+    // Create a command that will show a diff before applying changes
+    action.command = {
+      title: 'Show Quick Fix Changes',
+      command: 'data-leakage.showFixDiff',
+      arguments: [document.uri, document.getText(), diagnostic.source],
+    };
+
     return action;
+  }
+
+  // Helper method to find the notebook and cell for a given URI
+  public async findNotebookCellInfo(
+    uri: vscode.Uri,
+  ): Promise<{ notebook: vscode.NotebookDocument; cellIndex: number } | null> {
+    for (const notebook of vscode.workspace.notebookDocuments) {
+      const cellIndex = notebook
+        .getCells()
+        .findIndex((cell) => cell.document.uri.toString() === uri.toString());
+
+      if (cellIndex !== -1) {
+        return { notebook, cellIndex };
+      }
+    }
+
+    return null;
   }
 
   private async tryResolveOverlap(
@@ -233,6 +280,14 @@ export class QuickFixManual implements vscode.CodeActionProvider {
     edit.replace(document.uri, document.lineAt(line).range, updatedLine);
   }
 
+  private genTempVarName(varName: string) {
+    let temp_name = `${varName}_0`;
+    while (temp_name in this._dataFlowMappings) {
+      temp_name += '0';
+    }
+    return temp_name;
+  }
+
   private async tryResolvePreprocessing(
     edit: vscode.WorkspaceEdit,
     document: vscode.TextDocument,
@@ -298,8 +353,8 @@ export class QuickFixManual implements vscode.CodeActionProvider {
       return temp_name;
     };
 
-    const temp_X_train = genTempVarName(X_train);
-    const temp_X_test = genTempVarName(X_test);
+    const temp_X_train = this.genTempVarName(X_train);
+    const temp_X_test = this.genTempVarName(X_test);
     const updatedFeatureSelectionCode = featureSelectionCode
       .replace(X_train, temp_X_train)
       .replace(X_test, temp_X_test);
@@ -403,15 +458,28 @@ export class QuickFixManual implements vscode.CodeActionProvider {
   ) {
     const documentLines = document.getText().split('\n');
 
+    if (!documentLines) {
+      throw new Error('Document lines are not available');
+    }
+
     const testingVariable = this._lineMetadataMappings[line + 1].variable;
     const testingModel = this._lineMetadataMappings[line + 1].model;
+
+    if (!testingVariable) {
+      throw new Error('Testing variable not found in line metadata mappings');
+    }
+
+    if (!testingModel) {
+      throw new Error('Testing model not found in line metadata mappings');
+    }
+
     const equivalentModels = Array.from(
       this._variableEquivalenceMappings[testingModel],
     );
     const lastEquivalentModel = equivalentModels[equivalentModels.length - 1];
 
-    const newX = `X_${testingVariable}_new`;
-    const newY = `y_${testingVariable}_new`;
+    const newX = this.genTempVarName(`X_${testingVariable}_new`);
+    const newY = this.genTempVarName(`y_${testingVariable}_new`);
     let transformingModel = 'transform_model';
     for (let i = 0; i < document.lineCount; i++) {
       const regex = /\bselect(?=\s*\.\s*transform\s*\()/g;
