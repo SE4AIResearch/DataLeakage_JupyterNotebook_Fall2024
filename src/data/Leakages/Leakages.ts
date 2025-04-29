@@ -184,6 +184,7 @@ export default class Leakages {
 
   /**
    * @returns All the mappings from internal program line number to external user line number.
+   * IMPORTANT: The leakage detector program starts user lines from 1.
    */
   public async getInternalLineMappings(): Promise<Record<number, number>> {
     const internalLineMappings: Record<number, number> = {};
