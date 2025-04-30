@@ -55,6 +55,8 @@ export class ButtonViewProvider {
 
   public showQuickFixDialog() {
     if (this._view) {
+      // First ensure we're on the main page
+      this.refresh('buttons');
       // Show the dialog and disable the run buttons
       this._view.webview.postMessage({
         type: 'showQuickFixDialog',
