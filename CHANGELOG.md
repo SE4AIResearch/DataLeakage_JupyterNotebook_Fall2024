@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.1.3
+- Edit README file
+
 ## 1.1.2
 - Improved Quick Fix solution
 - Quality of life improvements
