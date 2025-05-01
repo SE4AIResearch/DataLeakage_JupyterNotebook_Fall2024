@@ -27,7 +27,7 @@
         const table = document.getElementById('leakage-instances-table');
         // Reset table to only headers
         table.innerHTML = `
-          <tr class="bg-neutral-500 text-neutral-300 dark:text-neutral-600">
+          <tr>
             <th>ID</th>
             <th>Type</th>
             <th>General Cause</th>
