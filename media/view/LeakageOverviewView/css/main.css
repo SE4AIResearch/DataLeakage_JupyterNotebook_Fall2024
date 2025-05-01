@@ -8,12 +8,9 @@ td {
   padding: 8px;
 }
 th {
-  background-color: white; /* Set the header background to white */
-  color: black; /* Set the header text color to black */
   text-align: left;
 }
 td {
-  color: white; /* Set the table text color to white */
 }
 
 .clickable {
