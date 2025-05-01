@@ -322,6 +322,9 @@
   .bg-\[var\(--vscode-button-secondaryBackground\)\] {
     background-color: var(--vscode-button-secondaryBackground);
   }
+  .bg-neutral-500 {
+    background-color: var(--color-neutral-500);
+  }
   .bg-neutral-500\/35 {
     background-color: color-mix(in oklab, var(--color-neutral-500) 35%, transparent);
   }
@@ -397,6 +400,9 @@
   }
   .text-\[var\(--vscode-button-secondaryForeground\)\] {
     color: var(--vscode-button-secondaryForeground);
+  }
+  .text-neutral-300 {
+    color: var(--color-neutral-300);
   }
   .text-neutral-600 {
     color: var(--color-neutral-600);
@@ -480,6 +486,11 @@
   .dark\:text-neutral-300 {
     &:where(.dark, .dark *) {
       color: var(--color-neutral-300);
+    }
+  }
+  .dark\:text-neutral-600 {
+    &:where(.dark, .dark *) {
+      color: var(--color-neutral-600);
     }
   }
 }

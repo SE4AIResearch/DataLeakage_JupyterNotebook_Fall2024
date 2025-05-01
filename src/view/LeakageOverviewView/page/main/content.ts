@@ -20,10 +20,10 @@ export function createMainPage(
     extensionUri,
     { nonce, colorMode },
     html`
-      <div class="">
+      <div class="text-neutral-600 dark:text-neutral-300">
         <h1 class="text-2xl">Leakage Summary</h1>
         <table>
-          <tr>
+          <tr class="bg-neutral-500 text-neutral-300 dark:text-neutral-600">
             <th>Type</th>
             <th>Unique Leakage Count</th>
           </tr>
@@ -43,7 +43,7 @@ export function createMainPage(
 
         <h1 class="text-2xl">Leakage Instances</h1>
         <table id="leakage-instances-table">
-          <tr>
+          <tr class="bg-neutral-500 text-neutral-300 dark:text-neutral-600">
             <th>Type</th>
             <th>Cell</th>
             <th>Line</th>
