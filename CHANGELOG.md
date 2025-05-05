@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.1.4
+- Remove known issue section from README template
+
 ## 1.1.3
 - Edit README file
 
