@@ -250,5 +250,3 @@ y_pred = gbc . predict ( X_test )
 accuracy_score ( y_test , y_pred )
 # expected accuracy ~0.5; reported accuracy 0.76
 ```
-
-## Known Issues
